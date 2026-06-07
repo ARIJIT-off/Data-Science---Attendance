@@ -492,6 +492,7 @@
       <button class="tab-btn" data-tab="tab-students">Student Attendance</button>
       <button class="tab-btn" data-tab="tab-teachers">Teacher Summary</button>
       <button class="tab-btn" data-tab="tab-all-records">All Records</button>
+      <button class="tab-btn" data-tab="tab-manage-users">Manage Users</button>
     </div>
 
     <!-- TAB 1: Student-wise Attendance -->
@@ -558,6 +559,92 @@
             <div class="spinner"></div>
             <span>Loading...</span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: Manage Users -->
+    <div class="tab-content" id="tab-manage-users">
+      <div class="glass-card">
+        <div class="section-title">Manage Website Users</div>
+        
+        <!-- Toggle buttons for User Type -->
+        <div class="live-method-choice" style="margin-bottom: 20px;">
+          <button class="live-method-btn active" id="btn-manage-students">Students</button>
+          <button class="live-method-btn" id="btn-manage-teachers">Teachers</button>
+          <button class="live-method-btn" id="btn-manage-admins">Admins</button>
+        </div>
+
+        <!-- Add User Form -->
+        <div class="glass-card" style="margin-top: 0 !important; margin-bottom: 24px; border-color: rgba(255,255,255,0.06) !important; background: rgba(8,12,28,0.3) !important;">
+          <div style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" style="width: 15px; height: 15px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Add New Website User
+          </div>
+          
+          <!-- Student inputs -->
+          <div id="add-student-fields" class="user-fields-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1.5; min-width: 180px;">
+              <input type="text" id="new-stud-name" class="form-input" placeholder="Full Student Name">
+            </div>
+            <div style="flex: 0.8; min-width: 100px;">
+              <input type="number" id="new-stud-roll" class="form-input" placeholder="Class Roll">
+            </div>
+            <div style="flex: 1.2; min-width: 150px;">
+              <input type="text" id="new-stud-enroll" class="form-input" placeholder="Enrollment Number">
+            </div>
+          </div>
+
+          <!-- Teacher inputs -->
+          <div id="add-teacher-fields" class="user-fields-group" style="display: none; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1.5; min-width: 180px;">
+              <input type="text" id="new-teach-name" class="form-input" placeholder="Faculty Name">
+            </div>
+            <div style="flex: 1.2; min-width: 150px;">
+              <input type="email" id="new-teach-email" class="form-input" placeholder="Faculty Email Address">
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+              <input type="text" id="new-teach-mobile" class="form-input" placeholder="Mobile Number (Optional)">
+            </div>
+          </div>
+
+          <!-- Admin inputs -->
+          <div id="add-admin-fields" class="user-fields-group" style="display: none; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1.5; min-width: 180px;">
+              <input type="text" id="new-admin-name" class="form-input" placeholder="Admin Name">
+            </div>
+            <div style="flex: 1.2; min-width: 150px;">
+              <input type="email" id="new-admin-email" class="form-input" placeholder="Admin Email Address">
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+              <input type="text" id="new-admin-role" class="form-input" placeholder="Role (HOD, A.HOD, Coordinator)">
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+              <input type="text" id="new-admin-mobile" class="form-input" placeholder="Mobile (Optional)">
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-sm" id="btn-add-user" style="margin-top: 14px; width: 100%;">Add User</button>
+        </div>
+
+        <!-- Users Roster List -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 12px;">
+          <div style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.7);" id="manage-list-title">Students Roster</div>
+          <div class="search-input-wrapper" style="margin-bottom: 0 !important; max-width: 250px; flex: 1;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="manage-users-search" class="search-input" placeholder="Search by name..." style="margin-bottom: 0;">
+          </div>
+        </div>
+
+        <div class="data-table-wrapper">
+          <table class="data-table" id="manage-users-table">
+            <thead id="manage-users-thead">
+              <!-- Dynamically populated headers -->
+            </thead>
+            <tbody id="manage-users-tbody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -721,6 +808,10 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     // Load grievances if grievances tab clicked
     if (btn.dataset.tab === 'tab-grievances') {
       loadGrievances();
+    }
+    // Load manage users if manage users tab clicked
+    if (btn.dataset.tab === 'tab-manage-users') {
+      loadManageUsers();
     }
   });
 });
@@ -1491,6 +1582,300 @@ if (grievanceFabBtn) {
 if (btnCloseGrievancePanel) {
   btnCloseGrievancePanel.addEventListener('click', () => {
     grievancePanel.classList.remove('open');
+  });
+}
+
+// ===== USER DIRECT MANAGEMENT SYSTEM JS =====
+let manageUsersData = { admins: [], teachers: [], students: [] };
+let activeManageRole = 'Student'; // Default view
+
+async function loadManageUsers() {
+  try {
+    const res = await fetch('/api/admin/users');
+    const data = await res.json();
+    if (data.success) {
+      manageUsersData.admins = data.admins;
+      manageUsersData.teachers = data.teachers;
+      manageUsersData.students = data.students;
+      renderManageUsersTable();
+    } else {
+      showToast(data.message || 'Failed to load users list.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+}
+
+function renderManageUsersTable() {
+  const thead = document.getElementById('manage-users-thead');
+  const tbody = document.getElementById('manage-users-tbody');
+  const title = document.getElementById('manage-list-title');
+  const searchQuery = document.getElementById('manage-users-search').value.toLowerCase().trim();
+
+  tbody.innerHTML = '';
+  
+  if (activeManageRole === 'Student') {
+    title.textContent = 'Students Roster';
+    thead.innerHTML = `
+      <tr>
+        <th>Roll</th>
+        <th>Student Name</th>
+        <th>Enrollment Number</th>
+        <th>Action</th>
+      </tr>
+    `;
+    
+    let filtered = [...manageUsersData.students];
+    if (searchQuery) {
+      filtered = filtered.filter(s => s.name.toLowerCase().includes(searchQuery) || (s.enrollment && s.enrollment.toLowerCase().includes(searchQuery)));
+    }
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: rgba(255,255,255,0.4); padding: 20px;">No students found</td></tr>`;
+      return;
+    }
+    
+    filtered.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${s.roll}</td>
+        <td><strong>${s.name}</strong></td>
+        <td>${s.enrollment}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" style="border-color:#ef4444!important; color:#ef4444!important; padding:4px 8px; font-size:11px;" onclick="deleteUser('Student', '${s.enrollment}')">Remove</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } 
+  else if (activeManageRole === 'Teacher') {
+    title.textContent = 'Teachers List';
+    thead.innerHTML = `
+      <tr>
+        <th>Teacher Name</th>
+        <th>Email Address</th>
+        <th>Mobile</th>
+        <th>Action</th>
+      </tr>
+    `;
+    
+    let filtered = [...manageUsersData.teachers];
+    if (searchQuery) {
+      filtered = filtered.filter(t => t.name.toLowerCase().includes(searchQuery) || t.email.toLowerCase().includes(searchQuery));
+    }
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: rgba(255,255,255,0.4); padding: 20px;">No teachers found</td></tr>`;
+      return;
+    }
+    
+    filtered.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${t.name}</strong></td>
+        <td>${t.email}</td>
+        <td>${t.mobile}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" style="border-color:#ef4444!important; color:#ef4444!important; padding:4px 8px; font-size:11px;" onclick="deleteUser('Teacher', '${t.email}')">Remove</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } 
+  else if (activeManageRole === 'Admin') {
+    title.textContent = 'Admins List';
+    thead.innerHTML = `
+      <tr>
+        <th>Admin Name</th>
+        <th>Email Address</th>
+        <th>Mobile</th>
+        <th>Role / Dept</th>
+        <th>Action</th>
+      </tr>
+    `;
+    
+    let filtered = [...manageUsersData.admins];
+    if (searchQuery) {
+      filtered = filtered.filter(a => a.name.toLowerCase().includes(searchQuery) || a.email.toLowerCase().includes(searchQuery));
+    }
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: rgba(255,255,255,0.4); padding: 20px;">No admins found</td></tr>`;
+      return;
+    }
+    
+    filtered.forEach(a => {
+      const tr = document.createElement('tr');
+      const isSelf = a.email.toLowerCase().trim() === profile.email.toLowerCase().trim();
+      const deleteBtn = isSelf 
+        ? `<span style="font-size:11px; color:rgba(255,255,255,0.3);">Current User</span>`
+        : `<button class="btn btn-secondary btn-sm" style="border-color:#ef4444!important; color:#ef4444!important; padding:4px 8px; font-size:11px;" onclick="deleteUser('Admin', '${a.email}')">Remove</button>`;
+        
+      tr.innerHTML = `
+        <td><strong>${a.name}</strong></td>
+        <td>${a.email}</td>
+        <td>${a.mobile}</td>
+        <td>${a.role} (${a.department})</td>
+        <td>${deleteBtn}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+async function deleteUser(role, identifier) {
+  if (!confirm(`Are you sure you want to remove this ${role.toLowerCase()} from the website?`)) {
+    return;
+  }
+  try {
+    const res = await fetch('/api/admin/users/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, identifier })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast(result.message, 'success');
+      loadManageUsers(); 
+      loadStats();
+      loadAllData();
+    } else {
+      showToast(result.message || 'Failed to remove user.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+}
+
+window.deleteUser = deleteUser;
+
+const btnManageStudents = document.getElementById('btn-manage-students');
+const btnManageTeachers = document.getElementById('btn-manage-teachers');
+const btnManageAdmins = document.getElementById('btn-manage-admins');
+
+const addStudentFields = document.getElementById('add-student-fields');
+const addTeacherFields = document.getElementById('add-teacher-fields');
+const addAdminFields = document.getElementById('add-admin-fields');
+
+function switchManageRole(role) {
+  activeManageRole = role;
+  
+  btnManageStudents.classList.remove('active');
+  btnManageTeachers.classList.remove('active');
+  btnManageAdmins.classList.remove('active');
+  
+  addStudentFields.style.display = 'none';
+  addTeacherFields.style.display = 'none';
+  addAdminFields.style.display = 'none';
+  
+  if (role === 'Student') {
+    btnManageStudents.classList.add('active');
+    addStudentFields.style.display = 'flex';
+  } else if (role === 'Teacher') {
+    btnManageTeachers.classList.add('active');
+    addTeacherFields.style.display = 'flex';
+  } else if (role === 'Admin') {
+    btnManageAdmins.classList.add('active');
+    addAdminFields.style.display = 'flex';
+  }
+  
+  document.getElementById('manage-users-search').value = '';
+  renderManageUsersTable();
+}
+
+if (btnManageStudents) btnManageStudents.addEventListener('click', () => switchManageRole('Student'));
+if (btnManageTeachers) btnManageTeachers.addEventListener('click', () => switchManageRole('Teacher'));
+if (btnManageAdmins) btnManageAdmins.addEventListener('click', () => switchManageRole('Admin'));
+
+const manageSearch = document.getElementById('manage-users-search');
+if (manageSearch) {
+  manageSearch.addEventListener('input', () => {
+    renderManageUsersTable();
+  });
+}
+
+const btnAddUser = document.getElementById('btn-add-user');
+if (btnAddUser) {
+  btnAddUser.addEventListener('click', async () => {
+    let payload = { role: activeManageRole, data: {} };
+    
+    if (activeManageRole === 'Student') {
+      const name = document.getElementById('new-stud-name').value.trim();
+      const roll = document.getElementById('new-stud-roll').value.trim();
+      const enrollment = document.getElementById('new-stud-enroll').value.trim();
+      
+      if (!name || !roll || !enrollment) {
+        showToast('Please fill out all student fields.', 'error');
+        return;
+      }
+      payload.data = { name, roll, enrollment };
+    } 
+    else if (activeManageRole === 'Teacher') {
+      const name = document.getElementById('new-teach-name').value.trim();
+      const email = document.getElementById('new-teach-email').value.trim();
+      const mobile = document.getElementById('new-teach-mobile').value.trim();
+      
+      if (!name || !email) {
+        showToast('Name and email are required for teachers.', 'error');
+        return;
+      }
+      payload.data = { name, email, mobile };
+    } 
+    else if (activeManageRole === 'Admin') {
+      const name = document.getElementById('new-admin-name').value.trim();
+      const email = document.getElementById('new-admin-email').value.trim();
+      const adminRole = document.getElementById('new-admin-role').value.trim();
+      const mobile = document.getElementById('new-admin-mobile').value.trim();
+      
+      if (!name || !email || !adminRole) {
+        showToast('Name, email, and admin role are required.', 'error');
+        return;
+      }
+      payload.data = { name, email, adminRole, mobile };
+    }
+    
+    try {
+      btnAddUser.disabled = true;
+      btnAddUser.textContent = 'Adding User...';
+      
+      const res = await fetch('/api/admin/users/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast(result.message, 'success');
+        if (activeManageRole === 'Student') {
+          document.getElementById('new-stud-name').value = '';
+          document.getElementById('new-stud-roll').value = '';
+          document.getElementById('new-stud-enroll').value = '';
+        } else if (activeManageRole === 'Teacher') {
+          document.getElementById('new-teach-name').value = '';
+          document.getElementById('new-teach-email').value = '';
+          document.getElementById('new-teach-mobile').value = '';
+        } else if (activeManageRole === 'Admin') {
+          document.getElementById('new-admin-name').value = '';
+          document.getElementById('new-admin-email').value = '';
+          document.getElementById('new-admin-role').value = '';
+          document.getElementById('new-admin-mobile').value = '';
+        }
+        
+        loadManageUsers();
+        loadStats();
+        loadAllData();
+      } else {
+        showToast(result.message || 'Failed to add user.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to add user due to connection error.', 'error');
+    } finally {
+      btnAddUser.disabled = false;
+      btnAddUser.textContent = 'Add User';
+    }
   });
 }
 </script>

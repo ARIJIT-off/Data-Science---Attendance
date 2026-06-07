@@ -1567,6 +1567,327 @@ app.post('/api/session/:token/close', (req, res) => {
     recordId: record.id
   });
 });
+// ============================================================
+// ADMIN USER DIRECT MANAGEMENT HELPERS & ENDPOINTS
+// ============================================================
+
+function addAdmin(name, mobile, email, role, department) {
+  const filePath = path.join(__dirname, 'admin data.xlsx');
+  let data = [];
+  let workbook;
+  const sheetName = 'Department Roles';
+  if (fs.existsSync(filePath)) {
+    workbook = xlsx.readFile(filePath);
+    const sheet = workbook.Sheets[sheetName] || workbook.Sheets[workbook.SheetNames[0]];
+    data = xlsx.utils.sheet_to_json(sheet);
+  } else {
+    workbook = xlsx.utils.book_new();
+  }
+  const exists = data.some(r => r.Email && r.Email.toString().trim().toLowerCase() === email.trim().toLowerCase());
+  if (exists) {
+    throw new Error('An admin or student with this email already exists.');
+  }
+  
+  data.push({
+    Name: name.trim(),
+    Mobile: mobile.trim(),
+    Email: email.trim().toLowerCase(),
+    Role: role.trim(),
+    Department: department ? department.trim() : 'CSE Data Science'
+  });
+  
+  workbook.Sheets[sheetName] = xlsx.utils.json_to_sheet(data);
+  xlsx.writeFile(workbook, filePath);
+}
+
+function removeAdmin(email) {
+  const filePath = path.join(__dirname, 'admin data.xlsx');
+  if (!fs.existsSync(filePath)) return;
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  let data = xlsx.utils.sheet_to_json(sheet);
+  
+  const emailLower = email.trim().toLowerCase();
+  
+  // Protect default admins
+  if (emailLower === 'nilanjan.chatterjee@uem.edu.in' || emailLower === 'ap2446961@gmail.com') {
+    throw new Error('Default system administrator cannot be removed.');
+  }
+
+  const filtered = data.filter(r => !(r.Email && r.Email.toString().trim().toLowerCase() === emailLower && r.Role !== 'Student'));
+  if (filtered.length === data.length) {
+    throw new Error('Admin user not found.');
+  }
+  
+  workbook.Sheets[sheetName] = xlsx.utils.json_to_sheet(filtered);
+  xlsx.writeFile(workbook, filePath);
+}
+
+function addTeacher(name, mobile, email) {
+  const filePath = path.join(__dirname, 'teacher data.xlsx');
+  let data = [];
+  let workbook;
+  const sheetName = 'Admin Emails';
+  if (fs.existsSync(filePath)) {
+    workbook = xlsx.readFile(filePath);
+    const sheet = workbook.Sheets[sheetName] || workbook.Sheets[workbook.SheetNames[0]];
+    data = xlsx.utils.sheet_to_json(sheet);
+  } else {
+    workbook = xlsx.utils.book_new();
+  }
+  
+  const emailLower = email.trim().toLowerCase();
+  const exists = data.some(r => r['Supervisor Email'] && r['Supervisor Email'].toString().trim().toLowerCase() === emailLower);
+  if (exists) {
+    throw new Error('A teacher with this email already exists.');
+  }
+  
+  data.push({
+    'Supervisor Name': name.trim(),
+    'Supervisor Mobile': mobile.trim(),
+    'Supervisor Email': emailLower,
+    'Additional Name': '',
+    'Additional Mobile': '',
+    'Additional Email': ''
+  });
+  
+  workbook.Sheets[sheetName] = xlsx.utils.json_to_sheet(data);
+  xlsx.writeFile(workbook, filePath);
+}
+
+function removeTeacher(email) {
+  const filePath = path.join(__dirname, 'teacher data.xlsx');
+  if (!fs.existsSync(filePath)) return;
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  let data = xlsx.utils.sheet_to_json(sheet);
+  
+  const emailLower = email.trim().toLowerCase();
+  
+  const rowIndex = data.findIndex(r => r['Supervisor Email'] && r['Supervisor Email'].toString().trim().toLowerCase() === emailLower);
+  if (rowIndex === -1) {
+    throw new Error('Teacher not found.');
+  }
+  
+  const row = data[rowIndex];
+  if (row['Additional Email'] || row['Additional Name']) {
+    row['Supervisor Name'] = '';
+    row['Supervisor Mobile'] = '';
+    row['Supervisor Email'] = '';
+  } else {
+    data.splice(rowIndex, 1);
+  }
+  
+  workbook.Sheets[sheetName] = xlsx.utils.json_to_sheet(data);
+  xlsx.writeFile(workbook, filePath);
+}
+
+function addStudent(name, roll, enrollment) {
+  const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
+  if (!fs.existsSync(filePath)) {
+    throw new Error('student_list passout 2028.xlsx file not found.');
+  }
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+  
+  let headerRowIndex = -1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (row && row.includes('Class Roll') && row.includes('Student Name')) {
+      headerRowIndex = i;
+      break;
+    }
+  }
+  
+  if (headerRowIndex === -1) {
+    throw new Error('Invalid student_list format. Headers not found.');
+  }
+  
+  const rollCol = rows[headerRowIndex].indexOf('Class Roll');
+  const nameCol = rows[headerRowIndex].indexOf('Student Name');
+  const enrollCol = rows[headerRowIndex].indexOf('Enrollment No.');
+  
+  const enrollClean = enrollment.toString().trim().toLowerCase();
+  const rollClean = roll.toString().trim();
+  
+  for (let i = headerRowIndex + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r) {
+      if (r[enrollCol] && r[enrollCol].toString().trim().toLowerCase() === enrollClean) {
+        throw new Error('A student with this enrollment number already exists.');
+      }
+      if (r[rollCol] && r[rollCol].toString().trim() === rollClean) {
+        throw new Error('A student with this Class Roll number already exists.');
+      }
+    }
+  }
+  
+  const newRow = [];
+  newRow[rollCol] = parseInt(roll) || roll;
+  newRow[nameCol] = name.trim().toUpperCase();
+  newRow[enrollCol] = enrollment.toString().trim();
+  
+  rows.push(newRow);
+  
+  workbook.Sheets[sheetName] = xlsx.utils.aoa_to_sheet(rows);
+  xlsx.writeFile(workbook, filePath);
+}
+
+function removeStudent(enrollment) {
+  const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
+  if (!fs.existsSync(filePath)) {
+    throw new Error('student_list passout 2028.xlsx file not found.');
+  }
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+  
+  let headerRowIndex = -1;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (row && row.includes('Class Roll') && row.includes('Student Name')) {
+      headerRowIndex = i;
+      break;
+    }
+  }
+  
+  if (headerRowIndex === -1) {
+    throw new Error('Invalid student_list format. Headers not found.');
+  }
+  
+  const enrollCol = rows[headerRowIndex].indexOf('Enrollment No.');
+  const enrollTarget = enrollment.toString().trim().toLowerCase();
+  
+  let foundIndex = -1;
+  for (let i = headerRowIndex + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r && r[enrollCol] && r[enrollCol].toString().trim().toLowerCase() === enrollTarget) {
+      foundIndex = i;
+      break;
+    }
+  }
+  
+  if (foundIndex === -1) {
+    throw new Error('Student not found.');
+  }
+  
+  rows.splice(foundIndex, 1);
+  
+  workbook.Sheets[sheetName] = xlsx.utils.aoa_to_sheet(rows);
+  xlsx.writeFile(workbook, filePath);
+}
+
+app.get('/api/admin/users', (req, res) => {
+  try {
+    let admins = [];
+    if (fs.existsSync(path.join(__dirname, 'admin data.xlsx'))) {
+      const rows = readExcelFile('admin data.xlsx');
+      admins = rows
+        .filter(r => r.Role && r.Role.toString().trim().toUpperCase() !== 'STUDENT')
+        .map(r => ({
+          name: r.Name || 'N/A',
+          mobile: r.Mobile || 'N/A',
+          email: r.Email || 'N/A',
+          role: r.Role || 'N/A',
+          department: r.Department || 'CSE Data Science'
+        }));
+    }
+
+    const teachers = getAllTeachers();
+    const students = getAllStudents();
+
+    res.json({
+      success: true,
+      admins,
+      teachers,
+      students
+    });
+  } catch (err) {
+    console.error('Error fetching admin users:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch users list.' });
+  }
+});
+
+app.post('/api/admin/users/add', (req, res) => {
+  const { role, data } = req.body;
+  if (!role || !data) {
+    return res.status(400).json({ success: false, message: 'Role and user data are required.' });
+  }
+
+  try {
+    if (role === 'Admin') {
+      const { name, mobile, email, adminRole, department } = data;
+      if (!name || !email || !adminRole) {
+        return res.status(400).json({ success: false, message: 'Name, email, and specific role are required.' });
+      }
+      addAdmin(name, mobile || 'N/A', email, adminRole, department || 'CSE Data Science');
+      console.log(`Admin ${name} (${email}) added by admin.`);
+      res.json({ success: true, message: 'Admin user added successfully.' });
+    } 
+    else if (role === 'Teacher') {
+      const { name, mobile, email } = data;
+      if (!name || !email) {
+        return res.status(400).json({ success: false, message: 'Name and email are required.' });
+      }
+      addTeacher(name, mobile || 'N/A', email);
+      console.log(`Teacher ${name} (${email}) added by admin.`);
+      res.json({ success: true, message: 'Teacher added successfully.' });
+    } 
+    else if (role === 'Student') {
+      const { name, roll, enrollment } = data;
+      if (!name || !roll || !enrollment) {
+        return res.status(400).json({ success: false, message: 'Name, Class Roll, and Enrollment Number are required.' });
+      }
+      addStudent(name, roll, enrollment);
+      console.log(`Student ${name} (${enrollment}) added by admin.`);
+      res.json({ success: true, message: 'Student added successfully.' });
+    } 
+    else {
+      res.status(400).json({ success: false, message: 'Invalid role type.' });
+    }
+  } catch (err) {
+    console.error('Error adding user:', err.message);
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/users/delete', (req, res) => {
+  const { role, identifier } = req.body;
+  if (!role || !identifier) {
+    return res.status(400).json({ success: false, message: 'Role and identifier are required.' });
+  }
+
+  try {
+    if (role === 'Admin') {
+      removeAdmin(identifier);
+      console.log(`Admin ${identifier} removed by admin.`);
+      res.json({ success: true, message: 'Admin user removed successfully.' });
+    } 
+    else if (role === 'Teacher') {
+      removeTeacher(identifier);
+      console.log(`Teacher ${identifier} removed by admin.`);
+      res.json({ success: true, message: 'Teacher removed successfully.' });
+    } 
+    else if (role === 'Student') {
+      removeStudent(identifier);
+      console.log(`Student ${identifier} removed by admin.`);
+      res.json({ success: true, message: 'Student removed successfully.' });
+    } 
+    else {
+      res.status(400).json({ success: false, message: 'Invalid role type.' });
+    }
+  } catch (err) {
+    console.error('Error removing user:', err.message);
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
