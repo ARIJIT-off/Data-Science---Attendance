@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="dashboard.css">
   <!-- QR scanning & generation libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <!-- html5-qrcode for camera scanning -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
@@ -1287,8 +1287,8 @@ function stopQrScanner() {
   }
 }
 
-// ---- Upload QR Image & Decode with jsQR ----
-document.getElementById('qr-file-input').addEventListener('change', (e) => {
+// ---- Upload QR Image & Decode ----
+document.getElementById('qr-file-input').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
@@ -1297,33 +1297,78 @@ document.getElementById('qr-file-input').addEventListener('change', (e) => {
   statusEl.textContent = 'Reading QR code...';
   statusEl.style.color = 'var(--text-secondary)';
 
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    previewEl.src = ev.target.result;
-    previewEl.style.display = 'block';
+  // Show preview
+  const dataUrl = await new Promise(resolve => {
+    const fr = new FileReader();
+    fr.onload = ev => resolve(ev.target.result);
+    fr.readAsDataURL(file);
+  });
+  previewEl.src = dataUrl;
+  previewEl.style.display = 'block';
 
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
-      if (code) {
-        statusEl.textContent = '✅ QR decoded successfully!';
-        statusEl.style.color = '#4ade80';
-        processScannedUrl(code.data);
-      } else {
-        statusEl.textContent = '❌ Could not decode QR. Try a clearer image.';
-        statusEl.style.color = '#f43f5e';
-      }
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
+  // PRIMARY: Use Html5Qrcode.scanFile() — most reliable
+  try {
+    const tempScanner = new Html5Qrcode('__qr-temp-scan__', { verbose: false });
+    const decoded = await tempScanner.scanFile(file, false);
+    statusEl.textContent = '✅ QR decoded successfully!';
+    statusEl.style.color = '#4ade80';
+    processScannedUrl(decoded);
+    return;
+  } catch (err) {
+    // Fall through to canvas fallback
+    console.warn('Html5Qrcode scanFile failed, trying jsQR fallback:', err);
+  }
+
+  // FALLBACK: jsQR canvas decode
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = dataUrl;
+    });
+
+    // Scale down very large images to help jsQR
+    const MAX = 1024;
+    let w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      const scale = Math.min(MAX / w, MAX / h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const imageData = ctx.getImageData(0, 0, w, h);
+
+    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'dontInvert'
+    });
+    if (code) {
+      statusEl.textContent = '✅ QR decoded successfully!';
+      statusEl.style.color = '#4ade80';
+      processScannedUrl(code.data);
+    } else {
+      statusEl.textContent = '❌ Could not read QR. Try a clearer / higher-resolution image.';
+      statusEl.style.color = '#f43f5e';
+    }
+  } catch (err2) {
+    console.error('jsQR fallback also failed:', err2);
+    statusEl.textContent = '❌ Failed to process image. Please try again.';
+    statusEl.style.color = '#f43f5e';
+  }
 });
+
+// Hidden element for Html5Qrcode temp scanner (required by the library)
+(function() {
+  const tmp = document.createElement('div');
+  tmp.id = '__qr-temp-scan__';
+  tmp.style.display = 'none';
+  document.body.appendChild(tmp);
+})();
 
 // ---- Extract token from URL and load session ----
 function processScannedUrl(urlOrToken) {
