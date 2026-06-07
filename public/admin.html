@@ -55,20 +55,19 @@
       z-index: 1;
     }
 
-    /* ── Nav: slim frosted bar ── */
+    /* ── Nav: fully transparent ── */
     .top-nav {
-      background: rgba(5,8,16,0.6) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-      position: sticky !important;
-      top: 0;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-bottom: none !important;
+      position: relative !important;
       z-index: 100;
       margin: 0 -24px;
       padding: 0 24px;
     }
 
-    /* ── Profile card: compact horizontal strip ── */
+    /* ── Profile card: wide row with inline stats ── */
     .profile-card {
       background: rgba(8,12,28,0.55) !important;
       backdrop-filter: blur(24px) !important;
@@ -76,16 +75,16 @@
       border: 1px solid rgba(139,92,246,0.18) !important;
       border-radius: 14px !important;
       margin-top: 20px !important;
-      padding: 16px 22px !important;
+      padding: 14px 20px !important;
       display: flex !important;
       align-items: center !important;
-      gap: 16px !important;
+      gap: 14px !important;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
     }
     .profile-avatar {
-      width: 52px !important;
-      height: 52px !important;
-      min-width: 52px !important;
+      width: 48px !important;
+      height: 48px !important;
+      min-width: 48px !important;
       border-radius: 50% !important;
       border: 2px solid rgba(139,92,246,0.4) !important;
     }
@@ -93,71 +92,285 @@
       flex: 1;
     }
     .profile-name {
-      font-size: 18px !important;
+      font-size: 16px !important;
       font-weight: 700 !important;
       margin-bottom: 2px !important;
     }
     .profile-meta {
-      font-size: 12px !important;
-      gap: 14px !important;
-    }
-
-    /* ── Stat cards: smaller, semi-transparent ── */
-    .stats-grid {
-      grid-template-columns: repeat(4, 1fr) !important;
+      font-size: 11px !important;
       gap: 12px !important;
-      margin-top: 16px !important;
-    }
-    .stat-card {
-      background: rgba(8,12,28,0.50) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-      border: 1px solid rgba(255,255,255,0.07) !important;
-      border-radius: 12px !important;
-      padding: 14px 16px !important;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
-      transition: transform 0.25s, border-color 0.25s !important;
-    }
-    .stat-card:hover {
-      transform: translateY(-3px) !important;
-      border-color: rgba(139,92,246,0.35) !important;
-    }
-    .stat-icon {
-      width: 34px !important;
-      height: 34px !important;
-      border-radius: 8px !important;
-      margin-bottom: 8px !important;
-    }
-    .stat-icon svg {
-      width: 16px !important;
-      height: 16px !important;
-    }
-    .stat-number {
-      font-size: 22px !important;
-      font-weight: 800 !important;
-      margin-bottom: 2px !important;
-    }
-    .stat-label {
-      font-size: 10px !important;
-      letter-spacing: 0.5px !important;
     }
 
-    /* ── Tabs: compact ── */
-    .tabs-container {
-      margin-top: 16px !important;
-      gap: 6px !important;
-      background: rgba(8,12,28,0.50) !important;
-      backdrop-filter: blur(16px) !important;
-      -webkit-backdrop-filter: blur(16px) !important;
-      border: 1px solid rgba(255,255,255,0.06) !important;
-      border-radius: 12px !important;
-      padding: 5px !important;
+    /* ── Inline stat pills (inside profile card) ── */
+    .inline-stats {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
-    .tab-btn {
-      font-size: 12px !important;
-      padding: 8px 14px !important;
-      border-radius: 8px !important;
+    .inline-stat-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 8px 14px;
+      min-width: 70px;
+      transition: border-color 0.2s, transform 0.2s;
     }
+    .inline-stat-pill:hover {
+      border-color: rgba(139,92,246,0.4);
+      transform: translateY(-2px);
+    }
+    .inline-stat-pill .isp-icon {
+      width: 20px; height: 20px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 4px;
+    }
+    .inline-stat-pill .isp-icon svg { width: 11px; height: 11px; }
+    .inline-stat-pill .isp-num {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+    .inline-stat-pill .isp-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 3px;
+      white-space: nowrap;
+    }
+
+    /* Hide old stats-grid */
+    .stats-grid { display: none !important; }
+
+    /* ── Hamburger menu button ── */
+    .drawer-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(139,92,246,0.12);
+      border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 10px;
+      color: #fff;
+      font-family: var(--font-family, 'Outfit', sans-serif);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: all 0.25s;
+    }
+    .drawer-toggle-btn:hover {
+      background: rgba(139,92,246,0.22);
+      border-color: rgba(139,92,246,0.5);
+    }
+    .drawer-toggle-btn .hamburger-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .drawer-toggle-btn .hamburger-lines span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.25s;
+    }
+    /* current section label */
+    #current-tab-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* ── Drawer overlay + panel ── */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .drawer-panel {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100%;
+      width: 260px;
+      background: rgba(6,9,20,0.97);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-right: 1px solid rgba(139,92,246,0.2);
+      z-index: 9001;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+    }
+    .drawer-panel.open {
+      transform: translateX(0);
+    }
+    .drawer-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 12px;
+    }
+    .drawer-header-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 4px;
+    }
+    .drawer-header-sub {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .drawer-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.55);
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    .drawer-nav-item:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.04);
+    }
+    .drawer-nav-item.active {
+      color: #00f0ff;
+      background: rgba(0,240,255,0.06);
+      border-left-color: #00f0ff;
+    }
+    .drawer-nav-item svg {
+      width: 15px; height: 15px; flex-shrink: 0;
+    }
+    .drawer-close-btn {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      width: 30px; height: 30px;
+      color: rgba(255,255,255,0.5);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .drawer-close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+    /* Hide old tabs-container */
+    .tabs-container { display: none !important; }
+
+    /* ── Grievances: fixed bottom-right floating panel ── */
+    .grievance-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 8000;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    .grievance-fab-btn {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.5);
+      transition: all 0.3s;
+      position: relative;
+    }
+    .grievance-fab-btn svg { width: 20px; height: 20px; color: #fff; }
+    .grievance-fab-btn:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(124,58,237,0.7); }
+    .grievance-fab-btn .fab-badge {
+      position: absolute;
+      top: -3px; right: -3px;
+      background: #f43f5e;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 2px 5px;
+      display: none;
+    }
+    .grievance-panel {
+      background: rgba(6,9,20,0.97);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 16px;
+      width: 340px;
+      max-height: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 30px rgba(124,58,237,0.15);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .grievance-panel.open { display: flex; }
+    .grievance-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .grievance-panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .grievance-panel-title svg { width: 14px; height: 14px; color: #a78bfa; }
+    .grievance-panel-close {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      width: 26px; height: 26px;
+      color: rgba(255,255,255,0.5);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .grievance-panel-close:hover { color: #fff; }
+    .grievance-panel-body {
+      overflow-y: auto;
+      flex: 1;
+      padding: 12px 14px;
+    }
+    .grievance-panel-body::-webkit-scrollbar { width: 4px; }
+    .grievance-panel-body::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 4px; }
+    /* Tab content for grievances shouldn't show inline */
+    #tab-grievances { display: none !important; }
 
     /* ── Glass cards: transparent, backdrop-blur ── */
     .glass-card {
@@ -265,7 +478,7 @@
   <div id="toast-container" class="toast-container"></div>
 
   <div class="dashboard-page">
-    <!-- Top Nav -->
+    <!-- Top Nav: transparent -->
     <nav class="top-nav">
       <div class="nav-brand">
         <div class="logo-badge">
@@ -284,7 +497,7 @@
       </button>
     </nav>
 
-    <!-- Profile Card -->
+    <!-- Profile Card + Inline Stats -->
     <div class="profile-card">
       <div class="profile-avatar" id="avatar-container" onclick="triggerAvatarUpload()">
         <img id="avatar-img" src="" alt="Profile Pic" onload="this.style.display='block'; document.getElementById('avatar-svg-placeholder').style.display='none';" onerror="this.style.display='none'; document.getElementById('avatar-svg-placeholder').style.display='block';">
@@ -301,74 +514,93 @@
         <div class="profile-name" id="admin-name">Loading...</div>
         <div class="profile-meta">
           <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             <span id="admin-email">—</span>
             <button id="btn-change-email" class="btn-link" style="margin-left: 8px;">Change Email</button>
           </span>
           <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/><path d="M9 16V8h6v8M9 12h6"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/><path d="M9 16V8h6v8M9 12h6"/></svg>
             <span id="admin-dept">CSE Data Science</span>
           </span>
         </div>
       </div>
-    </div>
 
-    <!-- Stats Overview -->
-    <div class="stats-grid stagger" id="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon violet">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <!-- Inline Stat Pills (merged into profile row) -->
+      <div class="inline-stats">
+        <!-- divider -->
+        <div style="width:1px;height:50px;background:rgba(255,255,255,0.08);margin:0 4px;"></div>
+        <div class="inline-stat-pill">
+          <div class="isp-icon" style="background:rgba(139,92,246,0.15);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="isp-num" id="stat-students">—</div>
+          <div class="isp-label">Students</div>
         </div>
-        <div class="stat-content">
-          <div class="stat-number" id="stat-students">—</div>
-          <div class="stat-label">Total Students</div>
+        <div class="inline-stat-pill">
+          <div class="isp-icon" style="background:rgba(6,182,212,0.15);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="isp-num" id="stat-teachers">—</div>
+          <div class="isp-label">Teachers</div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon cyan">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div class="inline-stat-pill">
+          <div class="isp-icon" style="background:rgba(34,197,94,0.15);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="isp-num" id="stat-classes">—</div>
+          <div class="isp-label">Classes</div>
         </div>
-        <div class="stat-content">
-          <div class="stat-number" id="stat-teachers">—</div>
-          <div class="stat-label">Total Teachers</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-        <div class="stat-content">
-          <div class="stat-number" id="stat-classes">—</div>
-          <div class="stat-label">Classes Conducted</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon amber">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        </div>
-        <div class="stat-content">
-          <div class="stat-number" id="stat-attendance">—</div>
-          <div class="stat-label">Overall Attendance</div>
+        <div class="inline-stat-pill">
+          <div class="isp-icon" style="background:rgba(251,191,36,0.15);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="isp-num" id="stat-attendance">—</div>
+          <div class="isp-label">Attendance</div>
         </div>
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="tabs-container">
-      <button class="tab-btn active" data-tab="tab-students" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <!-- Hidden original stats-grid (IDs kept for JS compatibility) -->
+    <div class="stats-grid stagger" id="stats-grid" style="display:none;"></div>
+
+    <!-- Drawer toggle button -->
+    <button class="drawer-toggle-btn" id="drawer-toggle-btn">
+      <div class="hamburger-lines">
+        <span></span><span></span><span></span>
+      </div>
+      <span id="current-tab-label">Student Attendance</span>
+    </button>
+
+    <!-- Hidden tabs-container (kept for JS compatibility) -->
+    <div class="tabs-container" style="display:none!important;">
+      <button class="tab-btn active" data-tab="tab-students">Student Attendance</button>
+      <button class="tab-btn" data-tab="tab-teachers">Teacher Summary</button>
+      <button class="tab-btn" data-tab="tab-all-records">All Records</button>
+      <button class="tab-btn" data-tab="tab-grievances">Grievances &amp; Appeals</button>
+    </div>
+
+    <!-- Drawer Overlay -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <!-- Drawer Panel -->
+    <div class="drawer-panel" id="drawer-panel">
+      <button class="drawer-close-btn" id="drawer-close-btn">&times;</button>
+      <div class="drawer-header">
+        <div class="drawer-header-title">Admin Dashboard</div>
+        <div class="drawer-header-sub">Navigation</div>
+      </div>
+      <button class="drawer-nav-item active" data-tab="tab-students" id="dnav-students">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Student Attendance
       </button>
-      <button class="tab-btn" data-tab="tab-teachers" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <button class="drawer-nav-item" data-tab="tab-teachers" id="dnav-teachers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Teacher Summary
       </button>
-      <button class="tab-btn" data-tab="tab-all-records" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <button class="drawer-nav-item" data-tab="tab-all-records" id="dnav-allrecords">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         All Records
       </button>
-      <button class="tab-btn" data-tab="tab-grievances" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Grievances & Appeals
       </button>
     </div>
@@ -450,25 +682,37 @@
       </div>
     </div>
 
-    <!-- TAB 4: Grievances & Appeals -->
-    <div class="tab-content" id="tab-grievances">
-      <div class="glass-card">
-        <div class="section-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          Grievances & Appeals
-        </div>
-        <div id="grievances-container" style="position: relative; min-height: 100px;">
-          <div class="loading-overlay" id="grievances-loading">
-            <div class="spinner"></div>
-            <span>Loading grievances...</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- TAB 4: Grievances kept in DOM for JS but hidden (moved to floating panel) -->
+    <div class="tab-content" id="tab-grievances" style="display:none!important;"></div>
 
     <footer class="dashboard-footer">
       Developed by Arijit Pal ( CSE - Data Science ) , 2028 Passout
     </footer>
+  </div>
+
+  <!-- ===== Grievances Floating Panel (bottom-right) ===== -->
+  <div class="grievance-fab" id="grievance-fab">
+    <div class="grievance-panel" id="grievance-panel">
+      <div class="grievance-panel-header">
+        <div class="grievance-panel-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Grievances &amp; Appeals
+        </div>
+        <button class="grievance-panel-close" id="btn-close-grievance-panel">&times;</button>
+      </div>
+      <div class="grievance-panel-body">
+        <div id="grievances-container" style="position: relative; min-height: 80px;">
+          <div class="loading-overlay" id="grievances-loading">
+            <div class="spinner"></div>
+            <span style="font-size:12px;">Loading grievances...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="grievance-fab-btn" id="grievance-fab-btn" title="Grievances &amp; Appeals">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="fab-badge" id="grievance-badge"></span>
+    </button>
   </div>
 
   <!-- Change Email Modal -->
@@ -1253,6 +1497,76 @@ async function handleAvatarSelected(event) {
   };
   
   reader.readAsDataURL(file);
+}
+
+// ===== DRAWER MENU =====
+const drawerToggle = document.getElementById('drawer-toggle-btn');
+const drawerPanel = document.getElementById('drawer-panel');
+const drawerOverlay = document.getElementById('drawer-overlay');
+const drawerClose = document.getElementById('drawer-close-btn');
+const currentTabLabel = document.getElementById('current-tab-label');
+
+function openDrawer() {
+  drawerPanel.classList.add('open');
+  drawerOverlay.classList.add('open');
+}
+function closeDrawer() {
+  drawerPanel.classList.remove('open');
+  drawerOverlay.classList.remove('open');
+}
+
+if (drawerToggle) drawerToggle.addEventListener('click', openDrawer);
+if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// Drawer nav items → trigger existing tab-btn logic
+document.querySelectorAll('.drawer-nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    // Update drawer active state
+    document.querySelectorAll('.drawer-nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Update hamburger label
+    if (currentTabLabel) currentTabLabel.textContent = btn.textContent.trim();
+    // Click the hidden original tab-btn
+    const hiddenBtn = document.querySelector(`.tabs-container .tab-btn[data-tab="${tabId}"]`);
+    if (hiddenBtn) hiddenBtn.click();
+    closeDrawer();
+  });
+});
+
+// ===== GRIEVANCE FAB PANEL =====
+const grievanceFabBtn = document.getElementById('grievance-fab-btn');
+const grievancePanel = document.getElementById('grievance-panel');
+const btnCloseGrievancePanel = document.getElementById('btn-close-grievance-panel');
+
+if (grievanceFabBtn) {
+  grievanceFabBtn.addEventListener('click', () => {
+    grievancePanel.classList.toggle('open');
+    // Load grievances when opened
+    if (grievancePanel.classList.contains('open')) {
+      loadGrievances();
+    }
+  });
+}
+if (btnCloseGrievancePanel) {
+  btnCloseGrievancePanel.addEventListener('click', () => {
+    grievancePanel.classList.remove('open');
+  });
+}
+
+// Show badge count after grievances load
+const _origLoadGrievances = typeof loadGrievances === 'function' ? loadGrievances : null;
+function updateGrievanceBadge(count) {
+  const badge = document.getElementById('grievance-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 </script>
 </body>
