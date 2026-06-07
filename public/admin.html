@@ -31,6 +31,8 @@
       object-fit: cover;
       opacity: 0.55;
       filter: brightness(0.6) saturate(1.1);
+      transform: scale(1.12); /* Zooms in slightly to crop out the edges (hides the Gemini logo) */
+      transform-origin: center center;
     }
     /* Dark overlay gradient so content is readable */
     .admin-video-bg::after {
