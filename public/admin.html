@@ -24,13 +24,19 @@
       z-index: -2;
       overflow: hidden;
       background: #050810;
+      perspective: 1200px;
     }
     .admin-video-bg video {
-      width: 100%;
-      height: 100%;
+      position: absolute;
+      top: -5%;
+      left: -5%;
+      width: 110%;
+      height: 110%;
       object-fit: cover;
       opacity: 0.55;
       filter: brightness(0.6) saturate(1.1);
+      transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+      transform: scale(1.02);
     }
     /* Dark overlay gradient so content is readable */
     .admin-video-bg::after {
@@ -1415,6 +1421,55 @@ async function handleAvatarSelected(event) {
   
   reader.readAsDataURL(file);
 }
+
+// ===== Background Video Parallax =====
+const bgVideo = document.querySelector('.admin-video-bg video');
+let mouse = { x: null, y: null };
+
+function handleParallaxMove(clientX, clientY) {
+  mouse.x = clientX;
+  mouse.y = clientY;
+  
+  const xOffset = (clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+  const yOffset = (clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+  
+  const xRotate = xOffset * 2.5;
+  const yRotate = yOffset * -2.5;
+  
+  if (bgVideo) {
+    // 3D tilt and translate the background video on hover
+    bgVideo.style.transform = `translate(${xOffset * -15}px, ${yOffset * -15}px) rotateX(${yRotate}deg) rotateY(${xRotate}deg) scale(1.04)`;
+  }
+}
+
+function resetParallax() {
+  mouse.x = null;
+  mouse.y = null;
+  if (bgVideo) {
+    bgVideo.style.transform = 'translate(0, 0) rotateX(0deg) rotateY(0deg) scale(1.02)';
+  }
+}
+
+window.addEventListener('mousemove', (e) => {
+  handleParallaxMove(e.clientX, e.clientY);
+});
+
+window.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 0) {
+    handleParallaxMove(e.touches[0].clientX, e.touches[0].clientY);
+  }
+}, { passive: true });
+
+window.addEventListener('mouseleave', resetParallax);
+window.addEventListener('touchend', resetParallax);
+
+// Vertical Parallax scroll
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  if (bgVideo) {
+    bgVideo.style.top = `calc(-5% + ${scrolled * 0.08}px)`;
+  }
+});
 
 // ===== GRIEVANCE FAB PANEL =====
 const grievanceFabBtn = document.getElementById('grievance-fab-btn');
