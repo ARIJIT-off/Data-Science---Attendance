@@ -9,6 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="dashboard.css">
   <style>
+    /* ── Font Styling ── */
+    :root {
+      --font-family: 'Times New Roman', Times, 'Georgia', serif !important;
+    }
+    *, body, button, input, select, textarea, table, th, td, div, span, p, h1, h2, h3, h4, h5, h6 {
+      font-family: 'Times New Roman', Times, 'Georgia', serif !important;
+    }
+
     /* ── Video Background ── */
     .admin-video-bg {
       position: fixed;
@@ -148,142 +156,44 @@
     /* Hide old stats-grid */
     .stats-grid { display: none !important; }
 
-    /* ── Hamburger menu button ── */
-    .drawer-toggle-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(139,92,246,0.12);
-      border: 1px solid rgba(139,92,246,0.25);
-      border-radius: 10px;
-      color: #fff;
-      font-family: var(--font-family, 'Outfit', sans-serif);
-      font-size: 13px;
-      font-weight: 600;
-      padding: 9px 16px;
-      cursor: pointer;
-      margin-top: 14px;
-      transition: all 0.25s;
+    /* ── Glassmorphic Tab Container ── */
+    .tabs-container {
+      display: flex !important;
+      gap: 8px !important;
+      background: rgba(8,12,28,0.55) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border: 1px solid rgba(139,92,246,0.18) !important;
+      border-radius: 14px !important;
+      padding: 6px !important;
+      margin-top: 20px !important;
+      margin-bottom: 24px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
     }
-    .drawer-toggle-btn:hover {
-      background: rgba(139,92,246,0.22);
-      border-color: rgba(139,92,246,0.5);
+    .tab-btn {
+      flex: 1 !important;
+      padding: 12px 20px !important;
+      background: none !important;
+      border: 1px solid transparent !important;
+      border-radius: 10px !important;
+      color: rgba(255,255,255,0.6) !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.3s !important;
+      text-align: center !important;
     }
-    .drawer-toggle-btn .hamburger-lines {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .tab-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.04) !important;
+      color: #fff !important;
+      border-color: rgba(255,255,255,0.08) !important;
     }
-    .drawer-toggle-btn .hamburger-lines span {
-      display: block;
-      width: 18px;
-      height: 2px;
-      background: #fff;
-      border-radius: 2px;
-      transition: all 0.25s;
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2)) !important;
+      border: 1px solid rgba(139, 92, 246, 0.45) !important;
+      color: #00f0ff !important;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25) !important;
     }
-    /* current section label */
-    #current-tab-label {
-      font-size: 13px;
-      color: rgba(255,255,255,0.7);
-    }
-
-    /* ── Drawer overlay + panel ── */
-    .drawer-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(4px);
-      z-index: 9000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    .drawer-overlay.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .drawer-panel {
-      position: fixed;
-      top: 0; left: 0;
-      height: 100%;
-      width: 260px;
-      background: rgba(6,9,20,0.97);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border-right: 1px solid rgba(139,92,246,0.2);
-      z-index: 9001;
-      transform: translateX(-100%);
-      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
-      display: flex;
-      flex-direction: column;
-      padding: 24px 0;
-    }
-    .drawer-panel.open {
-      transform: translateX(0);
-    }
-    .drawer-header {
-      padding: 0 20px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      margin-bottom: 12px;
-    }
-    .drawer-header-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: rgba(255,255,255,0.3);
-      margin-bottom: 4px;
-    }
-    .drawer-header-sub {
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .drawer-nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.55);
-      cursor: pointer;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-      font-family: inherit;
-      transition: all 0.2s;
-      border-left: 3px solid transparent;
-    }
-    .drawer-nav-item:hover {
-      color: #fff;
-      background: rgba(255,255,255,0.04);
-    }
-    .drawer-nav-item.active {
-      color: #00f0ff;
-      background: rgba(0,240,255,0.06);
-      border-left-color: #00f0ff;
-    }
-    .drawer-nav-item svg {
-      width: 15px; height: 15px; flex-shrink: 0;
-    }
-    .drawer-close-btn {
-      position: absolute;
-      top: 16px; right: 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      width: 30px; height: 30px;
-      color: rgba(255,255,255,0.5);
-      font-size: 18px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .drawer-close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
-
-    /* Hide old tabs-container */
-    .tabs-container { display: none !important; }
 
     /* ── Grievances: fixed bottom-right floating panel ── */
     .grievance-fab {
@@ -309,17 +219,25 @@
     }
     .grievance-fab-btn svg { width: 20px; height: 20px; color: #fff; }
     .grievance-fab-btn:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(124,58,237,0.7); }
+    
     .grievance-fab-btn .fab-badge {
       position: absolute;
-      top: -3px; right: -3px;
-      background: #f43f5e;
+      top: -5px;
+      right: -5px;
+      background: #ef4444;
       color: #fff;
-      font-size: 9px;
+      font-size: 11px;
       font-weight: 700;
-      border-radius: 10px;
-      padding: 2px 5px;
-      display: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: none; /* toggled via JS as flex/none */
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+      line-height: 1;
     }
+    
     .grievance-panel {
       background: rgba(6,9,20,0.97);
       backdrop-filter: blur(28px);
@@ -563,55 +481,17 @@
     <!-- Hidden original stats-grid (IDs kept for JS compatibility) -->
     <div class="stats-grid stagger" id="stats-grid" style="display:none;"></div>
 
-    <!-- Drawer toggle button -->
-    <button class="drawer-toggle-btn" id="drawer-toggle-btn">
-      <div class="hamburger-lines">
-        <span></span><span></span><span></span>
-      </div>
-      <span id="current-tab-label">Student Attendance</span>
-    </button>
-
-    <!-- Hidden tabs-container (kept for JS compatibility) -->
-    <div class="tabs-container" style="display:none!important;">
-      <button class="tab-btn active" data-tab="tab-students">Student Attendance</button>
+    <!-- Tabs Container -->
+    <div class="tabs-container">
+      <button class="tab-btn" data-tab="tab-students">Student Attendance</button>
       <button class="tab-btn" data-tab="tab-teachers">Teacher Summary</button>
       <button class="tab-btn" data-tab="tab-all-records">All Records</button>
-      <button class="tab-btn" data-tab="tab-grievances">Grievances &amp; Appeals</button>
-    </div>
-
-    <!-- Drawer Overlay -->
-    <div class="drawer-overlay" id="drawer-overlay"></div>
-    <!-- Drawer Panel -->
-    <div class="drawer-panel" id="drawer-panel">
-      <button class="drawer-close-btn" id="drawer-close-btn">&times;</button>
-      <div class="drawer-header">
-        <div class="drawer-header-title">Admin Dashboard</div>
-        <div class="drawer-header-sub">Navigation</div>
-      </div>
-      <button class="drawer-nav-item active" data-tab="tab-students" id="dnav-students">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Student Attendance
-      </button>
-      <button class="drawer-nav-item" data-tab="tab-teachers" id="dnav-teachers">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Teacher Summary
-      </button>
-      <button class="drawer-nav-item" data-tab="tab-all-records" id="dnav-allrecords">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        All Records
-      </button>
-    </div>px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Grievances & Appeals
-      </button>
     </div>
 
     <!-- TAB 1: Student-wise Attendance -->
-    <div class="tab-content active" id="tab-students">
+    <div class="tab-content" id="tab-students">
       <div class="glass-card">
-        <div class="section-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Student-wise Attendance
-        </div>
+        <div class="section-title">Student-wise Attendance</div>
         <div class="search-input-wrapper">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" class="search-input" id="student-search" placeholder="Search student by name...">
@@ -642,10 +522,7 @@
     <!-- TAB 2: Teacher Summary -->
     <div class="tab-content" id="tab-teachers">
       <div class="glass-card">
-        <div class="section-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Teacher-wise Summary
-        </div>
+        <div class="section-title">Teacher-wise Summary</div>
         <div class="data-table-wrapper">
           <table class="data-table" id="teacher-table">
             <thead>
@@ -669,10 +546,7 @@
     <!-- TAB 3: All Records -->
     <div class="tab-content" id="tab-all-records">
       <div class="glass-card">
-        <div class="section-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          All Attendance Records
-        </div>
+        <div class="section-title">All Attendance Records</div>
         <div id="all-records-container">
           <div class="loading-overlay" id="all-records-loading">
             <div class="spinner"></div>
@@ -694,10 +568,7 @@
   <div class="grievance-fab" id="grievance-fab">
     <div class="grievance-panel" id="grievance-panel">
       <div class="grievance-panel-header">
-        <div class="grievance-panel-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          Grievances &amp; Appeals
-        </div>
+        <div class="grievance-panel-title">Grievances &amp; Appeals</div>
         <button class="grievance-panel-close" id="btn-close-grievance-panel">&times;</button>
       </div>
       <div class="grievance-panel-body">
@@ -1148,17 +1019,46 @@ async function deleteRecord(id) {
 // ===== Student Grievances =====
 let allGrievances = [];
 
-async function loadGrievances() {
+function updateGrievanceBadgeCount() {
+  let seenIds = [];
+  try {
+    const stored = localStorage.getItem('seenGrievances');
+    if (stored) seenIds = JSON.parse(stored);
+  } catch(e) {
+    console.error(e);
+  }
+
+  // Filter seenIds to keep only those that still exist in allGrievances
+  const currentIds = allGrievances.map(g => g.id);
+  seenIds = seenIds.filter(id => currentIds.includes(id));
+  
+  // Calculate unseen count
+  const unseenCount = allGrievances.filter(g => !seenIds.includes(g.id)).length;
+
+  const badge = document.getElementById('grievance-badge');
+  if (badge) {
+    if (unseenCount > 0) {
+      badge.textContent = unseenCount;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+async function loadGrievances(isPageLoad = false) {
   const container = document.getElementById('grievances-container');
   if (!container) return;
   
-  // Show loading
-  container.innerHTML = `
-    <div class="loading-overlay" id="grievances-loading">
-      <div class="spinner"></div>
-      <span>Loading grievances...</span>
-    </div>
-  `;
+  // Only show loading if we are NOT on initial page load
+  if (!isPageLoad) {
+    container.innerHTML = `
+      <div class="loading-overlay" id="grievances-loading">
+        <div class="spinner"></div>
+        <span>Loading grievances...</span>
+      </div>
+    `;
+  }
 
   try {
     const res = await fetch('/api/grievances');
@@ -1166,12 +1066,17 @@ async function loadGrievances() {
     if (data.success) {
       allGrievances = data.grievances;
       renderGrievances();
+      updateGrievanceBadgeCount();
     } else {
-      showToast(data.message || 'Failed to load grievances.', 'error');
+      if (!isPageLoad) {
+        showToast(data.message || 'Failed to load grievances.', 'error');
+      }
     }
   } catch (err) {
     console.error(err);
-    showToast('Failed to connect to server.', 'error');
+    if (!isPageLoad) {
+      showToast('Failed to connect to server.', 'error');
+    }
   }
 }
 
@@ -1244,6 +1149,7 @@ async function deleteGrievance(id) {
       showToast('Grievance message removed successfully.', 'success');
       allGrievances = allGrievances.filter(g => g.id !== id);
       renderGrievances();
+      updateGrievanceBadgeCount();
     } else {
       showToast(data.message || 'Failed to remove grievance.', 'error');
     }
@@ -1256,7 +1162,7 @@ async function deleteGrievance(id) {
 // ===== Init =====
 loadStats();
 loadAllData();
-loadGrievances();
+loadGrievances(true);
 
 // ===== Email Change Modal Logic =====
 const emailModal = document.getElementById('email-modal');
@@ -1499,54 +1405,20 @@ async function handleAvatarSelected(event) {
   reader.readAsDataURL(file);
 }
 
-// ===== DRAWER MENU =====
-const drawerToggle = document.getElementById('drawer-toggle-btn');
-const drawerPanel = document.getElementById('drawer-panel');
-const drawerOverlay = document.getElementById('drawer-overlay');
-const drawerClose = document.getElementById('drawer-close-btn');
-const currentTabLabel = document.getElementById('current-tab-label');
-
-function openDrawer() {
-  drawerPanel.classList.add('open');
-  drawerOverlay.classList.add('open');
-}
-function closeDrawer() {
-  drawerPanel.classList.remove('open');
-  drawerOverlay.classList.remove('open');
-}
-
-if (drawerToggle) drawerToggle.addEventListener('click', openDrawer);
-if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
-if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
-
-// Drawer nav items → trigger existing tab-btn logic
-document.querySelectorAll('.drawer-nav-item').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tabId = btn.dataset.tab;
-    // Update drawer active state
-    document.querySelectorAll('.drawer-nav-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    // Update hamburger label
-    if (currentTabLabel) currentTabLabel.textContent = btn.textContent.trim();
-    // Click the hidden original tab-btn
-    const hiddenBtn = document.querySelector(`.tabs-container .tab-btn[data-tab="${tabId}"]`);
-    if (hiddenBtn) hiddenBtn.click();
-    closeDrawer();
-  });
-});
-
 // ===== GRIEVANCE FAB PANEL =====
 const grievanceFabBtn = document.getElementById('grievance-fab-btn');
 const grievancePanel = document.getElementById('grievance-panel');
 const btnCloseGrievancePanel = document.getElementById('btn-close-grievance-panel');
 
 if (grievanceFabBtn) {
-  grievanceFabBtn.addEventListener('click', () => {
-    grievancePanel.classList.toggle('open');
-    // Load grievances when opened
-    if (grievancePanel.classList.contains('open')) {
-      loadGrievances();
+  grievanceFabBtn.addEventListener('click', async () => {
+    const isOpenNow = grievancePanel.classList.toggle('open');
+    if (isOpenNow) {
+      await loadGrievances();
+      // Mark all current grievances as seen
+      const currentIds = allGrievances.map(g => g.id);
+      localStorage.setItem('seenGrievances', JSON.stringify(currentIds));
+      updateGrievanceBadgeCount();
     }
   });
 }
@@ -1554,19 +1426,6 @@ if (btnCloseGrievancePanel) {
   btnCloseGrievancePanel.addEventListener('click', () => {
     grievancePanel.classList.remove('open');
   });
-}
-
-// Show badge count after grievances load
-const _origLoadGrievances = typeof loadGrievances === 'function' ? loadGrievances : null;
-function updateGrievanceBadge(count) {
-  const badge = document.getElementById('grievance-badge');
-  if (!badge) return;
-  if (count > 0) {
-    badge.textContent = count;
-    badge.style.display = 'block';
-  } else {
-    badge.style.display = 'none';
-  }
 }
 </script>
 </body>
