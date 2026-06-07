@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="dashboard.css">
+  <!-- QR scanning & generation libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <!-- html5-qrcode for camera scanning -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     /* Neon Theme Colors */
     :root {
@@ -231,6 +236,184 @@
       filter: invert(1);
       cursor: pointer;
     }
+
+    /* ---- Live Attendance Modal Styles ---- */
+    .live-attend-trigger-card {
+      background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(139,92,246,0.08));
+      border: 1px solid rgba(6,182,212,0.3);
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .live-attend-trigger-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(6,182,212,0.6) !important;
+      box-shadow: 0 12px 32px rgba(6,182,212,0.2) !important;
+    }
+    .live-attend-icon-ring {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(139,92,246,0.2));
+      border: 2px solid rgba(6,182,212,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      animation: iconPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes iconPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(6,182,212,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(6,182,212,0); }
+    }
+    /* Full-screen overlay modal */
+    .live-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4,6,15,0.92);
+      backdrop-filter: blur(14px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    .live-modal-box {
+      background: rgba(8,12,28,0.95);
+      border: 1px solid rgba(0,240,255,0.2);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 480px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 40px rgba(0,240,255,0.08);
+      animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .live-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    .live-modal-close:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .live-method-choice {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .live-method-btn {
+      flex: 1;
+      padding: 14px 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.25s;
+    }
+    .live-method-btn:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+    }
+    .live-method-btn.active {
+      background: rgba(0,240,255,0.08);
+      border-color: rgba(0,240,255,0.35);
+      color: #00f0ff;
+    }
+    .live-session-info-card {
+      background: linear-gradient(135deg, rgba(6,182,212,0.06), rgba(139,92,246,0.06));
+      border: 1px solid rgba(6,182,212,0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .live-session-info-row {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 6px;
+      align-items: flex-start;
+    }
+    .live-session-info-label {
+      color: var(--text-secondary);
+      min-width: 70px;
+      flex-shrink: 0;
+    }
+    .live-session-info-value {
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn-mark-present {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: all 0.3s;
+      box-shadow: 0 8px 24px rgba(6,182,212,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-mark-present:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(6,182,212,0.4);
+    }
+    .btn-mark-present:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    #qr-reader-wrapper video {
+      border-radius: 10px;
+    }
+    #qr-upload-preview {
+      max-width: 160px;
+      max-height: 160px;
+      border-radius: 10px;
+      border: 2px solid rgba(0,240,255,0.3);
+      display: block;
+      margin: 10px auto 0;
+    }
+    .session-closed-lockout {
+      text-align: center;
+      padding: 20px 0;
+    }
   </style>
 </head>
 <body>
@@ -418,6 +601,138 @@
     <footer class="dashboard-footer">
       Developed by Arijit Pal ( CSE - Data Science ) , 2028 Passout
     </footer>
+  </div>
+
+  <!-- ===== Live Attendance Card (trigger) ===== -->
+  <div style="max-width: 1280px; margin: 0 auto; padding: 0 20px 24px;" id="live-attend-trigger-wrapper">
+    <div class="glass-card live-attend-trigger-card" id="btn-open-live-modal" role="button" tabindex="0">
+      <div class="live-attend-icon-ring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" style="width:24px;height:24px;">
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px;">Mark Attendance via Link / QR</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Received a session link or QR from your teacher? Mark your attendance here.</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(0,240,255,0.5)" stroke-width="2" style="width:20px;height:20px;margin-left:auto;flex-shrink:0;">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ===== Live Attendance Modal ===== -->
+  <div id="live-modal-overlay" class="live-modal-overlay" style="display: none;">
+    <div class="live-modal-box">
+      <button class="live-modal-close" id="btn-close-live-modal">&times;</button>
+
+      <!-- Title -->
+      <div style="margin-bottom: 24px; padding-right: 32px;">
+        <div style="font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 4px;">Mark Your Attendance</div>
+        <div style="font-size: 13px; color: var(--text-secondary);">Choose how you received the session from your teacher</div>
+      </div>
+
+      <!-- Method chooser -->
+      <div class="live-method-choice" id="method-choice">
+        <button class="live-method-btn active" id="live-btn-via-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;margin:0 auto 6px;">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          Via Link
+        </button>
+        <button class="live-method-btn" id="live-btn-via-qr">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;margin:0 auto 6px;">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            <rect x="14" y="14" width="3" height="3"/>
+          </svg>
+          Via QR
+        </button>
+      </div>
+
+      <!-- === VIA LINK PANEL === -->
+      <div id="panel-via-link">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); display: block; margin-bottom: 8px;">Paste Session Link</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="live-link-input" class="form-input" placeholder="Paste link here e.g. https://..." style="flex: 1; font-size: 13px;">
+            <button class="btn btn-primary" id="btn-load-session" type="button" style="white-space: nowrap;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Load
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- === VIA QR PANEL === -->
+      <div id="panel-via-qr" style="display: none;">
+        <div class="live-method-choice" style="margin-bottom: 16px;">
+          <button class="live-method-btn active" id="qr-btn-scan" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline;margin-right:4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Scan QR
+          </button>
+          <button class="live-method-btn" id="qr-btn-upload" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload QR
+          </button>
+        </div>
+        <!-- Camera scanner -->
+        <div id="qr-scan-panel">
+          <div id="qr-reader-wrapper" style="width:100%; border-radius: 10px; overflow:hidden;"></div>
+          <p style="font-size: 12px; color: var(--text-secondary); text-align:center; margin-top: 8px;">Point camera at the QR code</p>
+        </div>
+        <!-- Upload QR image -->
+        <div id="qr-upload-panel" style="display: none; text-align: center;">
+          <input type="file" id="qr-file-input" accept="image/*" style="display:none;">
+          <button class="btn btn-secondary" type="button" onclick="document.getElementById('qr-file-input').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Choose QR Image
+          </button>
+          <img id="qr-upload-preview" src="" alt="QR Preview" style="display:none;">
+          <p id="qr-upload-status" style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">No image selected</p>
+        </div>
+      </div>
+
+      <!-- === SESSION INFO (shown after link/QR decoded) === -->
+      <div id="session-info-panel" style="display: none;">
+        <!-- Normal session info -->
+        <div id="session-info-content">
+          <div class="live-session-info-card">
+            <div class="live-session-info-row">
+              <span class="live-session-info-label">Subject</span>
+              <span class="live-session-info-value" id="si-subject">—</span>
+            </div>
+            <div class="live-session-info-row">
+              <span class="live-session-info-label">Teacher</span>
+              <span class="live-session-info-value" id="si-teacher">—</span>
+            </div>
+            <div class="live-session-info-row">
+              <span class="live-session-info-label">Date</span>
+              <span class="live-session-info-value" id="si-date">—</span>
+            </div>
+            <div class="live-session-info-row">
+              <span class="live-session-info-label">Year / Sec</span>
+              <span class="live-session-info-value" id="si-yearsec">—</span>
+            </div>
+          </div>
+          <button class="btn-mark-present" id="btn-mark-present" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><polyline points="20 6 9 17 4 12"/></svg>
+            Mark Myself Present
+          </button>
+        </div>
+
+        <!-- Closed/Expired session lockout -->
+        <div id="session-info-closed" class="session-closed-lockout" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" style="width:40px;height:40px;margin-bottom:12px;">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <div style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px;">Attendance Already Taken</div>
+          <div style="font-size: 13px; color: var(--text-secondary);">The teacher has closed this session. Attendance has been recorded.</div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 <script>
@@ -852,6 +1167,305 @@ if (btnSubmitGrievance && msgInput) {
 
 // ===== Init =====
 loadAttendance();
+
+// ===== LIVE ATTENDANCE MODAL =====
+let activeSessionToken = null;
+let html5QrScanner = null;
+
+// Open/close helpers
+const liveModalOverlay = document.getElementById('live-modal-overlay');
+const btnOpenLiveModal = document.getElementById('btn-open-live-modal');
+const btnCloseLiveModal = document.getElementById('btn-close-live-modal');
+
+function openLiveModal() {
+  liveModalOverlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  resetLiveModal();
+}
+
+function closeLiveModal() {
+  liveModalOverlay.style.display = 'none';
+  document.body.style.overflow = '';
+  stopQrScanner();
+  activeSessionToken = null;
+}
+
+if (btnOpenLiveModal) btnOpenLiveModal.addEventListener('click', openLiveModal);
+if (btnCloseLiveModal) btnCloseLiveModal.addEventListener('click', closeLiveModal);
+// Keyboard ESC
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLiveModal(); });
+
+// Reset modal state
+function resetLiveModal() {
+  activeSessionToken = null;
+  document.getElementById('live-link-input').value = '';
+  document.getElementById('session-info-panel').style.display = 'none';
+  document.getElementById('session-info-content').style.display = 'block';
+  document.getElementById('session-info-closed').style.display = 'none';
+  const btnMark = document.getElementById('btn-mark-present');
+  if (btnMark) { btnMark.disabled = false; btnMark.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><polyline points="20 6 9 17 4 12"/></svg> Mark Myself Present'; }
+  switchLiveMethod('link');
+}
+
+// ---- Method Switcher (Link / QR) ----
+function switchLiveMethod(method) {
+  const linkBtn = document.getElementById('live-btn-via-link');
+  const qrBtn = document.getElementById('live-btn-via-qr');
+  const linkPanel = document.getElementById('panel-via-link');
+  const qrPanel = document.getElementById('panel-via-qr');
+
+  if (method === 'link') {
+    linkBtn.classList.add('active'); qrBtn.classList.remove('active');
+    linkPanel.style.display = 'block'; qrPanel.style.display = 'none';
+    stopQrScanner();
+  } else {
+    qrBtn.classList.add('active'); linkBtn.classList.remove('active');
+    qrPanel.style.display = 'block'; linkPanel.style.display = 'none';
+    // Default to scan sub-tab
+    switchQrSubMethod('scan');
+  }
+}
+
+document.getElementById('live-btn-via-link').addEventListener('click', () => switchLiveMethod('link'));
+document.getElementById('live-btn-via-qr').addEventListener('click', () => switchLiveMethod('qr'));
+
+// ---- QR Sub-method (scan / upload) ----
+function switchQrSubMethod(sub) {
+  const scanBtn = document.getElementById('qr-btn-scan');
+  const uploadBtn = document.getElementById('qr-btn-upload');
+  const scanPanel = document.getElementById('qr-scan-panel');
+  const uploadPanel = document.getElementById('qr-upload-panel');
+
+  if (sub === 'scan') {
+    scanBtn.classList.add('active'); uploadBtn.classList.remove('active');
+    scanPanel.style.display = 'block'; uploadPanel.style.display = 'none';
+    startQrScanner();
+  } else {
+    uploadBtn.classList.add('active'); scanBtn.classList.remove('active');
+    uploadPanel.style.display = 'block'; scanPanel.style.display = 'none';
+    stopQrScanner();
+  }
+}
+
+document.getElementById('qr-btn-scan').addEventListener('click', () => switchQrSubMethod('scan'));
+document.getElementById('qr-btn-upload').addEventListener('click', () => switchQrSubMethod('upload'));
+
+// ---- Camera QR Scanner ----
+function startQrScanner() {
+  stopQrScanner();
+  const wrapper = document.getElementById('qr-reader-wrapper');
+  wrapper.innerHTML = '';
+  const readerId = 'qr-reader-' + Date.now();
+  const readerDiv = document.createElement('div');
+  readerDiv.id = readerId;
+  wrapper.appendChild(readerDiv);
+
+  try {
+    html5QrScanner = new Html5Qrcode(readerId);
+    html5QrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 220, height: 220 } },
+      (decodedText) => {
+        // Got a QR text — extract session token
+        stopQrScanner();
+        processScannedUrl(decodedText);
+      },
+      () => {} // ignore per-frame errors
+    ).catch(err => {
+      console.warn('QR scanner failed to start:', err);
+      wrapper.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">Camera access denied or unavailable.<br>Please use "Upload QR" instead.</p>';
+    });
+  } catch (e) {
+    wrapper.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; text-align: center; padding: 20px;">QR Scanner not available. Try Upload QR.</p>';
+  }
+}
+
+function stopQrScanner() {
+  if (html5QrScanner) {
+    html5QrScanner.stop().catch(() => {});
+    html5QrScanner = null;
+  }
+}
+
+// ---- Upload QR Image & Decode with jsQR ----
+document.getElementById('qr-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('qr-upload-status');
+  const previewEl = document.getElementById('qr-upload-preview');
+  statusEl.textContent = 'Reading QR code...';
+  statusEl.style.color = 'var(--text-secondary)';
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    previewEl.src = ev.target.result;
+    previewEl.style.display = 'block';
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) {
+        statusEl.textContent = '✅ QR decoded successfully!';
+        statusEl.style.color = '#4ade80';
+        processScannedUrl(code.data);
+      } else {
+        statusEl.textContent = '❌ Could not decode QR. Try a clearer image.';
+        statusEl.style.color = '#f43f5e';
+      }
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// ---- Extract token from URL and load session ----
+function processScannedUrl(urlOrToken) {
+  let token = urlOrToken.trim();
+  // Try parsing as URL
+  try {
+    const url = new URL(urlOrToken);
+    const param = url.searchParams.get('session');
+    if (param) token = param;
+  } catch (_) {
+    // Not a URL, treat as raw token
+  }
+  if (!token) {
+    showToast('Could not extract session token from QR.', 'error');
+    return;
+  }
+  loadSessionByToken(token);
+}
+
+// ---- Load session by pasting link ----
+document.getElementById('btn-load-session').addEventListener('click', () => {
+  const val = document.getElementById('live-link-input').value.trim();
+  if (!val) { showToast('Please paste the session link first.', 'error'); return; }
+  processScannedUrl(val);
+});
+// Allow pressing Enter in the link input
+document.getElementById('live-link-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-load-session').click();
+});
+
+// ---- Fetch session info from server and show ----
+async function loadSessionByToken(token) {
+  const btn = document.getElementById('btn-load-session');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
+
+  try {
+    const res = await fetch(`/api/session/${encodeURIComponent(token)}`);
+    const result = await res.json();
+
+    if (!result.success) {
+      showToast(result.message || 'Session not found.', 'error');
+      return;
+    }
+
+    const session = result.session;
+    activeSessionToken = session.token;
+
+    // Populate info card
+    document.getElementById('si-subject').textContent = session.subject;
+    document.getElementById('si-teacher').textContent = session.teacherName;
+    document.getElementById('si-date').textContent = formatDateString(session.date);
+    document.getElementById('si-yearsec').textContent = `${session.year} · ${session.section}`;
+
+    // Show info panel
+    document.getElementById('session-info-panel').style.display = 'block';
+
+    // If session is closed/expired, show lockout
+    if (session.status === 'closed' || session.status === 'expired') {
+      document.getElementById('session-info-content').style.display = 'none';
+      document.getElementById('session-info-closed').style.display = 'block';
+    } else {
+      document.getElementById('session-info-content').style.display = 'block';
+      document.getElementById('session-info-closed').style.display = 'none';
+    }
+
+    // Hide method panels
+    document.getElementById('panel-via-link').style.display = 'none';
+    document.getElementById('panel-via-qr').style.display = 'none';
+    document.getElementById('method-choice').style.display = 'none';
+    stopQrScanner();
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to load session. Check the link and try again.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Load'; }
+  }
+}
+
+// ---- Mark present button ----
+const btnMarkPresent = document.getElementById('btn-mark-present');
+if (btnMarkPresent) {
+  btnMarkPresent.addEventListener('click', async () => {
+    if (!activeSessionToken) { showToast('No session loaded.', 'error'); return; }
+
+    btnMarkPresent.disabled = true;
+    btnMarkPresent.textContent = 'Marking...';
+
+    try {
+      const res = await fetch(`/api/session/${encodeURIComponent(activeSessionToken)}/mark`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: profile.name,
+          roll: profile.roll,
+          enrollment: profile.enrollment
+        })
+      });
+      const result = await res.json();
+
+      if (result.closed) {
+        // Session got closed between load and mark
+        document.getElementById('session-info-content').style.display = 'none';
+        document.getElementById('session-info-closed').style.display = 'block';
+        return;
+      }
+
+      if (result.alreadyMarked) {
+        showToast('You have already marked your attendance for this session! ✅', 'success');
+        btnMarkPresent.textContent = '✅ Already Marked';
+        return;
+      }
+
+      if (result.success) {
+        showToast('Attendance marked successfully! ✅', 'success');
+        btnMarkPresent.innerHTML = '✅ Attendance Marked!';
+        btnMarkPresent.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+        // Close modal after a short delay
+        setTimeout(() => { closeLiveModal(); loadAttendance(); }, 2000);
+      } else {
+        showToast(result.message || 'Failed to mark attendance.', 'error');
+        btnMarkPresent.disabled = false;
+        btnMarkPresent.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><polyline points="20 6 9 17 4 12"/></svg> Mark Myself Present';
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error. Please try again.', 'error');
+      btnMarkPresent.disabled = false;
+      btnMarkPresent.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><polyline points="20 6 9 17 4 12"/></svg> Mark Myself Present';
+    }
+  });
+}
+
+// ---- Auto-detect ?session= URL param (student opens link directly) ----
+(function checkUrlForSession() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionParam = urlParams.get('session');
+  if (sessionParam) {
+    // Open modal and auto-load the session
+    openLiveModal();
+    loadSessionByToken(sessionParam);
+  }
+})();
 
 </script>
 </body>

@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="dashboard.css">
   <!-- Client-side export & upload support libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- QR Code generation library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
@@ -70,6 +72,94 @@
     /* Download badges print-friendly styles override for html2canvas */
     .download-actions button {
       transition: var(--transition-fast);
+    }
+    /* Live Session Styles */
+    .live-session-banner {
+      background: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(139,92,246,0.08));
+      border: 1px solid rgba(6,182,212,0.25);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .session-link-box {
+      background: rgba(4,6,15,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--color-cyan);
+      word-break: break-all;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .session-link-box:hover { background: rgba(6,182,212,0.07); }
+    .live-counter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #4ade80;
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: livePulse 1.4s infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+    .student-marked-list {
+      max-height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .student-marked-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+      animation: fadeSlide 0.4s ease;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #qr-canvas-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #qr-canvas-wrapper canvas,
+    #qr-canvas-wrapper img {
+      border-radius: 12px;
+      border: 3px solid rgba(6,182,212,0.3);
+      padding: 8px;
+      background: #fff;
+    }
+    .session-close-btn {
+      background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+      border-color: #dc2626 !important;
+    }
+    .session-close-btn:hover {
+      background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+      box-shadow: 0 4px 16px rgba(239,68,68,0.35) !important;
     }
     /* Split bottom layout on desktop */
     @media (min-width: 1025px) {
@@ -187,6 +277,10 @@
               <button class="method-btn" id="btn-method-excel" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Excel Sheet Upload
+              </button>
+              <button class="method-btn" id="btn-method-live" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                Live via Link / QR
               </button>
             </div>
 
@@ -312,6 +406,108 @@
                 </button>
               </div>
             </div>
+
+            <!-- SUB-PANEL 3: Live Attendance via Link / QR -->
+            <div id="live-session-panel" style="display: none;">
+
+              <!-- Step 1: Fill details and generate -->
+              <div id="live-step-setup">
+                <div class="form-row">
+                  <div class="form-group" style="flex: 1.2;">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="live-date">
+                  </div>
+                  <div class="form-group" style="flex: 2;">
+                    <label class="form-label">Subject</label>
+                    <input type="text" class="form-input" id="live-subject" placeholder="e.g. Machine Learning">
+                  </div>
+                  <div class="form-group" style="flex: 1.2;">
+                    <label class="form-label">Year</label>
+                    <select class="form-input" id="live-year">
+                      <option value="1st Year">1st Year</option>
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="flex: 1.2;">
+                    <label class="form-label">Section</label>
+                    <select class="form-input" id="live-section">
+                      <option value="Sec A">Sec A</option>
+                      <option value="Sec B">Sec B</option>
+                      <option value="Sec C">Sec C</option>
+                      <option value="Sec D">Sec D</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                  <button class="btn btn-primary" id="btn-generate-session" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    Generate Link & QR
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 2: Live session active view -->
+              <div id="live-step-active" style="display: none;">
+
+                <!-- QR + Link Row -->
+                <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 16px;">
+                  <!-- QR Code -->
+                  <div style="flex-shrink: 0; text-align: center;">
+                    <div id="qr-canvas-wrapper"></div>
+                    <p style="font-size: 11px; color: var(--text-secondary); margin-top: 8px;">Students scan this QR</p>
+                  </div>
+                  <!-- Link + Live counter -->
+                  <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                      <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); display: block; margin-bottom: 6px;">Shareable Link</label>
+                      <div class="session-link-box" id="live-session-link" title="Click to copy" onclick="copySessionLink()">—</div>
+                      <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Click to copy · Share this link with students</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                      <div class="live-counter-badge">
+                        <span class="live-dot"></span>
+                        <span id="live-count-text">0 students marked present</span>
+                      </div>
+                    </div>
+                    <!-- Option buttons -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                      <button class="btn btn-secondary btn-sm" type="button" id="btn-view-marked" style="display: flex; align-items: center; gap: 6px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        1. See Who Marked
+                      </button>
+                      <button class="btn btn-primary session-close-btn btn-sm" type="button" id="btn-close-session" style="display: flex; align-items: center; gap: 6px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+                        2. Disable & Record Attendance
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Live student list (toggleable) -->
+                <div id="marked-students-panel" style="display: none; margin-top: 4px;">
+                  <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px;">Students who marked attendance:</div>
+                  <div class="student-marked-list" id="marked-students-list">
+                    <div style="font-size: 13px; color: var(--text-secondary); padding: 8px;">No students yet...</div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Step 3: Session closed confirmation -->
+              <div id="live-step-closed" style="display: none; text-align: center; padding: 30px 0;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" style="width:48px;height:48px; margin-bottom: 12px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <div style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px;">Attendance Recorded!</div>
+                <div id="live-closed-msg" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Session closed and attendance saved.</div>
+                <button class="btn btn-secondary" type="button" onclick="resetLiveSession()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.87"/></svg>
+                  Start New Session
+                </button>
+              </div>
+
+            </div>
+            <!-- End Live Session Panel -->
 
           </div>
         </div>
@@ -952,31 +1148,35 @@ async function handleAvatarSelected(event) {
   reader.readAsDataURL(file);
 }
 
-// ===== Input Method Switcher =====
+// ===== Input Method Switcher (Manual / Excel / Live) =====
 const btnMethodManual = document.getElementById('btn-method-manual');
 const btnMethodExcel = document.getElementById('btn-method-excel');
+const btnMethodLive = document.getElementById('btn-method-live');
 const manualEntryPanel = document.getElementById('manual-entry-panel');
 const excelUploadPanel = document.getElementById('excel-upload-panel');
+const liveSessionPanel = document.getElementById('live-session-panel');
 
-if (btnMethodManual && btnMethodExcel) {
-  btnMethodManual.addEventListener('click', () => {
-    btnMethodManual.classList.add('active');
-    btnMethodExcel.classList.remove('active');
-    manualEntryPanel.style.display = 'block';
-    excelUploadPanel.style.display = 'none';
-  });
+function switchMethod(active) {
+  [btnMethodManual, btnMethodExcel, btnMethodLive].forEach(b => b && b.classList.remove('active'));
+  [manualEntryPanel, excelUploadPanel, liveSessionPanel].forEach(p => p && (p.style.display = 'none'));
+  active.btn.classList.add('active');
+  active.panel.style.display = 'block';
+}
 
+if (btnMethodManual) {
+  btnMethodManual.addEventListener('click', () => switchMethod({ btn: btnMethodManual, panel: manualEntryPanel }));
+}
+if (btnMethodExcel) {
   btnMethodExcel.addEventListener('click', () => {
-    btnMethodExcel.classList.add('active');
-    btnMethodManual.classList.remove('active');
-    excelUploadPanel.style.display = 'block';
-    manualEntryPanel.style.display = 'none';
-    
-    // Sync date with manual form
+    switchMethod({ btn: btnMethodExcel, panel: excelUploadPanel });
     const dateVal = document.getElementById('attendance-date').value;
     document.getElementById('upload-date').value = dateVal;
   });
 }
+if (btnMethodLive) {
+  btnMethodLive.addEventListener('click', () => switchMethod({ btn: btnMethodLive, panel: liveSessionPanel }));
+}
+
 
 // ===== Inform to Admin Grievance Submission =====
 const btnSubmitGrievance = document.getElementById('btn-submit-grievance');
@@ -1361,6 +1561,240 @@ async function exportRecord(recordId, type) {
       console.error(err);
       showToast('Failed to export report.', 'error');
     }
+  }
+}
+
+// ===== LIVE SESSION MANAGEMENT =====
+let liveSessionToken = null;
+let liveSessionPollInterval = null;
+let liveSessionLink = '';
+let qrInstance = null;
+
+// Set today's date on live date input
+(function initLiveDate() {
+  const el = document.getElementById('live-date');
+  if (el) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    el.value = `${yyyy}-${mm}-${dd}`;
+  }
+})();
+
+// Generate session when teacher clicks Generate Link & QR
+const btnGenerate = document.getElementById('btn-generate-session');
+if (btnGenerate) {
+  btnGenerate.addEventListener('click', async () => {
+    const date = document.getElementById('live-date').value;
+    const subject = document.getElementById('live-subject').value.trim();
+    const year = document.getElementById('live-year').value;
+    const section = document.getElementById('live-section').value;
+
+    if (!date || !subject) {
+      showToast('Please fill in Date and Subject first.', 'error');
+      return;
+    }
+
+    btnGenerate.disabled = true;
+    btnGenerate.textContent = 'Generating...';
+
+    try {
+      const res = await fetch('/api/session/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          teacherEmail: profile.email,
+          teacherName: profile.name,
+          subject, year, section, date
+        })
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        showToast(result.message || 'Failed to create session.', 'error');
+        btnGenerate.disabled = false;
+        btnGenerate.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Generate Link & QR';
+        return;
+      }
+
+      liveSessionToken = result.token;
+      liveSessionLink = `${window.location.origin}/student.html?session=${liveSessionToken}`;
+
+      // Show active view
+      document.getElementById('live-step-setup').style.display = 'none';
+      document.getElementById('live-step-active').style.display = 'block';
+      document.getElementById('live-step-closed').style.display = 'none';
+
+      // Render link
+      document.getElementById('live-session-link').textContent = liveSessionLink;
+
+      // Generate QR
+      const qrWrapper = document.getElementById('qr-canvas-wrapper');
+      qrWrapper.innerHTML = '';
+      qrInstance = new QRCode(qrWrapper, {
+        text: liveSessionLink,
+        width: 160,
+        height: 160,
+        colorDark: '#06b6d4',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      // Start polling every 4 seconds
+      pollLiveSession();
+      liveSessionPollInterval = setInterval(pollLiveSession, 4000);
+
+      showToast('Session created! Share the link or QR with students.', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Server error. Please try again.', 'error');
+      btnGenerate.disabled = false;
+      btnGenerate.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Generate Link & QR';
+    }
+  });
+}
+
+// Poll for live student count
+async function pollLiveSession() {
+  if (!liveSessionToken) return;
+  try {
+    const res = await fetch(`/api/session/${liveSessionToken}/poll`);
+    const result = await res.json();
+    if (!result.success) return;
+
+    const count = result.markedCount || 0;
+    document.getElementById('live-count-text').textContent =
+      count === 1 ? '1 student marked present' : `${count} students marked present`;
+
+    // Update student list if panel is visible
+    const panel = document.getElementById('marked-students-panel');
+    if (panel.style.display !== 'none') {
+      renderMarkedStudents(result.markedStudents || []);
+    }
+
+    // If session got closed externally, stop polling
+    if (result.status === 'closed' || result.status === 'expired') {
+      clearInterval(liveSessionPollInterval);
+    }
+  } catch (e) {
+    // silently ignore poll errors
+  }
+}
+
+// Render list of students who marked themselves
+function renderMarkedStudents(students) {
+  const list = document.getElementById('marked-students-list');
+  if (!list) return;
+  if (students.length === 0) {
+    list.innerHTML = '<div style="font-size: 13px; color: var(--text-secondary); padding: 8px;">No students yet...</div>';
+    return;
+  }
+  list.innerHTML = students.map(s => `
+    <div class="student-marked-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="font-weight:600; color:#fff;">${escapeHtml(s.name)}</span>
+      <span style="color: var(--text-secondary); margin-left: auto;">Roll: ${escapeHtml(s.roll)}</span>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]);
+}
+
+// Toggle see-who-marked panel
+const btnViewMarked = document.getElementById('btn-view-marked');
+if (btnViewMarked) {
+  btnViewMarked.addEventListener('click', async () => {
+    const panel = document.getElementById('marked-students-panel');
+    if (panel.style.display === 'none') {
+      panel.style.display = 'block';
+      // Immediate refresh
+      if (liveSessionToken) {
+        const res = await fetch(`/api/session/${liveSessionToken}/poll`);
+        const result = await res.json();
+        if (result.success) renderMarkedStudents(result.markedStudents || []);
+      }
+      btnViewMarked.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Hide List`;
+    } else {
+      panel.style.display = 'none';
+      btnViewMarked.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 1. See Who Marked`;
+    }
+  });
+}
+
+// Copy session link to clipboard
+function copySessionLink() {
+  if (!liveSessionLink) return;
+  navigator.clipboard.writeText(liveSessionLink).then(() => {
+    showToast('Link copied to clipboard!', 'success');
+  }).catch(() => {
+    showToast('Could not copy. Please copy manually from the box.', 'error');
+  });
+}
+
+// Disable & Record Attendance (close session)
+const btnCloseSession = document.getElementById('btn-close-session');
+if (btnCloseSession) {
+  btnCloseSession.addEventListener('click', async () => {
+    if (!liveSessionToken) return;
+
+    const confirmed = confirm('Are you sure you want to close this session and record attendance? Students will no longer be able to mark themselves.');
+    if (!confirmed) return;
+
+    btnCloseSession.disabled = true;
+    btnCloseSession.textContent = 'Recording...';
+
+    try {
+      const res = await fetch(`/api/session/${liveSessionToken}/close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const result = await res.json();
+
+      clearInterval(liveSessionPollInterval);
+
+      if (result.success) {
+        document.getElementById('live-step-active').style.display = 'none';
+        document.getElementById('live-step-closed').style.display = 'block';
+        document.getElementById('live-closed-msg').textContent =
+          result.message || 'Attendance recorded successfully.';
+        showToast('Attendance recorded and session closed!', 'success');
+        // Refresh teacher records tab in background
+        loadRecords();
+      } else {
+        showToast(result.message || 'Failed to close session.', 'error');
+        btnCloseSession.disabled = false;
+        btnCloseSession.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l6 6M15 9l-6 6"/></svg> 2. Disable & Record Attendance`;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error. Please try again.', 'error');
+      btnCloseSession.disabled = false;
+      btnCloseSession.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l6 6M15 9l-6 6"/></svg> 2. Disable & Record Attendance`;
+    }
+  });
+}
+
+// Reset live session state to start fresh
+function resetLiveSession() {
+  liveSessionToken = null;
+  liveSessionLink = '';
+  clearInterval(liveSessionPollInterval);
+  qrInstance = null;
+  document.getElementById('qr-canvas-wrapper').innerHTML = '';
+  document.getElementById('live-session-link').textContent = '—';
+  document.getElementById('live-count-text').textContent = '0 students marked present';
+  document.getElementById('marked-students-panel').style.display = 'none';
+  document.getElementById('marked-students-list').innerHTML = '<div style="font-size: 13px; color: var(--text-secondary); padding: 8px;">No students yet...</div>';
+  document.getElementById('live-subject').value = '';
+  document.getElementById('live-step-setup').style.display = 'block';
+  document.getElementById('live-step-active').style.display = 'none';
+  document.getElementById('live-step-closed').style.display = 'none';
+  if (btnGenerate) {
+    btnGenerate.disabled = false;
+    btnGenerate.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Generate Link & QR';
   }
 }
 </script>

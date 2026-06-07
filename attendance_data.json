@@ -382,5 +382,773 @@
       }
     ],
     "createdAt": "2026-06-07T10:42:19.838Z"
+  },
+  {
+    "id": "mq3qxuyqwelqh",
+    "date": "2026-06-07",
+    "subject": "Design & Analysis of Algorithm",
+    "year": "2nd Year",
+    "section": "Sec A",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "students": [
+      {
+        "name": "SNEHAJIT CHOWDHURY",
+        "roll": "1",
+        "enrollment": "12024002037042",
+        "present": true
+      },
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "present": true
+      },
+      {
+        "name": "ARKADEV CHAKRABARTI",
+        "roll": "3",
+        "enrollment": "12024002037011",
+        "present": true
+      },
+      {
+        "name": "PARIJAT PAL",
+        "roll": "4",
+        "enrollment": "12024002037056",
+        "present": false
+      },
+      {
+        "name": "SIDDHI BATHWAL",
+        "roll": "5",
+        "enrollment": "12024002037024",
+        "present": true
+      },
+      {
+        "name": "DILIP KUMAR",
+        "roll": "6",
+        "enrollment": "12024002037053",
+        "present": false
+      },
+      {
+        "name": "ABJINI GHOSAL",
+        "roll": "7",
+        "enrollment": "12024002037002",
+        "present": false
+      },
+      {
+        "name": "SOUHARDYA GHORAI",
+        "roll": "8",
+        "enrollment": "12024002037043",
+        "present": false
+      },
+      {
+        "name": "PUBALI ADAK",
+        "roll": "9",
+        "enrollment": "12024002037017",
+        "present": true
+      },
+      {
+        "name": "DEEPALI SINGH",
+        "roll": "10",
+        "enrollment": "12024002037050",
+        "present": true
+      },
+      {
+        "name": "MEDHA GANGULY",
+        "roll": "11",
+        "enrollment": "12024002037015",
+        "present": true
+      },
+      {
+        "name": "RITOMA ROY",
+        "roll": "12",
+        "enrollment": "12024002037020",
+        "present": true
+      },
+      {
+        "name": "ABU SAMAD MONDAL",
+        "roll": "13",
+        "enrollment": "12024002037047",
+        "present": true
+      },
+      {
+        "name": "AYUSHMAN PYNE",
+        "roll": "14",
+        "enrollment": "12024002037048",
+        "present": false
+      },
+      {
+        "name": "SAYAN SAHA",
+        "roll": "15",
+        "enrollment": "12024002037022",
+        "present": true
+      },
+      {
+        "name": "ANISHA GHOSH HAZRA",
+        "roll": "16",
+        "enrollment": "12024002037004",
+        "present": true
+      },
+      {
+        "name": "TANISH MANDAL",
+        "roll": "17",
+        "enrollment": "12024002037027",
+        "present": true
+      },
+      {
+        "name": "ANWESH BANERJEE",
+        "roll": "18",
+        "enrollment": "12024002037052",
+        "present": false
+      },
+      {
+        "name": "SAPTAK JANA",
+        "roll": "19",
+        "enrollment": "12024002037060",
+        "present": false
+      },
+      {
+        "name": "NABANIPA DAS",
+        "roll": "20",
+        "enrollment": "12024002037035",
+        "present": false
+      },
+      {
+        "name": "SOMYA TIWARY",
+        "roll": "21",
+        "enrollment": "12024002037049",
+        "present": true
+      },
+      {
+        "name": "SABUJ MAITY",
+        "roll": "22",
+        "enrollment": "12024002037021",
+        "present": true
+      },
+      {
+        "name": "SNEHA GHOSH",
+        "roll": "23",
+        "enrollment": "12024002037055",
+        "present": false
+      },
+      {
+        "name": "KRITYALI SAU",
+        "roll": "24",
+        "enrollment": "12024002037034",
+        "present": true
+      },
+      {
+        "name": "SANANDAN RAY",
+        "roll": "25",
+        "enrollment": "12024002037039",
+        "present": true
+      },
+      {
+        "name": "SOUMYANIL NASKAR",
+        "roll": "26",
+        "enrollment": "12024002037063",
+        "present": true
+      },
+      {
+        "name": "SHASWATA KUMAR DAS",
+        "roll": "27",
+        "enrollment": "12024002037023",
+        "present": false
+      },
+      {
+        "name": "POULAMI ROY",
+        "roll": "28",
+        "enrollment": "12024002037036",
+        "present": false
+      },
+      {
+        "name": "ARISH MAHAMMAD",
+        "roll": "29",
+        "enrollment": "12024002037010",
+        "present": false
+      },
+      {
+        "name": "ARNOY MAJUMDER",
+        "roll": "30",
+        "enrollment": "12024002037031",
+        "present": false
+      },
+      {
+        "name": "SUSMITA GANGULY",
+        "roll": "31",
+        "enrollment": "12024002037044",
+        "present": true
+      },
+      {
+        "name": "ALOK RAJ",
+        "roll": "32",
+        "enrollment": "12024002037029",
+        "present": true
+      },
+      {
+        "name": "ASHUTOSH KUMAR",
+        "roll": "33",
+        "enrollment": "12024002037012",
+        "present": true
+      },
+      {
+        "name": "ROHAN KUMAR",
+        "roll": "34",
+        "enrollment": "12024002037062",
+        "present": true
+      },
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "present": false
+      },
+      {
+        "name": "ANUSHREE PAL",
+        "roll": "36",
+        "enrollment": "12024002037006",
+        "present": true
+      },
+      {
+        "name": "ANKIT PARYA",
+        "roll": "37",
+        "enrollment": "12024002037005",
+        "present": false
+      },
+      {
+        "name": "DEBAJYOTI GIRI",
+        "roll": "38",
+        "enrollment": "12024002037032",
+        "present": true
+      },
+      {
+        "name": "ARGHYA DAS",
+        "roll": "39",
+        "enrollment": "12024002037008",
+        "present": true
+      },
+      {
+        "name": "DIBYENDU MONDAL",
+        "roll": "40",
+        "enrollment": "12024002037014",
+        "present": true
+      },
+      {
+        "name": "TIYASA MANSUR",
+        "roll": "41",
+        "enrollment": "12024002037045",
+        "present": true
+      },
+      {
+        "name": "RANASHA MANDAL",
+        "roll": "42",
+        "enrollment": "12024002037037",
+        "present": true
+      },
+      {
+        "name": "SHIBAM CHATTERJEE",
+        "roll": "43",
+        "enrollment": "12024002037041",
+        "present": false
+      },
+      {
+        "name": "RAVI RAJ",
+        "roll": "44",
+        "enrollment": "12024002037018",
+        "present": false
+      },
+      {
+        "name": "AKASH ROY",
+        "roll": "45",
+        "enrollment": "12024002037003",
+        "present": true
+      },
+      {
+        "name": "BARSHAN NASKAR",
+        "roll": "46",
+        "enrollment": "12024002037054",
+        "present": true
+      },
+      {
+        "name": "NISHANI BHUNIYA",
+        "roll": "47",
+        "enrollment": "12024002037016",
+        "present": false
+      },
+      {
+        "name": "SIDDHANT GURUNG",
+        "roll": "48",
+        "enrollment": "12024002037064",
+        "present": true
+      },
+      {
+        "name": "AINDRILA SAHA",
+        "roll": "49",
+        "enrollment": "12024002037028",
+        "present": true
+      },
+      {
+        "name": "BIJIT POLLEY",
+        "roll": "50",
+        "enrollment": "12024002037013",
+        "present": true
+      },
+      {
+        "name": "SAYAN BASAK",
+        "roll": "51",
+        "enrollment": "12024002037040",
+        "present": false
+      },
+      {
+        "name": "ARINDAM NATH",
+        "roll": "52",
+        "enrollment": "12024002037009",
+        "present": false
+      },
+      {
+        "name": "ANKIT SINGH",
+        "roll": "53",
+        "enrollment": "12024002037030",
+        "present": true
+      },
+      {
+        "name": "SNEHA BANERJEE",
+        "roll": "54",
+        "enrollment": "12024002037025",
+        "present": true
+      },
+      {
+        "name": "SOHANRAJ PATHAK",
+        "roll": "55",
+        "enrollment": "12024002037026",
+        "present": false
+      },
+      {
+        "name": "RITAMA DEY",
+        "roll": "56",
+        "enrollment": "12024002037038",
+        "present": true
+      },
+      {
+        "name": "ABHIJEET SINGH",
+        "roll": "57",
+        "enrollment": "12024002037001",
+        "present": true
+      },
+      {
+        "name": "REET HABAR",
+        "roll": "58",
+        "enrollment": "12024002037019",
+        "present": true
+      },
+      {
+        "name": "SAGNIK KOLEY",
+        "roll": "59",
+        "enrollment": "12024002037057",
+        "present": false
+      },
+      {
+        "name": "ADITYA KUMAR",
+        "roll": "60",
+        "enrollment": "12024002037061",
+        "present": false
+      },
+      {
+        "name": "JATIN RAUTH",
+        "roll": "61",
+        "enrollment": "12024002037033",
+        "present": true
+      },
+      {
+        "name": "ADAMYA DOGRA",
+        "roll": "62",
+        "enrollment": "12024002037059",
+        "present": true
+      }
+    ],
+    "createdAt": "2026-06-07T12:16:39.171Z"
+  },
+  {
+    "id": "mq3qzdrtu4vf6",
+    "date": "2026-06-07",
+    "subject": "English",
+    "year": "2nd Year",
+    "section": "Sec A",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "students": [
+      {
+        "name": "SNEHAJIT CHOWDHURY",
+        "roll": "1",
+        "enrollment": "12024002037042",
+        "present": false
+      },
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "present": true
+      },
+      {
+        "name": "ARKADEV CHAKRABARTI",
+        "roll": "3",
+        "enrollment": "12024002037011",
+        "present": false
+      },
+      {
+        "name": "PARIJAT PAL",
+        "roll": "4",
+        "enrollment": "12024002037056",
+        "present": false
+      },
+      {
+        "name": "SIDDHI BATHWAL",
+        "roll": "5",
+        "enrollment": "12024002037024",
+        "present": true
+      },
+      {
+        "name": "DILIP KUMAR",
+        "roll": "6",
+        "enrollment": "12024002037053",
+        "present": true
+      },
+      {
+        "name": "ABJINI GHOSAL",
+        "roll": "7",
+        "enrollment": "12024002037002",
+        "present": true
+      },
+      {
+        "name": "SOUHARDYA GHORAI",
+        "roll": "8",
+        "enrollment": "12024002037043",
+        "present": true
+      },
+      {
+        "name": "PUBALI ADAK",
+        "roll": "9",
+        "enrollment": "12024002037017",
+        "present": false
+      },
+      {
+        "name": "DEEPALI SINGH",
+        "roll": "10",
+        "enrollment": "12024002037050",
+        "present": false
+      },
+      {
+        "name": "MEDHA GANGULY",
+        "roll": "11",
+        "enrollment": "12024002037015",
+        "present": true
+      },
+      {
+        "name": "RITOMA ROY",
+        "roll": "12",
+        "enrollment": "12024002037020",
+        "present": false
+      },
+      {
+        "name": "ABU SAMAD MONDAL",
+        "roll": "13",
+        "enrollment": "12024002037047",
+        "present": true
+      },
+      {
+        "name": "AYUSHMAN PYNE",
+        "roll": "14",
+        "enrollment": "12024002037048",
+        "present": true
+      },
+      {
+        "name": "SAYAN SAHA",
+        "roll": "15",
+        "enrollment": "12024002037022",
+        "present": false
+      },
+      {
+        "name": "ANISHA GHOSH HAZRA",
+        "roll": "16",
+        "enrollment": "12024002037004",
+        "present": false
+      },
+      {
+        "name": "TANISH MANDAL",
+        "roll": "17",
+        "enrollment": "12024002037027",
+        "present": true
+      },
+      {
+        "name": "ANWESH BANERJEE",
+        "roll": "18",
+        "enrollment": "12024002037052",
+        "present": true
+      },
+      {
+        "name": "SAPTAK JANA",
+        "roll": "19",
+        "enrollment": "12024002037060",
+        "present": false
+      },
+      {
+        "name": "NABANIPA DAS",
+        "roll": "20",
+        "enrollment": "12024002037035",
+        "present": false
+      },
+      {
+        "name": "SOMYA TIWARY",
+        "roll": "21",
+        "enrollment": "12024002037049",
+        "present": true
+      },
+      {
+        "name": "SABUJ MAITY",
+        "roll": "22",
+        "enrollment": "12024002037021",
+        "present": true
+      },
+      {
+        "name": "SNEHA GHOSH",
+        "roll": "23",
+        "enrollment": "12024002037055",
+        "present": false
+      },
+      {
+        "name": "KRITYALI SAU",
+        "roll": "24",
+        "enrollment": "12024002037034",
+        "present": true
+      },
+      {
+        "name": "SANANDAN RAY",
+        "roll": "25",
+        "enrollment": "12024002037039",
+        "present": false
+      },
+      {
+        "name": "SOUMYANIL NASKAR",
+        "roll": "26",
+        "enrollment": "12024002037063",
+        "present": false
+      },
+      {
+        "name": "SHASWATA KUMAR DAS",
+        "roll": "27",
+        "enrollment": "12024002037023",
+        "present": true
+      },
+      {
+        "name": "POULAMI ROY",
+        "roll": "28",
+        "enrollment": "12024002037036",
+        "present": true
+      },
+      {
+        "name": "ARISH MAHAMMAD",
+        "roll": "29",
+        "enrollment": "12024002037010",
+        "present": true
+      },
+      {
+        "name": "ARNOY MAJUMDER",
+        "roll": "30",
+        "enrollment": "12024002037031",
+        "present": false
+      },
+      {
+        "name": "SUSMITA GANGULY",
+        "roll": "31",
+        "enrollment": "12024002037044",
+        "present": true
+      },
+      {
+        "name": "ALOK RAJ",
+        "roll": "32",
+        "enrollment": "12024002037029",
+        "present": false
+      },
+      {
+        "name": "ASHUTOSH KUMAR",
+        "roll": "33",
+        "enrollment": "12024002037012",
+        "present": true
+      },
+      {
+        "name": "ROHAN KUMAR",
+        "roll": "34",
+        "enrollment": "12024002037062",
+        "present": false
+      },
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "present": true
+      },
+      {
+        "name": "ANUSHREE PAL",
+        "roll": "36",
+        "enrollment": "12024002037006",
+        "present": true
+      },
+      {
+        "name": "ANKIT PARYA",
+        "roll": "37",
+        "enrollment": "12024002037005",
+        "present": true
+      },
+      {
+        "name": "DEBAJYOTI GIRI",
+        "roll": "38",
+        "enrollment": "12024002037032",
+        "present": true
+      },
+      {
+        "name": "ARGHYA DAS",
+        "roll": "39",
+        "enrollment": "12024002037008",
+        "present": true
+      },
+      {
+        "name": "DIBYENDU MONDAL",
+        "roll": "40",
+        "enrollment": "12024002037014",
+        "present": true
+      },
+      {
+        "name": "TIYASA MANSUR",
+        "roll": "41",
+        "enrollment": "12024002037045",
+        "present": true
+      },
+      {
+        "name": "RANASHA MANDAL",
+        "roll": "42",
+        "enrollment": "12024002037037",
+        "present": true
+      },
+      {
+        "name": "SHIBAM CHATTERJEE",
+        "roll": "43",
+        "enrollment": "12024002037041",
+        "present": true
+      },
+      {
+        "name": "RAVI RAJ",
+        "roll": "44",
+        "enrollment": "12024002037018",
+        "present": false
+      },
+      {
+        "name": "AKASH ROY",
+        "roll": "45",
+        "enrollment": "12024002037003",
+        "present": false
+      },
+      {
+        "name": "BARSHAN NASKAR",
+        "roll": "46",
+        "enrollment": "12024002037054",
+        "present": true
+      },
+      {
+        "name": "NISHANI BHUNIYA",
+        "roll": "47",
+        "enrollment": "12024002037016",
+        "present": true
+      },
+      {
+        "name": "SIDDHANT GURUNG",
+        "roll": "48",
+        "enrollment": "12024002037064",
+        "present": false
+      },
+      {
+        "name": "AINDRILA SAHA",
+        "roll": "49",
+        "enrollment": "12024002037028",
+        "present": true
+      },
+      {
+        "name": "BIJIT POLLEY",
+        "roll": "50",
+        "enrollment": "12024002037013",
+        "present": true
+      },
+      {
+        "name": "SAYAN BASAK",
+        "roll": "51",
+        "enrollment": "12024002037040",
+        "present": true
+      },
+      {
+        "name": "ARINDAM NATH",
+        "roll": "52",
+        "enrollment": "12024002037009",
+        "present": false
+      },
+      {
+        "name": "ANKIT SINGH",
+        "roll": "53",
+        "enrollment": "12024002037030",
+        "present": false
+      },
+      {
+        "name": "SNEHA BANERJEE",
+        "roll": "54",
+        "enrollment": "12024002037025",
+        "present": true
+      },
+      {
+        "name": "SOHANRAJ PATHAK",
+        "roll": "55",
+        "enrollment": "12024002037026",
+        "present": true
+      },
+      {
+        "name": "RITAMA DEY",
+        "roll": "56",
+        "enrollment": "12024002037038",
+        "present": true
+      },
+      {
+        "name": "ABHIJEET SINGH",
+        "roll": "57",
+        "enrollment": "12024002037001",
+        "present": true
+      },
+      {
+        "name": "REET HABAR",
+        "roll": "58",
+        "enrollment": "12024002037019",
+        "present": false
+      },
+      {
+        "name": "SAGNIK KOLEY",
+        "roll": "59",
+        "enrollment": "12024002037057",
+        "present": false
+      },
+      {
+        "name": "ADITYA KUMAR",
+        "roll": "60",
+        "enrollment": "12024002037061",
+        "present": true
+      },
+      {
+        "name": "JATIN RAUTH",
+        "roll": "61",
+        "enrollment": "12024002037033",
+        "present": true
+      },
+      {
+        "name": "ADAMYA DOGRA",
+        "roll": "62",
+        "enrollment": "12024002037059",
+        "present": true
+      }
+    ],
+    "createdAt": "2026-06-07T12:17:50.201Z"
   }
 ]

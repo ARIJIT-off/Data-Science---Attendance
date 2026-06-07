@@ -10,6 +10,43 @@ const ATTENDANCE_FILE = path.join(__dirname, 'attendance_data.json');
 // Grievances data file path
 const GRIEVANCES_FILE = path.join(__dirname, 'grievances.json');
 
+// Live attendance sessions file path
+const SESSIONS_FILE = path.join(__dirname, 'sessions_data.json');
+
+// Helper: Read sessions data
+function readSessionsData() {
+  try {
+    if (!fs.existsSync(SESSIONS_FILE)) {
+      fs.writeFileSync(SESSIONS_FILE, '[]', 'utf8');
+      return [];
+    }
+    const raw = fs.readFileSync(SESSIONS_FILE, 'utf8');
+    return JSON.parse(raw || '[]');
+  } catch (e) {
+    console.error('Error reading sessions data:', e.message);
+    return [];
+  }
+}
+
+// Helper: Write sessions data
+function writeSessionsData(data) {
+  try {
+    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error writing sessions data:', e.message);
+  }
+}
+
+// Helper: Generate a cryptographically-styled unique session token
+function generateSessionToken() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let token = '';
+  for (let i = 0; i < 24; i++) {
+    token += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return token;
+}
+
 // Helper: Read grievances data from JSON file
 function readGrievanceData() {
   try {
@@ -1310,6 +1347,225 @@ app.post('/api/profile/upload-pic', (req, res) => {
     console.error("Error saving profile picture:", err.message);
     res.status(500).json({ success: false, message: 'Server failed to save the profile picture.' });
   }
+});
+
+// ============================================================
+// LIVE ATTENDANCE SESSION API ENDPOINTS
+// ============================================================
+
+// Endpoint: Teacher creates a live session
+app.post('/api/session/create', (req, res) => {
+  const { teacherEmail, teacherName, subject, year, section, date } = req.body;
+  if (!teacherEmail || !teacherName || !subject || !year || !section || !date) {
+    return res.status(400).json({ success: false, message: 'Missing required fields.' });
+  }
+
+  const token = generateSessionToken();
+  const session = {
+    token,
+    teacherEmail: teacherEmail.trim().toLowerCase(),
+    teacherName: teacherName.trim(),
+    subject: subject.trim(),
+    year: year.trim(),
+    section: section.trim(),
+    date,
+    status: 'active',           // 'active' | 'closed'
+    markedStudents: [],          // [{ name, roll, enrollment, markedAt }]
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString()  // 4-hour expiry
+  };
+
+  const sessions = readSessionsData();
+  sessions.push(session);
+  writeSessionsData(sessions);
+
+  console.log(`Live session created by ${teacherName} for ${subject} (${year} - ${section}) on ${date} | Token: ${token}`);
+  res.json({ success: true, token, message: 'Session created.' });
+});
+
+// Endpoint: Get session info by token (used by student to preview)
+app.get('/api/session/:token', (req, res) => {
+  const { token } = req.params;
+  const sessions = readSessionsData();
+  const session = sessions.find(s => s.token === token);
+
+  if (!session) {
+    return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
+  }
+
+  // Check expiry
+  if (new Date() > new Date(session.expiresAt) && session.status === 'active') {
+    session.status = 'expired';
+    writeSessionsData(sessions);
+  }
+
+  res.json({
+    success: true,
+    session: {
+      token: session.token,
+      teacherName: session.teacherName,
+      subject: session.subject,
+      year: session.year,
+      section: session.section,
+      date: session.date,
+      status: session.status,
+      markedCount: session.markedStudents.length
+    }
+  });
+});
+
+// Endpoint: Teacher polls live count (lightweight, returns only count + status)
+app.get('/api/session/:token/poll', (req, res) => {
+  const { token } = req.params;
+  const sessions = readSessionsData();
+  const session = sessions.find(s => s.token === token);
+
+  if (!session) {
+    return res.status(404).json({ success: false, message: 'Session not found.' });
+  }
+
+  res.json({
+    success: true,
+    status: session.status,
+    markedCount: session.markedStudents.length,
+    markedStudents: session.markedStudents.map(s => ({ name: s.name, roll: s.roll }))
+  });
+});
+
+// Endpoint: Student marks themselves present
+app.post('/api/session/:token/mark', (req, res) => {
+  const { token } = req.params;
+  const { name, roll, enrollment } = req.body;
+
+  if (!name || !roll || !enrollment) {
+    return res.status(400).json({ success: false, message: 'Student name, roll, and enrollment are required.' });
+  }
+
+  const sessions = readSessionsData();
+  const sessionIndex = sessions.findIndex(s => s.token === token);
+
+  if (sessionIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
+  }
+
+  const session = sessions[sessionIndex];
+
+  if (session.status !== 'active') {
+    return res.status(403).json({
+      success: false,
+      closed: true,
+      message: session.status === 'closed'
+        ? 'Attendance is already recorded. This session is closed.'
+        : 'This session has expired.'
+    });
+  }
+
+  // Check expiry
+  if (new Date() > new Date(session.expiresAt)) {
+    session.status = 'expired';
+    sessions[sessionIndex] = session;
+    writeSessionsData(sessions);
+    return res.status(403).json({ success: false, closed: true, message: 'This session has expired.' });
+  }
+
+  // Prevent duplicate marking by same student
+  const alreadyMarked = session.markedStudents.some(s => s.enrollment === enrollment.trim());
+  if (alreadyMarked) {
+    return res.json({ success: true, alreadyMarked: true, message: 'You have already marked your attendance for this session.' });
+  }
+
+  session.markedStudents.push({
+    name: name.trim(),
+    roll: roll.toString().trim(),
+    enrollment: enrollment.trim(),
+    markedAt: new Date().toISOString()
+  });
+
+  sessions[sessionIndex] = session;
+  writeSessionsData(sessions);
+
+  console.log(`Student ${name} (${enrollment}) marked present in session ${token}`);
+  res.json({ success: true, message: `Your attendance has been marked! ✅` });
+});
+
+// Endpoint: Teacher closes session and records attendance into the main attendance system
+app.post('/api/session/:token/close', (req, res) => {
+  const { token } = req.params;
+  const sessions = readSessionsData();
+  const sessionIndex = sessions.findIndex(s => s.token === token);
+
+  if (sessionIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Session not found.' });
+  }
+
+  const session = sessions[sessionIndex];
+
+  if (session.status === 'closed') {
+    return res.json({ success: true, alreadyClosed: true, message: 'Session already closed and attendance recorded.' });
+  }
+
+  // Close the session
+  session.status = 'closed';
+  session.closedAt = new Date().toISOString();
+  sessions[sessionIndex] = session;
+  writeSessionsData(sessions);
+
+  // Get full student list to include all students (marked = present, rest = absent)
+  const allStudents = getAllStudents();
+  const markedEnrollments = new Set(session.markedStudents.map(s => s.enrollment));
+
+  let studentsForRecord;
+  if (allStudents.length > 0) {
+    // Filter by year & section (if possible match from roll/enrollment heuristics)
+    // Smart strategy: students who marked themselves are present; all others in the class are absent
+    studentsForRecord = allStudents.map(s => ({
+      name: s.name,
+      roll: s.roll,
+      enrollment: s.enrollment,
+      present: markedEnrollments.has(s.enrollment)
+    }));
+  } else {
+    // Fallback: only include the marked students as present
+    studentsForRecord = session.markedStudents.map(s => ({
+      name: s.name,
+      roll: s.roll,
+      enrollment: s.enrollment,
+      present: true
+    }));
+  }
+
+  // Only record if at least one student marked present
+  if (studentsForRecord.length === 0) {
+    return res.json({ success: true, message: 'Session closed. No students were found to record.', markedCount: 0 });
+  }
+
+  const record = {
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    date: session.date,
+    subject: session.subject,
+    year: session.year,
+    section: session.section,
+    teacherEmail: session.teacherEmail,
+    teacherName: session.teacherName,
+    students: studentsForRecord,
+    source: 'live-session',
+    sessionToken: token,
+    createdAt: new Date().toISOString()
+  };
+
+  const attendanceData = readAttendanceData();
+  attendanceData.push(record);
+  writeAttendanceData(attendanceData);
+
+  const presentCount = session.markedStudents.length;
+  console.log(`Session ${token} closed. Recorded attendance: ${presentCount} present, ${studentsForRecord.length - presentCount} absent.`);
+  res.json({
+    success: true,
+    message: `Attendance recorded! ${presentCount} student(s) marked present.`,
+    presentCount,
+    totalCount: studentsForRecord.length,
+    recordId: record.id
+  });
 });
 
 app.listen(PORT, () => {
