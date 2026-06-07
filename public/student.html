@@ -1204,6 +1204,7 @@ function resetLiveModal() {
   document.getElementById('session-info-closed').style.display = 'none';
   const btnMark = document.getElementById('btn-mark-present');
   if (btnMark) { btnMark.disabled = false; btnMark.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><polyline points="20 6 9 17 4 12"/></svg> Mark Myself Present'; }
+  document.getElementById('method-choice').style.display = 'flex';
   switchLiveMethod('link');
 }
 
