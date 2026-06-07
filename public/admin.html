@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Attendance - CSE(Data Science)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+  <!-- Background Glow -->
+  <div class="glow-bg">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <div class="dashboard-page">
+    <!-- Top Nav -->
+    <nav class="top-nav">
+      <div class="nav-brand">
+        <div class="logo-badge">
+          <img src="uem_logo.png" alt="UEM Logo" class="brand-logo">
+          <img src="iem_logo.png" alt="IEM Logo" class="brand-logo">
+        </div>
+        <span class="nav-brand-text">Attendance - CSE(Data Science)</span>
+      </div>
+      <button id="btn-signout" class="btn-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sign Out
+      </button>
+    </nav>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="profile-avatar" id="avatar-container" onclick="triggerAvatarUpload()">
+        <img id="avatar-img" src="" alt="Profile Pic" onload="this.style.display='block'; document.getElementById('avatar-svg-placeholder').style.display='none';" onerror="this.style.display='none'; document.getElementById('avatar-svg-placeholder').style.display='block';">
+        <svg id="avatar-svg-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/>
+        </svg>
+        <div class="avatar-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+      </div>
+      <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="handleAvatarSelected(event)">
+      <div class="profile-info">
+        <span class="role-badge badge-admin" id="admin-role-badge">Admin</span>
+        <div class="profile-name" id="admin-name">Loading...</div>
+        <div class="profile-meta">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span id="admin-email">—</span>
+            <button id="btn-change-email" class="btn-link" style="margin-left: 8px;">Change Email</button>
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/><path d="M9 16V8h6v8M9 12h6"/></svg>
+            <span id="admin-dept">CSE Data Science</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid stagger" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon violet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="stat-students">—</div>
+          <div class="stat-label">Total Students</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon cyan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="stat-teachers">—</div>
+          <div class="stat-label">Total Teachers</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="stat-classes">—</div>
+          <div class="stat-label">Classes Conducted</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="stat-attendance">—</div>
+          <div class="stat-label">Overall Attendance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="tab-students" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Student Attendance
+      </button>
+      <button class="tab-btn" data-tab="tab-teachers" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Teacher Summary
+      </button>
+      <button class="tab-btn" data-tab="tab-all-records" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        All Records
+      </button>
+      <button class="tab-btn" data-tab="tab-grievances" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Grievances & Appeals
+      </button>
+    </div>
+
+    <!-- TAB 1: Student-wise Attendance -->
+    <div class="tab-content active" id="tab-students">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Student-wise Attendance
+        </div>
+        <div class="search-input-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="student-search" placeholder="Search student by name...">
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="student-table">
+            <thead>
+              <tr>
+                <th data-sort="roll" id="th-roll">Roll ↕</th>
+                <th data-sort="name" id="th-name">Student Name ↕</th>
+                <th data-sort="total" id="th-total">Classes ↕</th>
+                <th data-sort="present" id="th-present">Present ↕</th>
+                <th data-sort="absent" id="th-absent">Absent ↕</th>
+                <th data-sort="pct" id="th-pct">Attendance % ↕</th>
+              </tr>
+            </thead>
+            <tbody id="student-tbody"></tbody>
+          </table>
+        </div>
+        <div id="student-empty" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <h3>No Data Available</h3>
+          <p>Attendance records will appear once teachers start marking.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Teacher Summary -->
+    <div class="tab-content" id="tab-teachers">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Teacher-wise Summary
+        </div>
+        <div class="data-table-wrapper">
+          <table class="data-table" id="teacher-table">
+            <thead>
+              <tr>
+                <th>Teacher Name</th>
+                <th>Email</th>
+                <th>Classes Conducted</th>
+                <th>Subjects</th>
+              </tr>
+            </thead>
+            <tbody id="teacher-tbody"></tbody>
+          </table>
+        </div>
+        <div id="teacher-empty" class="empty-state" style="display:none;">
+          <h3>No Teacher Records</h3>
+          <p>Teacher activity will appear here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: All Records -->
+    <div class="tab-content" id="tab-all-records">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          All Attendance Records
+        </div>
+        <div id="all-records-container">
+          <div class="loading-overlay" id="all-records-loading">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Grievances & Appeals -->
+    <div class="tab-content" id="tab-grievances">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Grievances & Appeals
+        </div>
+        <div id="grievances-container" style="position: relative; min-height: 100px;">
+          <div class="loading-overlay" id="grievances-loading">
+            <div class="spinner"></div>
+            <span>Loading grievances...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="dashboard-footer">
+      Developed by Arijit Pal ( CSE - Data Science ) , 2028 Passout
+    </footer>
+  </div>
+
+  <!-- Change Email Modal -->
+  <div id="email-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content glass-card" style="margin-bottom:0;">
+      <div class="modal-header">
+        <h3>Change Email Address</h3>
+        <button id="btn-close-modal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- View 1: Enter New Email -->
+        <div id="email-view-input" class="modal-view active">
+          <p class="subtitle" style="margin-bottom: 16px;">Enter your new email address. We will send a verification code to it.</p>
+          <div class="form-group">
+            <label class="form-label" for="new-email-input">New Email Address</label>
+            <input type="email" id="new-email-input" class="form-input" placeholder="newemail@domain.com">
+          </div>
+          <button id="btn-submit-new-email" class="btn btn-primary" style="margin-top: 16px; width:100%;" disabled>
+            <span>Send OTP</span>
+            <div class="spinner hidden"></div>
+          </button>
+        </div>
+        <!-- View 2: Enter OTP -->
+        <div id="email-view-otp" class="modal-view" style="display: none;">
+          <p class="subtitle" style="margin-bottom: 16px;">Enter the 4-digit code sent to <span id="new-email-display" class="highlight"></span>.</p>
+          <div class="otp-input-container" style="display: flex; justify-content: center; gap: 12px; margin: 16px 0;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-1" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-2" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-3" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-4" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+          </div>
+          <button id="btn-verify-new-email" class="btn btn-primary" style="margin-top: 16px; width:100%;" disabled>
+            <span>Verify & Change</span>
+            <div class="spinner hidden"></div>
+          </button>
+          <div style="text-align: center; margin-top: 12px;">
+            <button id="btn-resend-new-email-otp" class="btn-link" style="font-size: 13px;">Resend OTP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ===== Auth Guard =====
+const userData = JSON.parse(sessionStorage.getItem('user') || 'null');
+
+// Timezone-safe date formatter
+function formatDateString(dateStr) {
+  if (!dateStr) return 'N/A';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthIndex = parseInt(month, 10) - 1;
+    if (monthIndex >= 0 && monthIndex < 12) {
+      return `${parseInt(day, 10)} ${months[monthIndex]} ${year}`;
+    }
+  }
+  return dateStr;
+}
+
+if (!userData || userData.role !== 'Admin') {
+  window.location.href = 'index.html';
+}
+
+const profile = userData.profile;
+let allRecords = [];
+let allStudents = [];
+let studentAttendanceData = [];
+let currentSort = { key: 'roll', asc: true };
+
+// ===== Populate Profile =====
+document.getElementById('admin-name').textContent = profile.name || 'Administrator';
+document.getElementById('admin-email').textContent = profile.email || '';
+document.getElementById('admin-dept').textContent = profile.department || 'CSE Data Science';
+const roleText = profile.role || 'Admin';
+document.getElementById('admin-role-badge').textContent = roleText;
+
+// ===== Populate Profile Picture =====
+const userEmailClean = encodeURIComponent(profile.email);
+document.getElementById('avatar-img').src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`;
+
+
+// ===== Toast =====
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.innerHTML = '<span class="toast-msg">' + message + '</span><button class="toast-close">&times;</button>';
+  container.appendChild(toast);
+  toast.querySelector('.toast-close').addEventListener('click', () => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => toast.remove(), 300);
+  });
+  setTimeout(() => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// ===== Sign Out =====
+document.getElementById('btn-signout').addEventListener('click', () => {
+  sessionStorage.clear();
+  window.location.href = 'index.html';
+});
+
+// ===== Tab Switching =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    
+    // Load grievances if grievances tab clicked
+    if (btn.dataset.tab === 'tab-grievances') {
+      loadGrievances();
+    }
+  });
+});
+
+// ===== Load Stats =====
+async function loadStats() {
+  try {
+    const res = await fetch('/api/attendance/stats');
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('stat-students').textContent = data.stats.totalStudents;
+      document.getElementById('stat-teachers').textContent = data.stats.totalTeachers;
+      document.getElementById('stat-classes').textContent = data.stats.totalClasses;
+      document.getElementById('stat-attendance').textContent = data.stats.overallAttendance + '%';
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ===== Load All Data =====
+async function loadAllData() {
+  try {
+    const [recordsRes, studentsRes] = await Promise.all([
+      fetch('/api/attendance/all'),
+      fetch('/api/student-list')
+    ]);
+    const recordsData = await recordsRes.json();
+    const studentsData = await studentsRes.json();
+
+    allRecords = recordsData.success ? recordsData.records : [];
+    allStudents = studentsData.success ? studentsData.students : [];
+
+    computeStudentAttendance();
+    renderStudentTable();
+    renderTeacherSummary();
+    renderAllRecords();
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to load data.', 'error');
+  }
+}
+
+// ===== Compute Student Attendance =====
+function computeStudentAttendance() {
+  const map = {};
+  allStudents.forEach(s => {
+    map[s.enrollment] = {
+      name: s.name,
+      roll: parseInt(s.roll) || 0,
+      enrollment: s.enrollment,
+      total: 0,
+      present: 0
+    };
+  });
+
+  allRecords.forEach(record => {
+    record.students.forEach(s => {
+      if (map[s.enrollment]) {
+        map[s.enrollment].total++;
+        if (s.present) map[s.enrollment].present++;
+      }
+    });
+  });
+
+  studentAttendanceData = Object.values(map).map(s => ({
+    ...s,
+    absent: s.total - s.present,
+    pct: s.total > 0 ? Math.round((s.present / s.total) * 100) : 0
+  }));
+}
+
+// ===== Render Student Table =====
+function renderStudentTable(filter = '') {
+  let data = [...studentAttendanceData];
+
+  // Filter
+  if (filter) {
+    data = data.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
+  }
+
+  // Sort
+  data.sort((a, b) => {
+    let valA = a[currentSort.key];
+    let valB = b[currentSort.key];
+    if (typeof valA === 'string') {
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+    if (valA < valB) return currentSort.asc ? -1 : 1;
+    if (valA > valB) return currentSort.asc ? 1 : -1;
+    return 0;
+  });
+
+  const tbody = document.getElementById('student-tbody');
+  const emptyEl = document.getElementById('student-empty');
+
+  if (data.length === 0 && allRecords.length === 0) {
+    tbody.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  tbody.innerHTML = '';
+  data.forEach(s => {
+    let pctClass = 'pct-good';
+    if (s.pct < 60) pctClass = 'pct-danger';
+    else if (s.pct < 75) pctClass = 'pct-warn';
+
+    tbody.innerHTML += `
+      <tr>
+        <td style="font-weight:700; color:var(--color-cyan);">${s.roll}</td>
+        <td style="font-weight:600;">${s.name}</td>
+        <td>${s.total}</td>
+        <td>${s.present}</td>
+        <td>${s.absent}</td>
+        <td class="${pctClass}" style="font-weight:700;">${s.total > 0 ? s.pct + '%' : '—'}</td>
+      </tr>
+    `;
+  });
+}
+
+// Sort handler
+document.querySelectorAll('#student-table thead th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (currentSort.key === key) {
+      currentSort.asc = !currentSort.asc;
+    } else {
+      currentSort.key = key;
+      currentSort.asc = true;
+    }
+    renderStudentTable(document.getElementById('student-search').value);
+  });
+});
+
+// Search handler
+document.getElementById('student-search').addEventListener('input', (e) => {
+  renderStudentTable(e.target.value);
+});
+
+// ===== Render Teacher Summary =====
+function renderTeacherSummary() {
+  const teacherMap = {};
+  allRecords.forEach(record => {
+    const key = record.teacherEmail;
+    if (!teacherMap[key]) {
+      teacherMap[key] = {
+        name: record.teacherName,
+        email: record.teacherEmail,
+        classes: 0,
+        subjects: new Set()
+      };
+    }
+    teacherMap[key].classes++;
+    teacherMap[key].subjects.add(record.subject);
+  });
+
+  const tbody = document.getElementById('teacher-tbody');
+  const teachers = Object.values(teacherMap);
+
+  if (teachers.length === 0) {
+    tbody.innerHTML = '';
+    document.getElementById('teacher-empty').style.display = 'block';
+    return;
+  }
+  document.getElementById('teacher-empty').style.display = 'none';
+
+  tbody.innerHTML = '';
+  teachers.sort((a, b) => b.classes - a.classes).forEach(t => {
+    tbody.innerHTML += `
+      <tr>
+        <td style="font-weight:600;">${t.name}</td>
+        <td style="color:var(--text-secondary); font-size:13px;">${t.email}</td>
+        <td style="font-weight:700; color:var(--color-cyan);">${t.classes}</td>
+        <td style="font-size:13px;">${[...t.subjects].join(', ')}</td>
+      </tr>
+    `;
+  });
+}
+
+// ===== Render All Records =====
+function renderAllRecords() {
+  const container = document.getElementById('all-records-container');
+
+  if (allRecords.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <h3>No Records Yet</h3>
+        <p>Attendance records will appear here once teachers start marking.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const sorted = [...allRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+  let html = '';
+
+  sorted.forEach(record => {
+    const presentCount = record.students.filter(s => s.present).length;
+    const totalCount = record.students.length;
+    const dateStr = formatDateString(record.date);
+
+    let studentsHtml = '<div style="padding:8px 0;">';
+    record.students.forEach(s => {
+      const badge = s.present
+        ? `<span class="badge-present interactive" onclick="toggleStudentAttendance('${record.id}', '${s.enrollment}', false)" title="Click to mark Absent">P</span>`
+        : `<span class="badge-absent interactive" onclick="toggleStudentAttendance('${record.id}', '${s.enrollment}', true)" title="Click to mark Present">A</span>`;
+      studentsHtml += `
+        <div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:13px;">
+          <span style="font-weight:700; color:var(--color-cyan); min-width:28px;">${s.roll}</span>
+          <span style="flex:1;">${s.name}</span>
+          ${badge}
+        </div>
+      `;
+    });
+    studentsHtml += '</div>';
+
+    html += `
+      <div class="record-card" id="record-${record.id}">
+        <div class="record-header" onclick="toggleRecord('${record.id}')">
+          <div class="record-info">
+            <span class="record-date">${dateStr}</span>
+            <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.year || 'N/A'} - ${record.section || 'N/A'}</span></span>
+            <span class="record-teacher">${record.teacherName}</span>
+            <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
+          </div>
+          <svg class="record-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="record-body">
+          ${studentsHtml}
+          <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+            <button class="btn btn-sm btn-secondary" onclick="deleteRecord('${record.id}')" style="color:var(--color-error); border-color:rgba(244,63,94,0.2);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleRecord(id) {
+  const card = document.getElementById('record-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
+async function toggleStudentAttendance(recordId, enrollment, newPresentStatus) {
+  try {
+    const res = await fetch(`/api/attendance/${recordId}/student/${enrollment}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ present: newPresentStatus })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Student status updated successfully.', 'success');
+
+      // Update in-memory records list
+      const recordIndex = allRecords.findIndex(r => r.id === recordId);
+      if (recordIndex !== -1) {
+        allRecords[recordIndex] = result.record;
+      }
+
+      // Recompute and re-render everything
+      computeStudentAttendance();
+      renderStudentTable();
+      renderTeacherSummary();
+      renderAllRecords();
+      loadStats();
+
+      // Maintain expanded state of the card
+      const card = document.getElementById('record-' + recordId);
+      if (card) card.classList.add('expanded');
+    } else {
+      showToast(result.message || 'Failed to update status.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
+}
+
+async function deleteRecord(id) {
+  if (!confirm('Are you sure you want to delete this attendance record?')) return;
+
+  try {
+    const res = await fetch('/api/attendance/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Record deleted.', 'success');
+      // Refresh data
+      allRecords = allRecords.filter(r => r.id !== id);
+      computeStudentAttendance();
+      renderStudentTable();
+      renderTeacherSummary();
+      renderAllRecords();
+      loadStats();
+    } else {
+      showToast(data.message || 'Failed to delete.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
+}
+
+// ===== Student Grievances =====
+let allGrievances = [];
+
+async function loadGrievances() {
+  const container = document.getElementById('grievances-container');
+  if (!container) return;
+  
+  // Show loading
+  container.innerHTML = `
+    <div class="loading-overlay" id="grievances-loading">
+      <div class="spinner"></div>
+      <span>Loading grievances...</span>
+    </div>
+  `;
+
+  try {
+    const res = await fetch('/api/grievances');
+    const data = await res.json();
+    if (data.success) {
+      allGrievances = data.grievances;
+      renderGrievances();
+    } else {
+      showToast(data.message || 'Failed to load grievances.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+}
+
+function renderGrievances() {
+  const container = document.getElementById('grievances-container');
+  if (!container) return;
+
+  if (!allGrievances || allGrievances.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px;">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <h3>No Student Grievances</h3>
+        <p>Student complaints or attendance adjustment requests will appear here.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const sorted = [...allGrievances].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  let html = '<div style="display: flex; flex-direction: column; gap: 16px;">';
+  sorted.forEach(g => {
+    const dateFormatted = new Date(g.createdAt).toLocaleString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const isTeacher = g.senderRole === 'Teacher';
+    const badgesHtml = isTeacher
+      ? `<span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(139, 92, 246, 0.12); color: var(--color-violet); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 4px; font-weight: 600;">Teacher</span>
+         <span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; font-family: monospace;">Email: ${g.senderEmail || 'N/A'}</span>`
+      : `<span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(6, 182, 212, 0.12); color: var(--color-cyan); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 4px;">Roll: ${g.studentRoll || 'N/A'}</span>
+         <span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(139, 92, 246, 0.12); color: var(--color-violet); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 4px;">Enrollment: ${g.studentEnrollment || 'N/A'}</span>`;
+
+    html += `
+      <div class="record-card" style="padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <strong style="color: #fff; font-size: 15px;">${g.studentName}</strong>
+            ${badgesHtml}
+          </div>
+          <span style="font-size: 12px; color: var(--text-secondary); font-family: monospace;">${dateFormatted}</span>
+        </div>
+        <div style="background: rgba(4, 6, 15, 0.4); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; padding: 12px; font-size: 13px; color: var(--text-primary); line-height: 1.5; white-space: pre-wrap;">${g.message}</div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+          <button class="btn btn-sm btn-secondary" onclick="deleteGrievance('${g.id}')" style="color: var(--color-error); border-color: rgba(244, 63, 94, 0.2);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Remove
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function deleteGrievance(id) {
+  if (!confirm('Are you sure you want to remove this grievance message?')) return;
+  
+  try {
+    const res = await fetch(`/api/grievance/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Grievance message removed successfully.', 'success');
+      allGrievances = allGrievances.filter(g => g.id !== id);
+      renderGrievances();
+    } else {
+      showToast(data.message || 'Failed to remove grievance.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+}
+
+// ===== Init =====
+loadStats();
+loadAllData();
+loadGrievances();
+
+// ===== Email Change Modal Logic =====
+const emailModal = document.getElementById('email-modal');
+const btnChangeEmail = document.getElementById('btn-change-email');
+const btnCloseModal = document.getElementById('btn-close-modal');
+const newEmailInput = document.getElementById('new-email-input');
+const btnSubmitNewEmail = document.getElementById('btn-submit-new-email');
+const btnVerifyNewEmail = document.getElementById('btn-verify-new-email');
+const btnResendNewEmailOtp = document.getElementById('btn-resend-new-email-otp');
+const newEmailDisplay = document.getElementById('new-email-display');
+const emailViewInput = document.getElementById('email-view-input');
+const emailViewOtp = document.getElementById('email-view-otp');
+const modalOtpDigits = Array.from(document.querySelectorAll('.modal-otp-digit'));
+
+let newEmailValue = '';
+
+if (btnChangeEmail) {
+  btnChangeEmail.addEventListener('click', () => {
+    emailModal.style.display = 'flex';
+    emailViewInput.style.display = 'block';
+    emailViewOtp.style.display = 'none';
+    newEmailInput.value = '';
+    btnSubmitNewEmail.disabled = true;
+    newEmailInput.focus();
+  });
+}
+
+if (btnCloseModal) {
+  btnCloseModal.addEventListener('click', () => {
+    emailModal.style.display = 'none';
+  });
+}
+
+emailModal.addEventListener('click', (e) => {
+  if (e.target === emailModal) {
+    emailModal.style.display = 'none';
+  }
+});
+
+newEmailInput.addEventListener('input', () => {
+  const email = newEmailInput.value.trim();
+  btnSubmitNewEmail.disabled = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+});
+
+btnSubmitNewEmail.addEventListener('click', async () => {
+  newEmailValue = newEmailInput.value.trim();
+  if (!newEmailValue) return;
+
+  btnSubmitNewEmail.disabled = true;
+  const btnText = btnSubmitNewEmail.querySelector('span');
+  const spinner = btnSubmitNewEmail.querySelector('.spinner');
+  btnText.classList.add('hidden');
+  spinner.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/api/email-change/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentEmail: profile.email,
+        newEmail: newEmailValue,
+        role: userData.role
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      newEmailDisplay.textContent = newEmailValue;
+      emailViewInput.style.display = 'none';
+      emailViewOtp.style.display = 'block';
+      modalOtpDigits.forEach(input => input.value = '');
+      btnVerifyNewEmail.disabled = true;
+      setTimeout(() => modalOtpDigits[0].focus(), 100);
+      showToast('OTP sent to your new email!', 'success');
+    } else {
+      showToast(result.message || 'Failed to send OTP.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+
+  btnSubmitNewEmail.disabled = false;
+  btnText.classList.remove('hidden');
+  spinner.classList.add('hidden');
+});
+
+modalOtpDigits.forEach((input, index) => {
+  input.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (!/^\d*$/.test(val)) {
+      e.target.value = '';
+      updateModalVerifyButtonState();
+      return;
+    }
+    if (val !== '' && index < modalOtpDigits.length - 1) {
+      modalOtpDigits[index + 1].focus();
+    }
+    updateModalVerifyButtonState();
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace') {
+      if (input.value === '') {
+        if (index > 0) {
+          modalOtpDigits[index - 1].focus();
+          modalOtpDigits[index - 1].value = '';
+        }
+      } else {
+        input.value = '';
+      }
+      updateModalVerifyButtonState();
+      e.preventDefault();
+    }
+  });
+});
+
+function updateModalVerifyButtonState() {
+  const isFilled = modalOtpDigits.every(input => input.value !== '');
+  btnVerifyNewEmail.disabled = !isFilled;
+}
+
+btnVerifyNewEmail.addEventListener('click', async () => {
+  const otp = modalOtpDigits.map(input => input.value).join('');
+  if (otp.length !== 4) return;
+
+  btnVerifyNewEmail.disabled = true;
+  const btnText = btnVerifyNewEmail.querySelector('span');
+  const spinner = btnVerifyNewEmail.querySelector('.spinner');
+  btnText.classList.add('hidden');
+  spinner.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/api/email-change/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        newEmail: newEmailValue,
+        otp
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Email address changed successfully! Reloading...', 'success');
+      sessionStorage.setItem('user', JSON.stringify(result.user));
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      showToast(result.message || 'Incorrect OTP code.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+
+  btnVerifyNewEmail.disabled = false;
+  btnText.classList.remove('hidden');
+  spinner.classList.add('hidden');
+});
+
+btnResendNewEmailOtp.addEventListener('click', async () => {
+  btnResendNewEmailOtp.disabled = true;
+  btnResendNewEmailOtp.textContent = 'Sending...';
+
+  try {
+    const res = await fetch('/api/email-change/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentEmail: profile.email,
+        newEmail: newEmailValue,
+        role: userData.role
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Verification code resent!', 'success');
+    } else {
+      showToast(result.message || 'Failed to resend.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
+  btnResendNewEmailOtp.disabled = false;
+  btnResendNewEmailOtp.textContent = 'Resend OTP';
+});
+
+// ===== Profile Picture Upload =====
+function triggerAvatarUpload() {
+  document.getElementById('avatar-file-input').click();
+}
+
+async function handleAvatarSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('File size must be under 5MB.', 'error');
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file.', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64Data = e.target.result;
+    
+    try {
+      showToast('Uploading profile picture...', 'info');
+      const res = await fetch('/api/profile/upload-pic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: profile.email,
+          image: base64Data
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Profile picture updated successfully!', 'success');
+        const userEmailClean = encodeURIComponent(profile.email);
+        const img = document.getElementById('avatar-img');
+        img.src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`;
+        img.style.display = 'block';
+      } else {
+        showToast(result.message || 'Failed to upload picture.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error during upload.', 'error');
+    }
+  };
+  
+  reader.onerror = function() {
+    showToast('Failed to read file.', 'error');
+  };
+  
+  reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>

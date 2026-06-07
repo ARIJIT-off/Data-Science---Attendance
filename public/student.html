@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — Attendance - CSE(Data Science)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+  <style>
+    /* Neon Theme Colors */
+    :root {
+      --neon-cyan: #00f0ff;
+      --neon-purple: #bd00ff;
+      --neon-pink: #ff0055;
+    }
+
+    /* Background styling */
+    .cyberpunk-bg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      overflow: hidden;
+      background-color: #060913;
+      perspective: 1200px;
+    }
+
+    .cyberpunk-bg-video {
+      position: absolute;
+      top: -5%;
+      left: -5%;
+      width: 110%;
+      height: 110%;
+      object-fit: cover;
+      object-position: 15% center;
+      transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+      opacity: 0.65;
+      filter: contrast(1.05) brightness(0.68) saturate(0.85);
+    }
+
+    /* Vignette mask that fades background elements from left to right on desktop */
+    .cyberpunk-vignette {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, rgba(6, 9, 19, 0.15) 0%, rgba(6, 9, 19, 0.5) 40%, rgba(6, 9, 19, 0.9) 70%, #060913 100%);
+      pointer-events: none;
+    }
+
+    /* Adjust video framing for mobile screen crop so the highlighted student is fully visible */
+    @media (max-width: 768px) {
+      .cyberpunk-bg-video {
+        object-position: 12% center;
+        width: 130%;
+        left: -15%;
+      }
+      .cyberpunk-vignette {
+        background: radial-gradient(circle at center, rgba(6, 9, 19, 0.3) 0%, rgba(6, 9, 19, 0.92) 80%);
+      }
+    }
+
+    /* Top Grid & Bottom Grid structures */
+    .dashboard-top-grid, .dashboard-bottom-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .dashboard-top-right, .history-section-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Double-column grid positioning on Desktop */
+    @media (min-width: 1025px) {
+      .dashboard-page {
+        max-width: 1280px !important;
+        padding: 24px 60px 80px !important;
+      }
+
+      .dashboard-top-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.15fr; /* 1fr empty left, 1.15fr right content */
+        gap: 40px;
+        align-items: start;
+      }
+      
+      .dashboard-top-right {
+        grid-column: 2;
+      }
+
+      .dashboard-bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.15fr; /* 1fr left grievance, 1.15fr right history */
+        gap: 40px;
+        align-items: start;
+        margin-top: 24px;
+      }
+
+      /* Place Grievance Card exactly aligned with History row */
+      .inform-admin-card-wrapper {
+        grid-column: 1;
+        grid-row: 1;
+        position: sticky;
+        top: 90px;
+      }
+
+      .history-section-wrapper {
+        grid-column: 2;
+        grid-row: 1;
+      }
+    }
+
+    /* Inform to Admin Styles */
+    .inform-admin-card {
+      border-left: 3px solid var(--neon-cyan) !important;
+    }
+
+    .grievance-textarea {
+      width: 100%;
+      padding: 12px;
+      background: rgba(4, 6, 15, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      resize: none;
+      transition: all 0.3s ease;
+    }
+
+    .grievance-textarea:focus {
+      outline: none;
+      border-color: var(--neon-cyan) !important;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+
+    /* Cyberpunk Card Enhancements */
+    .glass-card, .profile-card {
+      background: rgba(8, 12, 28, 0.75) !important;
+      backdrop-filter: blur(28px) !important;
+      -webkit-backdrop-filter: blur(28px) !important;
+      border: 1px solid rgba(0, 240, 255, 0.15) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5),
+                  inset 0 0 15px rgba(189, 0, 255, 0.05) !important;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    /* Tech corner decorations */
+    .glass-card::before, .profile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      border-top: 2px solid var(--neon-cyan);
+      border-left: 2px solid var(--neon-cyan);
+      pointer-events: none;
+    }
+
+    .glass-card::after, .profile-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 8px;
+      height: 8px;
+      border-bottom: 2px solid var(--neon-purple);
+      border-right: 2px solid var(--neon-purple);
+      pointer-events: none;
+    }
+
+    /* Hover effects */
+    .glass-card:hover, .profile-card:hover {
+      border-color: rgba(0, 240, 255, 0.35) !important;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6),
+                  0 0 15px rgba(0, 240, 255, 0.15),
+                  inset 0 0 20px rgba(189, 0, 255, 0.1) !important;
+      transform: translateY(-3px);
+    }
+
+    /* Avatar glowing border */
+    .profile-avatar {
+      border: 2px solid rgba(0, 240, 255, 0.3) !important;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+      transition: all 0.3s ease !important;
+    }
+    
+    .profile-avatar:hover {
+      border-color: var(--neon-cyan) !important;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+    }
+
+    /* Table styling tweaks */
+    .data-table-wrapper {
+      background: rgba(4, 6, 15, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .data-table thead th {
+      background: rgba(255, 255, 255, 0.02) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+      color: var(--text-secondary) !important;
+    }
+
+    /* Progress Ring neon enhancements */
+    .progress-ring-fill {
+      filter: drop-shadow(0 0 6px var(--color-success));
+    }
+    .progress-ring-text {
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Date Picker Input styling */
+    .date-input-wrapper:focus-within {
+      border-color: var(--neon-cyan) !important;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+    
+    .history-date-picker::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- Futuristic Cyberpunk Background Video -->
+  <div class="cyberpunk-bg-container" id="cyberpunk-bg-container">
+    <video autoplay muted loop playsinline class="cyberpunk-bg-video" id="cyberpunk-bg-video">
+      <source src="A_seamless_looping_cyberpunk_c.mp4" type="video/mp4">
+    </video>
+    <div class="cyberpunk-vignette"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <div class="dashboard-page">
+    <!-- Top Nav -->
+    <nav class="top-nav">
+      <div class="nav-brand">
+        <div class="logo-badge">
+          <img src="uem_logo.png" alt="UEM Logo" class="brand-logo">
+          <img src="iem_logo.png" alt="IEM Logo" class="brand-logo">
+        </div>
+        <span class="nav-brand-text">Attendance - CSE(Data Science)</span>
+      </div>
+      <button id="btn-signout" class="btn-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sign Out
+      </button>
+    </nav>
+
+    <!-- Top Grid Section (Profile, Stats, Breakdown) -->
+    <div class="dashboard-top-grid">
+      <div class="dashboard-top-right">
+        <!-- Profile Card -->
+        <div class="profile-card" id="profile-card">
+          <div class="profile-avatar" id="avatar-container" onclick="triggerAvatarUpload()">
+            <img id="avatar-img" src="" alt="Profile Pic" onload="this.style.display='block'; document.getElementById('avatar-svg-placeholder').style.display='none';" onerror="this.style.display='none'; document.getElementById('avatar-svg-placeholder').style.display='block';">
+            <svg id="avatar-svg-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <div class="avatar-overlay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+          </div>
+          <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="handleAvatarSelected(event)">
+          <div class="profile-info">
+            <span class="role-badge badge-student">Student</span>
+            <div class="profile-name" id="student-name">Loading...</div>
+            <div class="profile-meta">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
+                <span id="student-roll">—</span>
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span id="student-enrollment">—</span>
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/><path d="M9 16V8h6v8M9 12h6"/></svg>
+                <span>CSE Data Science</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Summary -->
+        <div class="glass-card">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Attendance Overview
+          </div>
+          <div class="attendance-summary" id="attendance-summary">
+            <div class="loading-overlay" id="summary-loading">
+              <div class="spinner"></div>
+              <span>Loading attendance data...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subject-wise Breakdown -->
+        <div class="glass-card" id="subject-section" style="display:none;">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Subject-wise Breakdown
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table" id="subject-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Classes</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody id="subject-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Grid Section (History & Grievance Box) -->
+    <div class="dashboard-bottom-grid">
+      
+      <!-- Right side bottom content (shows first on mobile) -->
+      <div class="history-section-wrapper">
+        <!-- Attendance History -->
+        <div class="glass-card" id="history-section" style="display:none;">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Attendance History
+          </div>
+          
+          <!-- Controls row: Date Picker and Search Input -->
+          <div class="history-controls-row" style="display: flex; gap: 16px; margin-bottom: 18px; flex-wrap: wrap;">
+            <!-- Date Picker -->
+            <div class="date-input-wrapper" style="flex: 1.2; min-width: 200px; position: relative; display: flex; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0 16px; height: 46px; transition: var(--transition-smooth);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; color: var(--text-secondary); margin-right: 12px; pointer-events: none;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="date" id="history-date" class="history-date-picker" style="background: none; border: none; color: #fff; font-family: inherit; font-size: 14px; width: 100%; outline: none; cursor: pointer;">
+            </div>
+
+            <!-- Search input -->
+            <div class="search-input-wrapper" style="flex: 1.5; min-width: 200px; margin-bottom: 0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="search-input" id="history-search" placeholder="Search by subject or teacher...">
+            </div>
+          </div>
+
+          <div class="data-table-wrapper">
+            <table class="data-table" id="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Subject</th>
+                  <th>Teacher</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Empty State (shown when no records) -->
+        <div class="glass-card" id="empty-state" style="display:none;">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <h3>No Attendance Records</h3>
+            <p>Your attendance records will appear here once your teachers start marking attendance.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left side bottom content (shows second on mobile, bottom-left on desktop) -->
+      <div class="inform-admin-card-wrapper">
+        <div class="glass-card inform-admin-card">
+          <div class="section-title" style="margin-bottom: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--neon-cyan); width: 20px; height: 20px;">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Inform to Admin
+          </div>
+          <p class="card-subtitle" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
+            Submit any attendance adjustment requests or grievances directly to the admin board.
+          </p>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <textarea id="grievance-message" class="grievance-textarea" rows="5" placeholder="Type your grievance here (e.g. 'Sir marked me absent in Machine Learning on 7th Jun, please mark me present')...." maxlength="500"></textarea>
+          </div>
+          <button id="btn-submit-grievance" class="btn btn-primary btn-sm" style="width: 100%;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send Message
+          </button>
+        </div>
+      </div>
+      
+    </div>
+
+    <footer class="dashboard-footer">
+      Developed by Arijit Pal ( CSE - Data Science ) , 2028 Passout
+    </footer>
+  </div>
+
+<script>
+// ===== Auth Guard =====
+const userData = JSON.parse(sessionStorage.getItem('user') || 'null');
+
+// Timezone-safe date formatter
+function formatDateString(dateStr) {
+  if (!dateStr) return 'N/A';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthIndex = parseInt(month, 10) - 1;
+    if (monthIndex >= 0 && monthIndex < 12) {
+      return `${parseInt(day, 10)} ${months[monthIndex]} ${year}`;
+    }
+  }
+  return dateStr;
+}
+
+if (!userData || userData.role !== 'Student') {
+  window.location.href = 'index.html';
+}
+
+const profile = userData.profile;
+
+// ===== Populate Profile =====
+const studentName = profile.name || 'Student';
+document.getElementById('student-name').textContent = studentName;
+document.getElementById('student-roll').textContent = 'Roll: ' + (profile.roll || 'N/A');
+document.getElementById('student-enrollment').textContent = profile.enrollment || 'N/A';
+
+// ===== Populate Profile Picture =====
+const userEnrollClean = encodeURIComponent(profile.enrollment || 'unknown');
+document.getElementById('avatar-img').src = `/api/profile/pic/${userEnrollClean}?t=${Date.now()}`;
+
+// ===== Toast =====
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.innerHTML = '<span class="toast-msg">' + message + '</span><button class="toast-close">&times;</button>';
+  container.appendChild(toast);
+  toast.querySelector('.toast-close').addEventListener('click', () => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => toast.remove(), 300);
+  });
+  setTimeout(() => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// ===== Sign Out =====
+document.getElementById('btn-signout').addEventListener('click', () => {
+  sessionStorage.clear();
+  window.location.href = 'index.html';
+});
+
+// ===== Fetch & Render Attendance =====
+async function loadAttendance() {
+  const enrollment = profile.enrollment;
+  if (!enrollment) {
+    document.getElementById('summary-loading').innerHTML = '<p>No enrollment number found.</p>';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/attendance/student/' + encodeURIComponent(enrollment));
+    const data = await res.json();
+
+    if (!data.success || data.records.length === 0) {
+      document.getElementById('summary-loading').style.display = 'none';
+      document.getElementById('empty-state').style.display = 'block';
+      renderEmptySummary();
+      return;
+    }
+
+    const records = data.records;
+    renderSummary(records);
+    renderSubjectBreakdown(records);
+    renderHistory(records);
+
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to load attendance data.', 'error');
+  }
+}
+
+function renderEmptySummary() {
+  const summaryEl = document.getElementById('attendance-summary');
+  summaryEl.innerHTML = `
+    <div class="progress-ring-container">
+      <svg width="140" height="140" class="progress-ring">
+        <circle class="progress-ring-bg" cx="70" cy="70" r="58" stroke-width="10"/>
+        <circle class="progress-ring-fill" cx="70" cy="70" r="58" stroke-width="10"
+          stroke="var(--color-cyan)"
+          stroke-dasharray="364.42"
+          stroke-dashoffset="364.42"/>
+        <text x="70" y="66" text-anchor="middle" class="progress-ring-text" transform="rotate(90, 70, 70)">0%</text>
+        <text x="70" y="84" text-anchor="middle" class="progress-ring-label" transform="rotate(90, 70, 70)">ATTENDANCE</text>
+      </svg>
+    </div>
+    <div class="summary-stats">
+      <div class="summary-stat-row">
+        <span class="summary-stat-dot blue"></span>
+        <span class="summary-stat-label">Total Classes</span>
+        <span class="summary-stat-value">0</span>
+      </div>
+      <div class="summary-stat-row">
+        <span class="summary-stat-dot green"></span>
+        <span class="summary-stat-label">Present</span>
+        <span class="summary-stat-value">0</span>
+      </div>
+      <div class="summary-stat-row">
+        <span class="summary-stat-dot red"></span>
+        <span class="summary-stat-label">Absent</span>
+        <span class="summary-stat-value">0</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderSummary(records) {
+  const total = records.length;
+  const present = records.filter(r => r.present).length;
+  const absent = total - present;
+  const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+
+  const circumference = 2 * Math.PI * 58; // r=58
+  const offset = circumference - (pct / 100) * circumference;
+
+  let strokeColor = 'var(--color-success)';
+  if (pct < 60) strokeColor = 'var(--color-error)';
+  else if (pct < 75) strokeColor = 'var(--color-warning)';
+
+  const summaryEl = document.getElementById('attendance-summary');
+  summaryEl.innerHTML = `
+    <div class="progress-ring-container">
+      <svg width="160" height="160" class="progress-ring">
+        <circle class="progress-ring-bg" cx="80" cy="80" r="58" stroke-width="12"/>
+        <circle class="progress-ring-fill" cx="80" cy="80" r="58" stroke-width="12"
+          stroke="${strokeColor}"
+          stroke-dasharray="${circumference}"
+          stroke-dashoffset="${circumference}"
+          id="progress-circle"/>
+        <text x="80" y="74" text-anchor="middle" class="progress-ring-text" transform="rotate(90, 80, 80)">${pct}%</text>
+        <text x="80" y="94" text-anchor="middle" class="progress-ring-label" transform="rotate(90, 80, 80)">ATTENDANCE</text>
+      </svg>
+    </div>
+    <div class="summary-stats">
+      <div class="summary-stat-row">
+        <span class="summary-stat-dot blue"></span>
+        <span class="summary-stat-label">Total Classes</span>
+        <span class="summary-stat-value">${total}</span>
+      </div>
+      <div class="summary-stat-row">
+        <span class="summary-stat-dot green"></span>
+        <span class="summary-stat-label">Present</span>
+        <span class="summary-stat-value">${present}</span>
+      </div>
+      <div class="summary-stat-row">
+        <span class="summary-stat-dot red"></span>
+        <span class="summary-stat-label">Absent</span>
+        <span class="summary-stat-value">${absent}</span>
+      </div>
+    </div>
+  `;
+
+  // Animate the ring
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const circle = document.getElementById('progress-circle');
+      if (circle) circle.style.strokeDashoffset = offset;
+    }, 100);
+  });
+}
+
+function renderSubjectBreakdown(records) {
+  const subjects = {};
+  records.forEach(r => {
+    const sub = r.subject || 'Unknown';
+    if (!subjects[sub]) subjects[sub] = { total: 0, present: 0 };
+    subjects[sub].total++;
+    if (r.present) subjects[sub].present++;
+  });
+
+  const tbody = document.getElementById('subject-tbody');
+  tbody.innerHTML = '';
+  Object.keys(subjects).sort().forEach(sub => {
+    const s = subjects[sub];
+    const absent = s.total - s.present;
+    const pct = Math.round((s.present / s.total) * 100);
+    let pctClass = 'pct-good';
+    if (pct < 60) pctClass = 'pct-danger';
+    else if (pct < 75) pctClass = 'pct-warn';
+
+    tbody.innerHTML += `
+      <tr>
+        <td style="font-weight:600;">${sub}</td>
+        <td>${s.total}</td>
+        <td>${s.present}</td>
+        <td>${absent}</td>
+        <td class="${pctClass}" style="font-weight:700;">${pct}%</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('subject-section').style.display = 'block';
+}
+
+function renderHistory(records) {
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const tbody = document.getElementById('history-tbody');
+  const datePicker = document.getElementById('history-date');
+  const searchInput = document.getElementById('history-search');
+
+  function updateFilteredView() {
+    const selectedDate = datePicker.value; // "YYYY-MM-DD"
+    const query = searchInput.value.toLowerCase().trim();
+
+    if (!selectedDate) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:24px; font-weight:500; font-size:13px; opacity:0.8;">Please select a date to view attendance records.</td></tr>';
+      return;
+    }
+
+    // Filter by date first
+    let list = sorted.filter(r => r.date === selectedDate);
+    
+    // Filter by search query next
+    if (query) {
+      list = list.filter(r =>
+        (r.subject || '').toLowerCase().includes(query) ||
+        (r.teacherName || '').toLowerCase().includes(query)
+      );
+    }
+
+    tbody.innerHTML = '';
+    list.forEach(r => {
+      const dateFormatted = formatDateString(r.date);
+      const statusBadge = r.present
+        ? '<span class="badge-present">Present</span>'
+        : '<span class="badge-absent">Absent</span>';
+      
+      const yearSecHtml = (r.year && r.section)
+        ? ` <span style="font-size:10px; opacity:0.75; padding:2px 6px; background:rgba(255,255,255,0.06); border-radius:3px; margin-left:6px; font-weight:400;">${r.year} - ${r.section}</span>`
+        : '';
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="font-weight:600; color: var(--color-cyan);">${dateFormatted}</td>
+          <td>${r.subject || 'N/A'}${yearSecHtml}</td>
+          <td style="color: var(--text-secondary);">${r.teacherName || 'N/A'}</td>
+          <td>${statusBadge}</td>
+        </tr>
+      `;
+    });
+
+    if (list.length === 0) {
+      if (sorted.filter(r => r.date === selectedDate).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No attendance records found for this date.</td></tr>';
+      } else {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No matching records.</td></tr>';
+      }
+    }
+  }
+
+  // Bind change/input event listeners
+  datePicker.addEventListener('change', updateFilteredView);
+  searchInput.addEventListener('input', updateFilteredView);
+
+  // Initialize view (shows "Please select a date" by default)
+  updateFilteredView();
+  
+  document.getElementById('history-section').style.display = 'block';
+}
+
+// ===== Profile Picture Upload =====
+function triggerAvatarUpload() {
+  document.getElementById('avatar-file-input').click();
+}
+
+async function handleAvatarSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('File size must be under 5MB.', 'error');
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file.', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64Data = e.target.result;
+    
+    try {
+      showToast('Uploading profile picture...', 'info');
+      const res = await fetch('/api/profile/upload-pic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: profile.enrollment,
+          image: base64Data
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Profile picture updated successfully!', 'success');
+        const userEnrollClean = encodeURIComponent(profile.enrollment);
+        const img = document.getElementById('avatar-img');
+        img.src = `/api/profile/pic/${userEnrollClean}?t=${Date.now()}`;
+        img.style.display = 'block';
+      } else {
+        showToast(result.message || 'Failed to upload picture.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error during upload.', 'error');
+    }
+  };
+  
+  reader.onerror = function() {
+    showToast('Failed to read file.', 'error');
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// ===== Cyberpunk Background Video Parallax =====
+const bgVideo = document.getElementById('cyberpunk-bg-video');
+let mouse = { x: null, y: null };
+
+function handleParallaxMove(clientX, clientY) {
+  mouse.x = clientX;
+  mouse.y = clientY;
+  
+  const xOffset = (clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+  const yOffset = (clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+  
+  const xRotate = xOffset * 2.5;
+  const yRotate = yOffset * -2.5;
+  
+  if (bgVideo) {
+    // 3D tilt and translate the background video on hover
+    bgVideo.style.transform = `translate(${xOffset * -15}px, ${yOffset * -15}px) rotateX(${yRotate}deg) rotateY(${xRotate}deg) scale(1.04)`;
+  }
+}
+
+function resetParallax() {
+  mouse.x = null;
+  mouse.y = null;
+  if (bgVideo) {
+    bgVideo.style.transform = 'translate(0, 0) rotateX(0deg) rotateY(0deg) scale(1.02)';
+  }
+}
+
+window.addEventListener('mousemove', (e) => {
+  handleParallaxMove(e.clientX, e.clientY);
+});
+
+window.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 0) {
+    handleParallaxMove(e.touches[0].clientX, e.touches[0].clientY);
+  }
+}, { passive: true });
+
+window.addEventListener('mouseleave', resetParallax);
+window.addEventListener('touchend', resetParallax);
+
+// Vertical Parallax scroll
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  if (bgVideo) {
+    bgVideo.style.top = `calc(-5% + ${scrolled * 0.08}px)`;
+  }
+});
+
+// ===== Submit Grievance =====
+const btnSubmitGrievance = document.getElementById('btn-submit-grievance');
+const msgInput = document.getElementById('grievance-message');
+
+if (btnSubmitGrievance && msgInput) {
+  btnSubmitGrievance.addEventListener('click', async () => {
+    const message = msgInput.value.trim();
+    if (!message) {
+      showToast('Please type a message before sending.', 'error');
+      return;
+    }
+    
+    try {
+      btnSubmitGrievance.disabled = true;
+      btnSubmitGrievance.textContent = 'Sending...';
+      
+      const res = await fetch('/api/grievance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentName: profile.name,
+          studentRoll: profile.roll,
+          studentEnrollment: profile.enrollment,
+          message: message
+        })
+      });
+      
+      const result = await res.json();
+      if (result.success) {
+        showToast('Message sent to Admin successfully.', 'success');
+        msgInput.value = '';
+      } else {
+        showToast(result.message || 'Failed to send message.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error. Failed to send message.', 'error');
+    } finally {
+      btnSubmitGrievance.disabled = false;
+      btnSubmitGrievance.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Message
+      `;
+    }
+  });
+}
+
+// ===== Init =====
+loadAttendance();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard — Attendance - CSE(Data Science)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+  <!-- Client-side export & upload support libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* Grievance Styles */
+    .inform-admin-card {
+      border-left: 3px solid var(--color-cyan) !important;
+    }
+    .grievance-textarea {
+      width: 100%;
+      padding: 12px;
+      background: rgba(4, 6, 15, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      resize: none;
+      transition: all 0.3s ease;
+    }
+    .grievance-textarea:focus {
+      outline: none;
+      border-color: var(--color-cyan) !important;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    }
+    /* Section toggler styles for input selection */
+    .input-method-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .method-btn {
+      flex: 1;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .method-btn:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+    .method-btn.active {
+      background: rgba(6, 182, 212, 0.08);
+      border-color: rgba(6, 182, 212, 0.3);
+      color: var(--color-cyan);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
+    }
+    /* Download badges print-friendly styles override for html2canvas */
+    .download-actions button {
+      transition: var(--transition-fast);
+    }
+    /* Split bottom layout on desktop */
+    @media (min-width: 1025px) {
+      .dashboard-bottom-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr; /* left main content, right sidebar grievance */
+        gap: 24px;
+        align-items: start;
+      }
+    }
+    .excel-instruction-box {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Glow -->
+  <div class="glow-bg">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <div class="dashboard-page">
+    <!-- Top Nav -->
+    <nav class="top-nav">
+      <div class="nav-brand">
+        <div class="logo-badge">
+          <img src="uem_logo.png" alt="UEM Logo" class="brand-logo">
+          <img src="iem_logo.png" alt="IEM Logo" class="brand-logo">
+        </div>
+        <span class="nav-brand-text">Attendance - CSE(Data Science)</span>
+      </div>
+      <button id="btn-signout" class="btn-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sign Out
+      </button>
+    </nav>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="profile-avatar" id="avatar-container" onclick="triggerAvatarUpload()">
+        <img id="avatar-img" src="" alt="Profile Pic" onload="this.style.display='block'; document.getElementById('avatar-svg-placeholder').style.display='none';" onerror="this.style.display='none'; document.getElementById('avatar-svg-placeholder').style.display='block';">
+        <svg id="avatar-svg-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <div class="avatar-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+      </div>
+      <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="handleAvatarSelected(event)">
+      <div class="profile-info">
+        <span class="role-badge badge-teacher">Teacher</span>
+        <div class="profile-name" id="teacher-name">Loading...</div>
+        <div class="profile-meta">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span id="teacher-email">—</span>
+            <button id="btn-change-email" class="btn-link" style="margin-left: 8px;">Change Email</button>
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Faculty Member of Data Science</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="tab-mark" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Mark Attendance
+      </button>
+      <button class="tab-btn" data-tab="tab-records" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        My Records
+      </button>
+    </div>
+
+    <!-- Bottom Grid Section (Main Content & Grievance Box) -->
+    <div class="dashboard-bottom-grid">
+      <!-- Main Content Area containing the tabs -->
+      <div class="main-content-panel">
+
+        <!-- TAB 1: Mark Attendance -->
+        <div class="tab-content active" id="tab-mark">
+          <div class="glass-card">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Mark Attendance
+            </div>
+
+            <!-- Toggles for input selection -->
+            <div class="input-method-tabs">
+              <button class="method-btn active" id="btn-method-manual" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Manual Checklist
+              </button>
+              <button class="method-btn" id="btn-method-excel" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Excel Sheet Upload
+              </button>
+            </div>
+
+            <!-- SUB-PANEL 1: Manual checklist marking -->
+            <div id="manual-entry-panel">
+              <div class="form-row">
+                <div class="form-group" style="flex: 1.2;">
+                  <label class="form-label">Date</label>
+                  <input type="date" class="form-input" id="attendance-date">
+                </div>
+                <div class="form-group" style="flex: 2;">
+                  <label class="form-label">Subject</label>
+                  <input type="text" class="form-input" id="attendance-subject" placeholder="e.g. Machine Learning">
+                </div>
+                <div class="form-group" style="flex: 1.2;">
+                  <label class="form-label">Year</label>
+                  <select class="form-input" id="attendance-year">
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1.2;">
+                  <label class="form-label">Section</label>
+                  <select class="form-input" id="attendance-section">
+                    <option value="Sec A">Sec A</option>
+                    <option value="Sec B">Sec B</option>
+                    <option value="Sec C">Sec C</option>
+                    <option value="Sec D">Sec D</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Search & Actions -->
+              <div class="actions-bar">
+                <div>
+                  <button class="btn btn-sm btn-secondary" id="btn-select-all" type="button">Select All</button>
+                  <button class="btn btn-sm btn-secondary" id="btn-deselect-all" style="margin-left:6px;" type="button">Deselect All</button>
+                </div>
+                <div class="select-count">Selected: <strong id="selected-count">0</strong> / <span id="total-count">0</span></div>
+              </div>
+
+              <div class="search-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" class="search-input" id="student-search" placeholder="Search student by name...">
+              </div>
+
+              <!-- Student Roster -->
+              <div class="roster-container" id="roster-container">
+                <div class="loading-overlay" id="roster-loading">
+                  <div class="spinner"></div>
+                  <span>Loading student list...</span>
+                </div>
+              </div>
+
+              <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+                <button class="btn btn-primary" id="btn-submit-attendance" disabled type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Submit Attendance
+                </button>
+              </div>
+            </div>
+
+            <!-- SUB-PANEL 2: Excel Upload marking -->
+            <div id="excel-upload-panel" style="display: none;">
+              <div class="excel-instruction-box">
+                <strong style="color: var(--color-cyan); display: block; margin-bottom: 6px;">Instructions for Excel Upload:</strong>
+                The uploadable .xlsx file must have the column <strong>roll number</strong> , <strong>present / absent</strong>.
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="flex: 1.2;">
+                  <label class="form-label">Date</label>
+                  <input type="date" class="form-input" id="upload-date">
+                </div>
+                <div class="form-group" style="flex: 2;">
+                  <label class="form-label">Subject</label>
+                  <input type="text" class="form-input" id="upload-subject" placeholder="e.g. Machine Learning">
+                </div>
+                <div class="form-group" style="flex: 1.2;">
+                  <label class="form-label">Year</label>
+                  <select class="form-input" id="upload-year">
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1.2;">
+                  <label class="form-label">Section</label>
+                  <select class="form-input" id="upload-section">
+                    <option value="Sec A">Sec A</option>
+                    <option value="Sec B">Sec B</option>
+                    <option value="Sec C">Sec C</option>
+                    <option value="Sec D">Sec D</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top: 16px;">
+                <label class="form-label">Select Excel File (.xlsx)</label>
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                  <button class="btn btn-secondary" onclick="document.getElementById('upload-file-input').click()" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Choose file...
+                  </button>
+                  <input type="file" id="upload-file-input" accept=".xlsx" style="display: none;" onchange="handleExcelUpload(event)">
+                  <span id="upload-file-name" style="font-size: 13px; color: var(--text-secondary); font-style: italic;">No file selected</span>
+                </div>
+              </div>
+
+              <!-- Preview & Summary -->
+              <div id="upload-preview-summary" style="display: none; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-top: 16px;">
+                <div style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 6px;">File Preview:</div>
+                <div id="upload-preview-text" style="font-size: 13px; color: var(--text-secondary);">Parsed: 0 students.</div>
+              </div>
+
+              <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+                <button class="btn btn-primary" id="btn-submit-upload-attendance" disabled type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Upload & Submit Attendance
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TAB 2: My Records -->
+        <div class="tab-content" id="tab-records">
+          <div class="glass-card">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              My Attendance Records
+            </div>
+            <div id="records-container">
+              <div class="loading-overlay" id="records-loading">
+                <div class="spinner"></div>
+                <span>Loading records...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Grievance Card Area -->
+      <div class="inform-admin-card-wrapper">
+        <div class="glass-card inform-admin-card">
+          <div class="section-title" style="margin-bottom: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-cyan); width: 20px; height: 20px;">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Inform to Admin
+          </div>
+          <p class="card-subtitle" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
+            Submit any queries, correction requests, or grievances directly to the HOD/Admin.
+          </p>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <textarea id="grievance-message" class="grievance-textarea" rows="5" placeholder="Type your message to the admin board here..." maxlength="500"></textarea>
+          </div>
+          <button id="btn-submit-grievance" class="btn btn-primary btn-sm" style="width: 100%;" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send Message
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="dashboard-footer">
+      Developed by Arijit Pal ( CSE - Data Science ) , 2028 Passout
+    </footer>
+  </div>
+
+  <!-- Change Email Modal -->
+  <div id="email-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content glass-card" style="margin-bottom:0;">
+      <div class="modal-header">
+        <h3>Change Email Address</h3>
+        <button id="btn-close-modal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- View 1: Enter New Email -->
+        <div id="email-view-input" class="modal-view active">
+          <p class="subtitle" style="margin-bottom: 16px;">Enter your new email address. We will send a verification code to it.</p>
+          <div class="form-group">
+            <label class="form-label" for="new-email-input">New Email Address</label>
+            <input type="email" id="new-email-input" class="form-input" placeholder="newemail@domain.com">
+          </div>
+          <button id="btn-submit-new-email" class="btn btn-primary" style="margin-top: 16px; width:100%;" disabled>
+            <span>Send OTP</span>
+            <div class="spinner hidden"></div>
+          </button>
+        </div>
+        <!-- View 2: Enter OTP -->
+        <div id="email-view-otp" class="modal-view" style="display: none;">
+          <p class="subtitle" style="margin-bottom: 16px;">Enter the 4-digit code sent to <span id="new-email-display" class="highlight"></span>.</p>
+          <div class="otp-input-container" style="display: flex; justify-content: center; gap: 12px; margin: 16px 0;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-1" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-2" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-3" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+            <input type="text" class="otp-digit modal-otp-digit" id="modal-otp-4" maxlength="1" inputmode="numeric" pattern="[0-9]*" style="width: 50px; height: 50px; text-align: center; font-size: 20px;">
+          </div>
+          <button id="btn-verify-new-email" class="btn btn-primary" style="margin-top: 16px; width:100%;" disabled>
+            <span>Verify & Change</span>
+            <div class="spinner hidden"></div>
+          </button>
+          <div style="text-align: center; margin-top: 12px;">
+            <button id="btn-resend-new-email-otp" class="btn-link" style="font-size: 13px;">Resend OTP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ===== Auth Guard =====
+const userData = JSON.parse(sessionStorage.getItem('user') || 'null');
+
+// Timezone-safe date formatter
+function formatDateString(dateStr) {
+  if (!dateStr) return 'N/A';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthIndex = parseInt(month, 10) - 1;
+    if (monthIndex >= 0 && monthIndex < 12) {
+      return `${parseInt(day, 10)} ${months[monthIndex]} ${year}`;
+    }
+  }
+  return dateStr;
+}
+
+if (!userData || userData.role !== 'Teacher') {
+  window.location.href = 'index.html';
+}
+
+const profile = userData.profile;
+let allStudents = [];
+let teacherRecords = [];
+
+// ===== Populate Profile =====
+document.getElementById('teacher-name').textContent = profile.name || 'Teacher';
+document.getElementById('teacher-email').textContent = profile.email || '';
+
+// ===== Populate Profile Picture =====
+const userEmailClean = encodeURIComponent(profile.email);
+document.getElementById('avatar-img').src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`;
+
+
+// Set default date to today
+const today = new Date();
+const yyyy = today.getFullYear();
+const mm = String(today.getMonth() + 1).padStart(2, '0');
+const dd = String(today.getDate()).padStart(2, '0');
+const todayStr = `${yyyy}-${mm}-${dd}`;
+document.getElementById('attendance-date').value = todayStr;
+document.getElementById('upload-date').value = todayStr;
+
+// ===== Toast =====
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.innerHTML = '<span class="toast-msg">' + message + '</span><button class="toast-close">&times;</button>';
+  container.appendChild(toast);
+  toast.querySelector('.toast-close').addEventListener('click', () => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => toast.remove(), 300);
+  });
+  setTimeout(() => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// ===== Sign Out =====
+document.getElementById('btn-signout').addEventListener('click', () => {
+  sessionStorage.clear();
+  window.location.href = 'index.html';
+});
+
+// ===== Tab Switching =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'tab-records') loadRecords();
+  });
+});
+
+// ===== Load Student Roster =====
+async function loadStudentRoster() {
+  try {
+    const res = await fetch('/api/student-list');
+    const data = await res.json();
+    if (data.success) {
+      allStudents = data.students;
+      renderRoster(allStudents);
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to load student list.', 'error');
+  }
+}
+
+function renderRoster(students) {
+  const container = document.getElementById('roster-container');
+  document.getElementById('total-count').textContent = allStudents.length;
+
+  if (students.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>No students found.</p></div>';
+    return;
+  }
+
+  let html = '';
+  students.forEach(s => {
+    html += `
+      <div class="checkbox-row" data-name="${s.name.toLowerCase()}">
+        <input type="checkbox" class="student-checkbox" data-roll="${s.roll}" data-name="${s.name}" data-enrollment="${s.enrollment}">
+        <span class="roll-num">${s.roll}</span>
+        <span class="student-name">${s.name}</span>
+        <span class="enrollment-num">${s.enrollment}</span>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+  updateSelectCount();
+
+  // Attach checkbox change listeners
+  container.querySelectorAll('.student-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateSelectCount);
+  });
+}
+
+function updateSelectCount() {
+  const checked = document.querySelectorAll('.student-checkbox:checked').length;
+  document.getElementById('selected-count').textContent = checked;
+  document.getElementById('btn-submit-attendance').disabled = false; // Allow submitting even with 0 selected (all absent)
+}
+
+// ===== Select All / Deselect All =====
+document.getElementById('btn-select-all').addEventListener('click', () => {
+  document.querySelectorAll('.checkbox-row:not([style*="display: none"]) .student-checkbox').forEach(cb => cb.checked = true);
+  updateSelectCount();
+});
+
+document.getElementById('btn-deselect-all').addEventListener('click', () => {
+  document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+  updateSelectCount();
+});
+
+// ===== Search Filter =====
+document.getElementById('student-search').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.checkbox-row').forEach(row => {
+    const name = row.dataset.name || '';
+    row.style.display = name.includes(q) ? '' : 'none';
+  });
+});
+
+// ===== Submit Attendance =====
+document.getElementById('btn-submit-attendance').addEventListener('click', async () => {
+  const date = document.getElementById('attendance-date').value;
+  const subject = document.getElementById('attendance-subject').value.trim();
+  const year = document.getElementById('attendance-year').value;
+  const section = document.getElementById('attendance-section').value;
+
+  if (!date) { showToast('Please select a date.', 'error'); return; }
+  if (!subject) { showToast('Please enter a subject name.', 'error'); return; }
+  if (!year) { showToast('Please select a year.', 'error'); return; }
+  if (!section) { showToast('Please select a section.', 'error'); return; }
+
+  const students = [];
+  document.querySelectorAll('.student-checkbox').forEach(cb => {
+    students.push({
+      name: cb.dataset.name,
+      roll: cb.dataset.roll,
+      enrollment: cb.dataset.enrollment,
+      present: cb.checked
+    });
+  });
+
+  if (students.length === 0) {
+    showToast('No students in the roster.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-submit-attendance');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Submitting...';
+
+  try {
+    const res = await fetch('/api/attendance/mark', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date,
+        subject,
+        year,
+        section,
+        teacherEmail: profile.email,
+        teacherName: profile.name,
+        students
+      })
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+      showToast('Attendance recorded successfully!', 'success');
+      // Reset form
+      document.getElementById('attendance-subject').value = '';
+      document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+      updateSelectCount();
+      // Reload records in the background
+      loadRecords();
+    } else {
+      showToast(result.message || 'Failed to submit attendance.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error. Please try again.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="20 6 9 17 4 12"/></svg> Submit Attendance';
+});
+
+// ===== Load Records =====
+async function loadRecords() {
+  const container = document.getElementById('records-container');
+  container.innerHTML = '<div class="loading-overlay"><div class="spinner"></div><span>Loading records...</span></div>';
+
+  try {
+    const res = await fetch('/api/attendance/teacher/' + encodeURIComponent(profile.email));
+    const data = await res.json();
+
+    if (!data.success || data.records.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <h3>No Records Yet</h3>
+          <p>Your attendance records will appear here after you mark attendance.</p>
+        </div>
+      `;
+      return;
+    }
+
+    teacherRecords = data.records;
+    const records = [...teacherRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+    let html = '';
+    records.forEach(record => {
+      const presentCount = record.students.filter(s => s.present).length;
+      const totalCount = record.students.length;
+      const dateStr = formatDateString(record.date);
+
+      let studentsHtml = '<div style="padding:8px 0;">';
+      record.students.forEach(s => {
+        const badge = s.present
+          ? '<span class="badge-present">P</span>'
+          : '<span class="badge-absent">A</span>';
+        studentsHtml += `
+          <div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:13px;">
+            <span style="font-weight:700; color:var(--color-cyan); min-width:28px;">${s.roll}</span>
+            <span style="flex:1;">${s.name}</span>
+            ${badge}
+          </div>
+        `;
+      });
+      studentsHtml += '</div>';
+
+      html += `
+        <div class="record-card" id="record-${record.id}">
+          <div class="record-header" onclick="toggleRecord('${record.id}')">
+            <div class="record-info">
+              <span class="record-date">${dateStr}</span>
+              <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.year || 'N/A'} - ${record.section || 'N/A'}</span></span>
+              <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
+            </div>
+            <svg class="record-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="record-body">
+            <div class="download-actions" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 12px; align-items: center;">
+              <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Export As:</span>
+              <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'pdf')" style="padding: 5px 10px; font-size:11px;" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF
+              </button>
+              <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'png')" style="padding: 5px 10px; font-size:11px;" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> PNG
+              </button>
+              <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'xlsx')" style="padding: 5px 10px; font-size:11px;" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg> Excel
+              </button>
+            </div>
+            ${studentsHtml}
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to load records.', 'error');
+  }
+}
+
+function toggleRecord(id) {
+  const card = document.getElementById('record-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
+// ===== Init =====
+loadStudentRoster();
+loadRecords();
+
+// ===== Email Change Modal Logic =====
+const emailModal = document.getElementById('email-modal');
+const btnChangeEmail = document.getElementById('btn-change-email');
+const btnCloseModal = document.getElementById('btn-close-modal');
+const newEmailInput = document.getElementById('new-email-input');
+const btnSubmitNewEmail = document.getElementById('btn-submit-new-email');
+const btnVerifyNewEmail = document.getElementById('btn-verify-new-email');
+const btnResendNewEmailOtp = document.getElementById('btn-resend-new-email-otp');
+const newEmailDisplay = document.getElementById('new-email-display');
+const emailViewInput = document.getElementById('email-view-input');
+const emailViewOtp = document.getElementById('email-view-otp');
+const modalOtpDigits = Array.from(document.querySelectorAll('.modal-otp-digit'));
+
+let newEmailValue = '';
+
+if (btnChangeEmail) {
+  btnChangeEmail.addEventListener('click', () => {
+    emailModal.style.display = 'flex';
+    emailViewInput.style.display = 'block';
+    emailViewOtp.style.display = 'none';
+    newEmailInput.value = '';
+    btnSubmitNewEmail.disabled = true;
+    newEmailInput.focus();
+  });
+}
+
+if (btnCloseModal) {
+  btnCloseModal.addEventListener('click', () => {
+    emailModal.style.display = 'none';
+  });
+}
+
+emailModal.addEventListener('click', (e) => {
+  if (e.target === emailModal) {
+    emailModal.style.display = 'none';
+  }
+});
+
+newEmailInput.addEventListener('input', () => {
+  const email = newEmailInput.value.trim();
+  btnSubmitNewEmail.disabled = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+});
+
+btnSubmitNewEmail.addEventListener('click', async () => {
+  newEmailValue = newEmailInput.value.trim();
+  if (!newEmailValue) return;
+
+  btnSubmitNewEmail.disabled = true;
+  const btnText = btnSubmitNewEmail.querySelector('span');
+  const spinner = btnSubmitNewEmail.querySelector('.spinner');
+  btnText.classList.add('hidden');
+  spinner.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/api/email-change/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentEmail: profile.email,
+        newEmail: newEmailValue,
+        role: userData.role
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      newEmailDisplay.textContent = newEmailValue;
+      emailViewInput.style.display = 'none';
+      emailViewOtp.style.display = 'block';
+      modalOtpDigits.forEach(input => input.value = '');
+      btnVerifyNewEmail.disabled = true;
+      setTimeout(() => modalOtpDigits[0].focus(), 100);
+      showToast('OTP sent to your new email!', 'success');
+    } else {
+      showToast(result.message || 'Failed to send OTP.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+
+  btnSubmitNewEmail.disabled = false;
+  btnText.classList.remove('hidden');
+  spinner.classList.add('hidden');
+});
+
+modalOtpDigits.forEach((input, index) => {
+  input.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (!/^\d*$/.test(val)) {
+      e.target.value = '';
+      updateModalVerifyButtonState();
+      return;
+    }
+    if (val !== '' && index < modalOtpDigits.length - 1) {
+      modalOtpDigits[index + 1].focus();
+    }
+    updateModalVerifyButtonState();
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace') {
+      if (input.value === '') {
+        if (index > 0) {
+          modalOtpDigits[index - 1].focus();
+          modalOtpDigits[index - 1].value = '';
+        }
+      } else {
+        input.value = '';
+      }
+      updateModalVerifyButtonState();
+      e.preventDefault();
+    }
+  });
+});
+
+function updateModalVerifyButtonState() {
+  const isFilled = modalOtpDigits.every(input => input.value !== '');
+  btnVerifyNewEmail.disabled = !isFilled;
+}
+
+btnVerifyNewEmail.addEventListener('click', async () => {
+  const otp = modalOtpDigits.map(input => input.value).join('');
+  if (otp.length !== 4) return;
+
+  btnVerifyNewEmail.disabled = true;
+  const btnText = btnVerifyNewEmail.querySelector('span');
+  const spinner = btnVerifyNewEmail.querySelector('.spinner');
+  btnText.classList.add('hidden');
+  spinner.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/api/email-change/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        newEmail: newEmailValue,
+        otp
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Email address changed successfully! Reloading...', 'success');
+      sessionStorage.setItem('user', JSON.stringify(result.user));
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      showToast(result.message || 'Incorrect OTP code.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+
+  btnVerifyNewEmail.disabled = false;
+  btnText.classList.remove('hidden');
+  spinner.classList.add('hidden');
+});
+
+btnResendNewEmailOtp.addEventListener('click', async () => {
+  btnResendNewEmailOtp.disabled = true;
+  btnResendNewEmailOtp.textContent = 'Sending...';
+
+  try {
+    const res = await fetch('/api/email-change/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentEmail: profile.email,
+        newEmail: newEmailValue,
+        role: userData.role
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Verification code resent!', 'success');
+    } else {
+      showToast(result.message || 'Failed to resend.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
+  btnResendNewEmailOtp.disabled = false;
+  btnResendNewEmailOtp.textContent = 'Resend OTP';
+});
+
+// ===== Profile Picture Upload =====
+function triggerAvatarUpload() {
+  document.getElementById('avatar-file-input').click();
+}
+
+async function handleAvatarSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('File size must be under 5MB.', 'error');
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file.', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64Data = e.target.result;
+    
+    try {
+      showToast('Uploading profile picture...', 'info');
+      const res = await fetch('/api/profile/upload-pic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: profile.email,
+          image: base64Data
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Profile picture updated successfully!', 'success');
+        const userEmailClean = encodeURIComponent(profile.email);
+        const img = document.getElementById('avatar-img');
+        img.src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`;
+        img.style.display = 'block';
+      } else {
+        showToast(result.message || 'Failed to upload picture.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error during upload.', 'error');
+    }
+  };
+  
+  reader.onerror = function() {
+    showToast('Failed to read file.', 'error');
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// ===== Input Method Switcher =====
+const btnMethodManual = document.getElementById('btn-method-manual');
+const btnMethodExcel = document.getElementById('btn-method-excel');
+const manualEntryPanel = document.getElementById('manual-entry-panel');
+const excelUploadPanel = document.getElementById('excel-upload-panel');
+
+if (btnMethodManual && btnMethodExcel) {
+  btnMethodManual.addEventListener('click', () => {
+    btnMethodManual.classList.add('active');
+    btnMethodExcel.classList.remove('active');
+    manualEntryPanel.style.display = 'block';
+    excelUploadPanel.style.display = 'none';
+  });
+
+  btnMethodExcel.addEventListener('click', () => {
+    btnMethodExcel.classList.add('active');
+    btnMethodManual.classList.remove('active');
+    excelUploadPanel.style.display = 'block';
+    manualEntryPanel.style.display = 'none';
+    
+    // Sync date with manual form
+    const dateVal = document.getElementById('attendance-date').value;
+    document.getElementById('upload-date').value = dateVal;
+  });
+}
+
+// ===== Inform to Admin Grievance Submission =====
+const btnSubmitGrievance = document.getElementById('btn-submit-grievance');
+if (btnSubmitGrievance) {
+  btnSubmitGrievance.addEventListener('click', async () => {
+    const textEl = document.getElementById('grievance-message');
+    const msg = textEl.value.trim();
+    if (!msg) {
+      showToast('Please type a message before sending.', 'error');
+      return;
+    }
+
+    btnSubmitGrievance.disabled = true;
+    btnSubmitGrievance.textContent = 'Sending...';
+
+    try {
+      const res = await fetch('/api/grievance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderRole: 'Teacher',
+          senderEmail: profile.email,
+          studentName: profile.name, // Keep property for admin dashboard view
+          message: msg
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Message sent to HOD/Admin successfully.', 'success');
+        textEl.value = '';
+      } else {
+        showToast(result.message || 'Failed to send message.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to connect to server.', 'error');
+    }
+    btnSubmitGrievance.disabled = false;
+    btnSubmitGrievance.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Message';
+  });
+}
+
+// ===== Excel Upload Parsing =====
+let parsedExcelStudents = null;
+
+function handleExcelUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  document.getElementById('upload-file-name').textContent = file.name;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+      if (json.length === 0) {
+        showToast("The Excel file is empty.", "error");
+        resetUploadFile();
+        return;
+      }
+
+      // Smart Logic to identify Roll and Status columns
+      const firstRow = json[0];
+      const keys = Object.keys(firstRow);
+
+      let rollKey = null;
+      let statusKey = null;
+
+      // 1. Check for common header names
+      keys.forEach(k => {
+        const cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (cleanK === 'rollnumber' || cleanK === 'roll' || cleanK === 'classroll' || cleanK === 'rollno') {
+          rollKey = k;
+        }
+        if (cleanK === 'presentabsent' || cleanK === 'status' || cleanK === 'attendance' || cleanK === 'present' || cleanK === 'pa') {
+          statusKey = k;
+        }
+      });
+
+      // 2. Fallbacks: If headers don't match common names, check contents
+      if (!rollKey) {
+        // Find first column that has numeric values
+        for (let k of keys) {
+          const hasNumbers = json.some(row => {
+            const val = String(row[k]).trim();
+            return val !== "" && /^\d+$/.test(val);
+          });
+          if (hasNumbers) {
+            rollKey = k;
+            break;
+          }
+        }
+      }
+
+      if (!statusKey) {
+        // Find first column that has typical status values (P, A, Present, Absent, etc.)
+        for (let k of keys) {
+          if (k === rollKey) continue;
+          const hasStatus = json.some(row => {
+            const val = String(row[k]).toLowerCase().trim();
+            return val === 'p' || val === 'a' || val === 'present' || val === 'absent' || val === 'y' || val === 'n';
+          });
+          if (hasStatus) {
+            statusKey = k;
+            break;
+          }
+        }
+      }
+
+      // 3. Last fallback: default to the first column for roll number
+      if (!rollKey && keys.length > 0) {
+        rollKey = keys[0];
+      }
+
+      parsedExcelStudents = json.map(row => {
+        const rollVal = rollKey ? String(row[rollKey]).trim() : "";
+        const statusVal = statusKey ? String(row[statusKey]).trim() : "";
+        return {
+          roll: rollVal,
+          status: statusVal,
+          hasStatusField: !!statusKey
+        };
+      }).filter(item => item.roll !== "");
+
+      // Show summary preview
+      const totalParsed = parsedExcelStudents.length;
+      let presentCount = 0;
+      let absentCount = 0;
+
+      if (statusKey) {
+        presentCount = parsedExcelStudents.filter(s => {
+          const val = s.status.toLowerCase().trim();
+          return val === 'present' || val === 'p' || val === '1' || val === 'true' || val === 'yes' || val === 'y';
+        }).length;
+        absentCount = totalParsed - presentCount;
+      } else {
+        // Presence logic: Any roll number listed in the sheet is considered Present, others are Absent
+        presentCount = totalParsed;
+        absentCount = 0;
+      }
+
+      document.getElementById('upload-preview-summary').style.display = 'block';
+      let summaryHtml = `Parsed <strong>${totalParsed}</strong> student rows using column <em>"${rollKey}"</em> for Roll Numbers.`;
+      if (statusKey) {
+        summaryHtml += `<br>Using column <em>"${statusKey}"</em> for Status: <strong>${presentCount}</strong> Present, <strong>${absentCount}</strong> Absent.`;
+      } else {
+        summaryHtml += `<br><span style="color: var(--color-warning); font-size: 11px;">No status column found. Mapped listed student rolls as Present, others as Absent.</span>`;
+      }
+
+      document.getElementById('upload-preview-text').innerHTML = summaryHtml;
+      document.getElementById('btn-submit-upload-attendance').disabled = false;
+      showToast("Excel file parsed successfully!", "success");
+
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to parse Excel file.", "error");
+      resetUploadFile();
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function resetUploadFile() {
+  document.getElementById('upload-file-input').value = '';
+  document.getElementById('upload-file-name').textContent = 'No file selected';
+  document.getElementById('upload-preview-summary').style.display = 'none';
+  document.getElementById('btn-submit-upload-attendance').disabled = true;
+  parsedExcelStudents = null;
+}
+
+const btnSubmitUpload = document.getElementById('btn-submit-upload-attendance');
+if (btnSubmitUpload) {
+  btnSubmitUpload.addEventListener('click', async () => {
+    const date = document.getElementById('upload-date').value;
+    const subject = document.getElementById('upload-subject').value.trim();
+    const year = document.getElementById('upload-year').value;
+    const section = document.getElementById('upload-section').value;
+
+    if (!date) { showToast('Please select a date.', 'error'); return; }
+    if (!subject) { showToast('Please enter a subject name.', 'error'); return; }
+    if (!year) { showToast('Please select a year.', 'error'); return; }
+    if (!section) { showToast('Please select a section.', 'error'); return; }
+    if (!parsedExcelStudents || parsedExcelStudents.length === 0) {
+      showToast('Please upload a valid excel sheet first.', 'error');
+      return;
+    }
+
+    if (allStudents.length === 0) {
+      showToast('Class roster not loaded yet.', 'error');
+      return;
+    }
+
+    // Map official roster against Excel sheet parsed students using smart roll matching
+    let presentMappedCount = 0;
+    const finalStudents = allStudents.map(s => {
+      const match = parsedExcelStudents.find(ex => {
+        const r1 = s.roll.trim().replace(/^0+/, '');
+        const r2 = ex.roll.trim().replace(/^0+/, '');
+        return r1 === r2;
+      });
+
+      let isPresent = false;
+      if (match) {
+        if (match.hasStatusField) {
+          const val = match.status.toLowerCase().trim();
+          isPresent = ['present', 'p', '1', 'true', 'yes', 'y'].includes(val);
+        } else {
+          isPresent = true;
+        }
+      }
+
+      if (isPresent) presentMappedCount++;
+
+      return {
+        name: s.name,
+        roll: s.roll,
+        enrollment: s.enrollment,
+        present: isPresent
+      };
+    });
+
+    if (!confirm(`Mapped ${allStudents.length} students from roster.\nResult: ${presentMappedCount} Present, ${allStudents.length - presentMappedCount} Absent.\n\nDo you want to submit?`)) {
+      return;
+    }
+
+    btnSubmitUpload.disabled = true;
+    btnSubmitUpload.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Submitting...';
+
+    try {
+      const res = await fetch('/api/attendance/mark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date,
+          subject,
+          year,
+          section,
+          teacherEmail: profile.email,
+          teacherName: profile.name,
+          students: finalStudents
+        })
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        showToast('Attendance recorded from Excel successfully!', 'success');
+        document.getElementById('upload-subject').value = '';
+        resetUploadFile();
+        loadRecords();
+        // Switch to tab records
+        document.querySelectorAll('.tab-btn')[1].click();
+      } else {
+        showToast(result.message || 'Failed to submit attendance.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error. Please try again.', 'error');
+    }
+
+    btnSubmitUpload.disabled = false;
+    btnSubmitUpload.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="20 6 9 17 4 12"/></svg> Upload & Submit Attendance';
+  });
+}
+
+// ===== Export Card as PDF, PNG, or Excel =====
+async function exportRecord(recordId, type) {
+  const record = teacherRecords.find(r => r.id === recordId);
+  if (!record) {
+    showToast('Record not found.', 'error');
+    return;
+  }
+
+  const dateStr = record.date;
+  const subjectStr = record.subject;
+  const yearSec = `${record.year || 'N/A'} - ${record.section || 'N/A'}`;
+  const filename = `Attendance_${subjectStr.replace(/[^a-zA-Z0-9]/g, '_')}_${dateStr}`;
+
+  if (type === 'xlsx') {
+    try {
+      const rows = [
+        ["ATTENDANCE REPORT", ""],
+        ["Date", dateStr],
+        ["Subject", subjectStr],
+        ["Year & Section", yearSec],
+        ["Teacher Name", record.teacherName],
+        ["Teacher Email", record.teacherEmail],
+        ["", ""],
+        ["Roll Number", "Student Name", "Enrollment Number", "Status"]
+      ];
+
+      record.students.forEach(s => {
+        rows.push([
+          s.roll,
+          s.name,
+          s.enrollment,
+          s.present ? "Present" : "Absent"
+        ]);
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, "Attendance Sheet");
+      XLSX.writeFile(wb, `${filename}.xlsx`);
+      showToast('Excel report downloaded successfully!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to generate Excel report.', 'error');
+    }
+  } else if (type === 'png' || type === 'pdf') {
+    try {
+      const card = document.getElementById('record-' + recordId);
+      if (!card) {
+        showToast('Card element not found.', 'error');
+        return;
+      }
+
+      // Hide download actions row during capture
+      const actions = card.querySelector('.download-actions');
+      if (actions) actions.style.display = 'none';
+
+      showToast('Rendering report...', 'info');
+      
+      const canvas = await html2canvas(card, {
+        backgroundColor: '#060913',
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+
+      if (actions) actions.style.display = 'flex';
+
+      const imgData = canvas.toDataURL('image/png');
+
+      if (type === 'png') {
+        const link = document.createElement('a');
+        link.download = `${filename}.png`;
+        link.href = imgData;
+        link.click();
+        showToast('PNG image downloaded successfully!', 'success');
+      } else if (type === 'pdf') {
+        const { jsPDF } = window.jspdf;
+        const margin = 12;
+        const pdfWidth = 210;
+        const pdfHeight = 297;
+        const imgWidth = pdfWidth - (margin * 2);
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        // Background color
+        doc.setFillColor(6, 9, 19);
+        doc.rect(0, 0, pdfWidth, pdfHeight, 'F');
+
+        // Header
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(6, 182, 212);
+        doc.text("Attendance - CSE(Data Science)", margin, margin + 4);
+        
+        doc.setDrawColor(255, 255, 255, 0.08);
+        doc.line(margin, margin + 8, pdfWidth - margin, margin + 8);
+
+        // Card image
+        doc.addImage(imgData, 'PNG', margin, margin + 14, imgWidth, imgHeight);
+
+        // Footer
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(156, 163, 175);
+        doc.text("Developed by Arijit Pal ( CSE - Data Science ) , 2028 Passout", margin, pdfHeight - margin);
+
+        doc.save(`${filename}.pdf`);
+        showToast('PDF report downloaded successfully!', 'success');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to export report.', 'error');
+    }
+  }
+}
+</script>
+</body>
+</html>
