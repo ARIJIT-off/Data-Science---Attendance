@@ -696,10 +696,21 @@ document.getElementById('btn-signout').addEventListener('click', () => {
 // ===== Tab Switching =====
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    const wasActive = btn.classList.contains('active');
+    
+    // Deactivate all tabs and contents
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    // If it was already active, leave them deactivated (closes details)
+    if (wasActive) {
+      return;
+    }
+    
+    // Otherwise activate the selected tab
     btn.classList.add('active');
-    document.getElementById(btn.dataset.tab).classList.add('active');
+    const contentEl = document.getElementById(btn.dataset.tab);
+    if (contentEl) contentEl.classList.add('active');
     
     // Load grievances if grievances tab clicked
     if (btn.dataset.tab === 'tab-grievances') {
