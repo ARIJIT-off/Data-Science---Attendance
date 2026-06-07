@@ -180,51 +180,22 @@
       line-height: 1.5;
     }
 
-    /* ── Video Background ── */
-    .teacher-video-bg {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      overflow: hidden;
-      background: #050810;
+    /* ── Font Styling ── */
+    :root {
+      --font-family: 'Times New Roman', Times, 'Georgia', serif !important;
     }
-    .teacher-video-bg video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.55;
-      filter: brightness(0.6) saturate(1.1);
-    }
-    /* Dark overlay gradient so content is readable */
-    .teacher-video-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        160deg,
-        rgba(5,8,16,0.55) 0%,
-        rgba(5,8,16,0.30) 40%,
-        rgba(5,8,16,0.55) 100%
-      );
-      pointer-events: none;
-    }
-
-    /* ── Reset body & hide glow-bg ── */
-    body {
-      background: transparent !important;
-    }
-    .glow-bg {
-      display: none !important;
+    *, body, button, input, select, textarea, table, th, td, div, span, p, h1, h2, h3, h4, h5, h6 {
+      font-family: 'Times New Roman', Times, 'Georgia', serif !important;
     }
   </style>
 </head>
 <body>
 
-  <!-- ── Video Background ── -->
-  <div class="teacher-video-bg">
-    <video autoplay muted loop playsinline>
-      <source src="teacher_board_bg.mp4" type="video/mp4">
-    </video>
+  <!-- Background Glow -->
+  <div class="glow-bg">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
   </div>
 
   <!-- Toast Container -->
@@ -273,7 +244,6 @@
             <button id="btn-change-email" class="btn-link" style="margin-left: 8px;">Change Email</button>
           </span>
           <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span>Faculty Member of Data Science</span>
           </span>
         </div>
@@ -283,11 +253,9 @@
     <!-- Tabs -->
     <div class="tabs-container">
       <button class="tab-btn active" data-tab="tab-mark" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         Mark Attendance
       </button>
       <button class="tab-btn" data-tab="tab-records" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         My Records
       </button>
     </div>
@@ -301,22 +269,18 @@
         <div class="tab-content active" id="tab-mark">
           <div class="glass-card">
             <div class="section-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               Mark Attendance
             </div>
 
             <!-- Toggles for input selection -->
             <div class="input-method-tabs">
               <button class="method-btn active" id="btn-method-manual" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 Manual Checklist
               </button>
               <button class="method-btn" id="btn-method-excel" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Excel Sheet Upload
               </button>
               <button class="method-btn" id="btn-method-live" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
                 Live via Link / QR
               </button>
             </div>
@@ -552,10 +516,7 @@
         <!-- TAB 2: My Records -->
         <div class="tab-content" id="tab-records">
           <div class="glass-card">
-            <div class="section-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              My Attendance Records
-            </div>
+            <div class="section-title">My Attendance Records</div>
             <div id="records-container">
               <div class="loading-overlay" id="records-loading">
                 <div class="spinner"></div>
@@ -570,12 +531,7 @@
       <!-- Grievance Card Area -->
       <div class="inform-admin-card-wrapper">
         <div class="glass-card inform-admin-card">
-          <div class="section-title" style="margin-bottom: 8px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-cyan); width: 20px; height: 20px;">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Inform to Admin
-          </div>
+          <div class="section-title" style="margin-bottom: 8px;">Inform to Admin</div>
           <p class="card-subtitle" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
             Submit any queries, correction requests, or grievances directly to the HOD/Admin.
           </p>
