@@ -430,20 +430,46 @@ const Grievance = mongoose.model('Grievance', grievanceSchema);
 
 // Connection logic
 const MONGODB_URI = process.env.MONGODB_URI || credentials.mongodbUri || 'mongodb+srv://noreplyuemkattendance_db_user:Xuelk1U1ZC0wBMEt@cluster0.1qgvtim.mongodb.net/attendance?retryWrites=true&w=majority';
-if (MONGODB_URI) {
-  console.log("Connecting to MongoDB Atlas...");
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
+
+async function ensureDbConnected() {
+  if (mongoose.connection.readyState === 1) {
+    return true;
+  }
+  if (mongoose.connection.readyState === 2) {
+    // Wait for existing connection attempt to finish
+    for (let i = 0; i < 100; i++) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (mongoose.connection.readyState === 1) return true;
+      if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) break;
+    }
+  }
+  if (MONGODB_URI) {
+    try {
+      console.log("Connecting to MongoDB Atlas (on-demand)...");
+      await mongoose.connect(MONGODB_URI);
       console.log("Connected to MongoDB Atlas successfully!");
-      seedRosters();
-    })
-    .catch(err => {
+      await seedRosters();
+      return true;
+    } catch (err) {
       console.error("MongoDB Atlas connection error:", err.message);
-      console.log("Falling back to local file/Excel operations.");
-    });
-} else {
-  console.log("MONGODB_URI not found in env or mailmain.xlsx. Running in local file/Excel fallback mode.");
+      return false;
+    }
+  }
+  return false;
 }
+
+// Trigger initial connection attempt
+ensureDbConnected().catch(err => console.error("Initial DB connection failed:", err.message));
+
+// Middleware to ensure DB connection is active before processing API requests (crucial for serverless environments)
+app.use('/api', async (req, res, next) => {
+  try {
+    await ensureDbConnected();
+  } catch (err) {
+    console.error("Database connection middleware error:", err.message);
+  }
+  next();
+});
 
 async function seedRosters() {
   try {
@@ -615,6 +641,7 @@ async function findUserByRole(email, role) {
     };
   }
 
+  await ensureDbConnected();
   if (mongoose.connection.readyState === 1) {
     try {
       if (role === 'Admin') {
@@ -747,6 +774,7 @@ async function findUserByRole(email, role) {
 
 // Helper: Search student in student list sheet
 async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
+  await ensureDbConnected();
   if (mongoose.connection.readyState === 1) {
     try {
       const students = await Student.find({ roll: rollNo.toString().trim() });
@@ -833,6 +861,7 @@ async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
 async function findStudentEmailByName(name) {
   const nameLower = name.toLowerCase().trim();
 
+  await ensureDbConnected();
   if (mongoose.connection.readyState === 1) {
     try {
       const student = await Student.findOne({ name: new RegExp('^' + nameLower + '$', 'i') });
