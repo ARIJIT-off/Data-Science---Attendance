@@ -46,5 +46,214 @@
     "createdAt": "2026-06-07T15:26:46.649Z",
     "expiresAt": "2026-06-07T19:26:46.649Z",
     "closedAt": "2026-06-07T15:32:17.604Z"
+  },
+  {
+    "token": "vZp7uAmuwGvOPV75KMe2tWO7",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Data Analysis",
+    "year": "1st Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "active",
+    "markedStudents": [
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "markedAt": "2026-06-07T20:01:19.058Z"
+      }
+    ],
+    "createdAt": "2026-06-07T19:57:41.789Z",
+    "expiresAt": "2026-06-07T23:57:41.789Z"
+  },
+  {
+    "token": "ofQ1xgCkfLvdcnuuzqa9uwcH",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Data Analysis",
+    "year": "1st Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-07T20:10:46.885Z"
+      }
+    ],
+    "createdAt": "2026-06-07T20:08:37.155Z",
+    "expiresAt": "2026-06-08T00:08:37.155Z",
+    "closedAt": "2026-06-07T20:13:17.004Z"
+  },
+  {
+    "token": "VfQSLAJk0Y4ktctlRqWmffBo",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Maths",
+    "year": "1st Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "active",
+    "markedStudents": [],
+    "createdAt": "2026-06-07T20:12:39.123Z",
+    "expiresAt": "2026-06-08T00:12:39.123Z"
+  },
+  {
+    "token": "gm7Q1cC5LcHQUxeT6WVL8Mzu",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Maths",
+    "year": "1st Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "active",
+    "markedStudents": [],
+    "createdAt": "2026-06-07T20:12:39.131Z",
+    "expiresAt": "2026-06-08T00:12:39.131Z"
+  },
+  {
+    "token": "xTxmWN2B8AhWU4XbPAVYsuMw",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Physics",
+    "year": "2nd Year",
+    "section": "Sec B",
+    "date": "2026-06-08",
+    "status": "active",
+    "markedStudents": [],
+    "createdAt": "2026-06-07T20:12:39.135Z",
+    "expiresAt": "2026-06-08T00:12:39.135Z"
+  },
+  {
+    "token": "kDGZMP7OHhZQqAFCzZmtqbht",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Data Analysis",
+    "year": "1st Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-07T20:14:53.972Z"
+      },
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "markedAt": "2026-06-07T20:16:03.479Z"
+      }
+    ],
+    "createdAt": "2026-06-07T20:13:24.835Z",
+    "expiresAt": "2026-06-08T00:13:24.835Z",
+    "closedAt": "2026-06-07T20:18:27.887Z"
+  },
+  {
+    "token": "5Luy2SmZASLDGw00sHv1sMu8",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Mathematics 3",
+    "year": "2nd Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "markedAt": "2026-06-07T20:21:08.703Z"
+      },
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-07T20:21:54.104Z"
+      }
+    ],
+    "createdAt": "2026-06-07T20:20:50.590Z",
+    "expiresAt": "2026-06-08T00:20:50.590Z",
+    "closedAt": "2026-06-07T20:22:06.010Z"
+  },
+  {
+    "token": "xqSyjfKM7qnvUFHkvyWNmUaX",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Sociology",
+    "year": "1st Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-08T05:24:05.646Z"
+      }
+    ],
+    "createdAt": "2026-06-08T05:23:28.872Z",
+    "expiresAt": "2026-06-08T09:23:28.872Z",
+    "closedAt": "2026-06-08T05:24:23.967Z"
+  },
+  {
+    "token": "1fhGCZYI3fSbs3pdceoLOpy2",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Data Analysis",
+    "year": "2nd Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "DIBYENDU MONDAL",
+        "roll": "40",
+        "enrollment": "12024002037014",
+        "markedAt": "2026-06-08T05:35:24.760Z"
+      },
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "markedAt": "2026-06-08T05:36:19.494Z"
+      }
+    ],
+    "createdAt": "2026-06-08T05:35:02.745Z",
+    "expiresAt": "2026-06-08T09:35:02.745Z",
+    "closedAt": "2026-06-08T05:36:28.112Z"
+  },
+  {
+    "token": "QNHUIzJNL8h8Xf3byCwJg3WP",
+    "teacherEmail": "anay.ghosh@uem.edu.in",
+    "teacherName": "Prof. (Dr.) Anay Ghosh",
+    "subject": "Mathematics 3",
+    "year": "2nd Year",
+    "section": "Sec A",
+    "date": "2026-06-08",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-08T06:50:23.361Z"
+      },
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "markedAt": "2026-06-08T06:51:43.161Z"
+      }
+    ],
+    "createdAt": "2026-06-08T06:49:40.566Z",
+    "expiresAt": "2026-06-08T10:49:40.566Z",
+    "closedAt": "2026-06-08T06:51:55.063Z"
   }
 ]

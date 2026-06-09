@@ -1406,7 +1406,8 @@ async function loadSessionByToken(token) {
   if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
 
   try {
-    const res = await fetch(`/api/session/${encodeURIComponent(token)}`);
+    const enrollment = profile ? (profile.enrollment || '') : '';
+    const res = await fetch(`/api/session/${encodeURIComponent(token)}?enrollment=${encodeURIComponent(enrollment)}`);
     const result = await res.json();
 
     if (!result.success) {
@@ -1426,6 +1427,8 @@ async function loadSessionByToken(token) {
     // Show info panel
     document.getElementById('session-info-panel').style.display = 'block';
 
+    const btnMark = document.getElementById('btn-mark-present');
+
     // If session is closed/expired, show lockout
     if (session.status === 'closed' || session.status === 'expired') {
       document.getElementById('session-info-content').style.display = 'none';
@@ -1433,6 +1436,21 @@ async function loadSessionByToken(token) {
     } else {
       document.getElementById('session-info-content').style.display = 'block';
       document.getElementById('session-info-closed').style.display = 'none';
+      
+      // If student already marked attendance, disable button and show success state
+      if (session.alreadyMarked) {
+        if (btnMark) {
+          btnMark.disabled = true;
+          btnMark.innerHTML = '✅ Attendance Already Marked';
+          btnMark.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+        }
+      } else {
+        if (btnMark) {
+          btnMark.disabled = false;
+          btnMark.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><polyline points="20 6 9 17 4 12"/></svg> Mark Myself Present';
+          btnMark.style.background = '';
+        }
+      }
     }
 
     // Hide method panels

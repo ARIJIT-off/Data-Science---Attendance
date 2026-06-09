@@ -1741,8 +1741,7 @@ if (btnCloseSession) {
 
     try {
       const res = await fetch(`/api/session/${liveSessionToken}/close`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        method: 'POST'
       });
       const result = await res.json();
 

@@ -175,63 +175,158 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Structure: { email: { otp: '1234', role: 'Student', profile: {...}, expiresAt: timestamp } }
 const otpCache = new Map();
 
-// Helper: load SMTP credentials from mailmain.xlsx
+// Helper: load SMTP / Resend credentials from environment variables or mailmain.xlsx
 function loadCredentials() {
-  try {
-    const workbook = xlsx.readFile(path.join(__dirname, 'mailmain.xlsx'));
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-    
-    let email = null;
-    let password = null;
+  const envEmail = process.env.EMAIL_USER;
+  const envPass = process.env.EMAIL_PASS;
+  const envResendKey = process.env.RESEND_API_KEY;
+  const envSenderEmail = process.env.SENDER_EMAIL;
+  const envMongoUri = process.env.MONGODB_URI;
 
-    data.forEach(row => {
-      if (row && row[0] && row[1]) {
-        const field = row[0].toString().trim().toLowerCase();
-        const val = row[1].toString().trim();
-        if (field.includes('email')) {
-          email = val;
-        } else if (field.includes('password') || field.includes('app password')) {
-          password = val;
-        }
-      }
-    });
+  let credentials = {
+    email: envEmail || null,
+    password: envPass || null,
+    resendKey: envResendKey || null,
+    senderEmail: envSenderEmail || null,
+    mongodbUri: envMongoUri || null
+  };
 
-    if (!email || !password) {
-      throw new Error("Credentials not found in Excel columns. Ensure Row 2 has Email Address and Row 3 has App Password.");
-    }
-
-    console.log(`Loaded credentials successfully: Sender Email is ${email}`);
-    return { email, password };
-  } catch (error) {
-    console.error("CRITICAL ERROR: Failed to load SMTP credentials from mailmain.xlsx.");
-    console.error(error.message);
-    process.exit(1);
+  // If env variables are set, use them
+  if ((credentials.email && credentials.password) || credentials.resendKey || credentials.mongodbUri) {
+    console.log("Loaded credentials from Environment Variables.");
   }
+
+  // Fallback to mailmain.xlsx
+  try {
+    const filePath = path.join(__dirname, 'mailmain.xlsx');
+    if (fs.existsSync(filePath)) {
+      const workbook = xlsx.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+      
+      data.forEach(row => {
+        if (row && row[0] && row[1]) {
+          const field = row[0].toString().trim().toLowerCase();
+          const val = row[1].toString().trim();
+          if (field.includes('email') && !field.includes('sender')) {
+            credentials.email = val;
+          } else if (field.includes('password') || field.includes('app password')) {
+            credentials.password = val;
+          } else if (field.includes('resend key') || field.includes('resend api key')) {
+            credentials.resendKey = val;
+          } else if (field.includes('sender email')) {
+            credentials.senderEmail = val;
+          } else if (field.includes('mongodb uri') || field.includes('mongodb_uri') || field.includes('mongo uri')) {
+            credentials.mongodbUri = val;
+          }
+        }
+      });
+      console.log("Loaded credentials from mailmain.xlsx successfully.");
+    }
+  } catch (error) {
+    console.warn("Could not read credentials from mailmain.xlsx:", error.message);
+  }
+
+  return credentials;
 }
 
 const credentials = loadCredentials();
 
-// Configure the nodemailer SMTP transporter using Gmail settings
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // true for port 465
-  auth: {
-    user: credentials.email,
-    pass: credentials.password
-  }
-});
+// Configure the nodemailer SMTP transporter using Gmail settings if available
+let transporter = null;
+if (credentials.email && credentials.password) {
+  transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true for port 465
+    auth: {
+      user: credentials.email,
+      pass: credentials.password
+    }
+  });
 
-// Verify connection configuration
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("SMTP Transporter Connection Error:", error);
+  // Verify connection configuration
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error("SMTP Transporter Connection Error:", error);
+    } else {
+      console.log("SMTP Server is ready to take messages");
+    }
+  });
+} else {
+  console.log("SMTP configuration skipped (credentials missing).");
+}
+
+const https = require('https');
+
+// Helper: Unified send email function (supports Resend API & NodeMailer SMTP fallback)
+async function sendVerificationEmail(toEmail, subject, htmlContent, textContent) {
+  const resendKey = credentials.resendKey || process.env.RESEND_API_KEY;
+  
+  if (resendKey) {
+    // Determine sender email for Resend
+    let fromEmail = credentials.senderEmail || process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+    
+    // Add display name
+    const fromHeader = `"Attendance - CSE(Data Science)" <${fromEmail}>`;
+    
+    console.log(`Sending email to ${toEmail} using Resend REST API (From: ${fromEmail})...`);
+    
+    return new Promise((resolve, reject) => {
+      const postData = JSON.stringify({
+        from: fromHeader,
+        to: [toEmail],
+        subject: subject,
+        html: htmlContent,
+        text: textContent
+      });
+
+      const options = {
+        hostname: 'api.resend.com',
+        port: 443,
+        path: '/emails',
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log(`Email successfully sent to ${toEmail} via Resend.`);
+            resolve({ success: true });
+          } else {
+            reject(new Error(`Resend API returned status ${res.statusCode}: ${data}`));
+          }
+        });
+      });
+
+      req.on('error', (e) => reject(e));
+      req.write(postData);
+      req.end();
+    });
+  } else if (transporter) {
+    console.log(`Sending email to ${toEmail} using SMTP (From: ${credentials.email})...`);
+    const mailOptions = {
+      from: `"Attendance - CSE(Data Science)" <${credentials.email}>`,
+      to: toEmail,
+      subject: subject,
+      html: htmlContent,
+      text: textContent
+    };
+    await transporter.sendMail(mailOptions);
+    console.log(`Email successfully sent to ${toEmail} via SMTP.`);
+    return { success: true };
   } else {
-    console.log("SMTP Server is ready to take messages");
+    throw new Error("No email credentials configured (neither SMTP nor Resend API key is available).");
   }
-});
+}
 
 // Helper: Read sheet data dynamically
 function readExcelFile(filename) {
@@ -242,8 +337,225 @@ function readExcelFile(filename) {
   return xlsx.utils.sheet_to_json(sheet);
 }
 
+const mongoose = require('mongoose');
+
+// MongoDB Models
+const studentSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  roll: { type: String, required: true },
+  enrollment: { type: String, required: true, unique: true, index: true },
+  email: { type: String },
+  mobile: { type: String },
+  supervisorName: { type: String },
+  supervisorMobile: { type: String },
+  supervisorEmail: { type: String },
+  profilePic: { type: String } // Base64 string
+});
+const Student = mongoose.model('Student', studentSchema);
+
+const teacherSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true, index: true },
+  mobile: { type: String },
+  additionalName: { type: String },
+  additionalMobile: { type: String },
+  additionalEmail: { type: String },
+  profilePic: { type: String } // Base64 string
+});
+const Teacher = mongoose.model('Teacher', teacherSchema);
+
+const adminSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true, index: true },
+  mobile: { type: String },
+  role: { type: String, required: true },
+  department: { type: String, default: 'CSE Data Science' },
+  profilePic: { type: String } // Base64 string
+});
+const Admin = mongoose.model('Admin', adminSchema);
+
+const attendanceSchema = new mongoose.Schema({
+  id: { type: String, unique: true, sparse: true, index: true },
+  date: { type: String, required: true },
+  subject: { type: String, required: true },
+  year: { type: String },
+  section: { type: String },
+  teacherEmail: { type: String },
+  teacherName: { type: String },
+  source: { type: String, default: 'manual' }, // manual, excel, live-session
+  sessionToken: { type: String },
+  students: [{
+    name: { type: String, required: true },
+    roll: { type: String, required: true },
+    enrollment: { type: String, required: true },
+    present: { type: Boolean, required: true }
+  }],
+  createdAt: { type: Date, default: Date.now }
+});
+const Attendance = mongoose.model('Attendance', attendanceSchema);
+
+const liveSessionSchema = new mongoose.Schema({
+  token: { type: String, required: true, unique: true, index: true },
+  teacherEmail: { type: String, required: true },
+  teacherName: { type: String, required: true },
+  subject: { type: String, required: true },
+  year: { type: String },
+  section: { type: String },
+  date: { type: String, required: true },
+  status: { type: String, default: 'active' }, // active, closed, expired
+  markedStudents: [{
+    name: { type: String, required: true },
+    roll: { type: String, required: true },
+    enrollment: { type: String, required: true },
+    markedAt: { type: Date, default: Date.now }
+  }],
+  createdAt: { type: Date, default: Date.now },
+  expiresAt: { type: Date, required: true },
+  closedAt: { type: Date }
+});
+const LiveSession = mongoose.model('LiveSession', liveSessionSchema);
+
+const grievanceSchema = new mongoose.Schema({
+  id: { type: String, unique: true, sparse: true, index: true },
+  senderName: { type: String, required: true },
+  senderEmail: { type: String },
+  studentRoll: { type: String },
+  studentEnrollment: { type: String },
+  senderRole: { type: String, required: true }, // Student or Teacher
+  studentName: { type: String }, // duplicate for frontend compatibility
+  message: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+const Grievance = mongoose.model('Grievance', grievanceSchema);
+
+// Connection logic
+const MONGODB_URI = process.env.MONGODB_URI || credentials.mongodbUri || 'mongodb+srv://noreplyuemkattendance_db_user:Xuelk1U1ZC0wBMEt@cluster0.1qgvtim.mongodb.net/attendance?retryWrites=true&w=majority';
+if (MONGODB_URI) {
+  console.log("Connecting to MongoDB Atlas...");
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      console.log("Connected to MongoDB Atlas successfully!");
+      seedRosters();
+    })
+    .catch(err => {
+      console.error("MongoDB Atlas connection error:", err.message);
+      console.log("Falling back to local file/Excel operations.");
+    });
+} else {
+  console.log("MONGODB_URI not found in env or mailmain.xlsx. Running in local file/Excel fallback mode.");
+}
+
+async function seedRosters() {
+  try {
+    // 1. Seed Students
+    const studentCount = await Student.countDocuments();
+    if (studentCount === 0) {
+      console.log("Database Student collection is empty. Seeding from Excel/Directory data...");
+      const studentsList = getAllStudents();
+      if (studentsList.length > 0) {
+        const fullStudents = studentsList.map(s => {
+          let email = 'N/A';
+          let mobile = 'N/A';
+          let supervisorName = null;
+          let supervisorMobile = null;
+          let supervisorEmail = null;
+          
+          try {
+            const adminRows = readExcelFile('admin data.xlsx');
+            const match = adminRows.find(r => r.Name && r.Name.toString().toLowerCase().trim() === s.name.toLowerCase().trim());
+            if (match) {
+              if (match.Email) email = match.Email.toString().trim();
+              if (match.Mobile) mobile = match.Mobile.toString().trim();
+            }
+          } catch (e) {}
+
+          try {
+            const teacherRows = readExcelFile('teacher data.xlsx');
+            const match = teacherRows.find(r => r['Additional Name'] && r['Additional Name'].toString().toLowerCase().trim() === s.name.toLowerCase().trim());
+            if (match) {
+              if (match['Additional Email']) email = match['Additional Email'].toString().trim();
+              if (match['Additional Mobile']) mobile = match['Additional Mobile'].toString().trim();
+              supervisorName = match['Supervisor Name'];
+              supervisorMobile = match['Supervisor Mobile'];
+              supervisorEmail = match['Supervisor Email'];
+            }
+          } catch (e) {}
+
+          return {
+            name: s.name,
+            roll: s.roll,
+            enrollment: s.enrollment,
+            email: email,
+            mobile: mobile,
+            supervisorName: supervisorName || undefined,
+            supervisorMobile: supervisorMobile || undefined,
+            supervisorEmail: supervisorEmail || undefined
+          };
+        });
+        await Student.insertMany(fullStudents);
+        console.log(`Successfully seeded ${fullStudents.length} students into MongoDB.`);
+      }
+    }
+
+    // 2. Seed Teachers
+    const teacherCount = await Teacher.countDocuments();
+    if (teacherCount === 0) {
+      console.log("Database Teacher collection is empty. Seeding from Excel data...");
+      const rows = readExcelFile('teacher data.xlsx');
+      const uniqueTeachers = [];
+      const seen = new Set();
+      rows.forEach(r => {
+        if (r['Supervisor Name'] && r['Supervisor Email']) {
+          const email = r['Supervisor Email'].toString().trim().toLowerCase();
+          if (!seen.has(email)) {
+            seen.add(email);
+            uniqueTeachers.push({
+              name: r['Supervisor Name'].toString().trim(),
+              email: email,
+              mobile: r['Supervisor Mobile'] ? r['Supervisor Mobile'].toString().trim() : 'N/A',
+              additionalName: r['Additional Name'] || null,
+              additionalMobile: r['Additional Mobile'] || null,
+              additionalEmail: r['Additional Email'] || null
+            });
+          }
+        }
+      });
+      if (uniqueTeachers.length > 0) {
+        await Teacher.insertMany(uniqueTeachers);
+        console.log(`Successfully seeded ${uniqueTeachers.length} teachers into MongoDB.`);
+      }
+    }
+
+    // 3. Seed Admins
+    const adminCount = await Admin.countDocuments();
+    if (adminCount === 0) {
+      console.log("Database Admin collection is empty. Seeding from Excel data...");
+      const filePath = path.join(__dirname, 'admin data.xlsx');
+      if (fs.existsSync(filePath)) {
+        const rows = readExcelFile('admin data.xlsx');
+        const admins = rows
+          .filter(r => r.Role && r.Role.toString().trim().toUpperCase() !== 'STUDENT')
+          .map(r => ({
+            name: r.Name,
+            mobile: r.Mobile ? r.Mobile.toString() : 'N/A',
+            email: r.Email ? r.Email.toString().trim().toLowerCase() : '',
+            role: r.Role,
+            department: r.Department || 'CSE Data Science'
+          }))
+          .filter(a => a.email);
+        if (admins.length > 0) {
+          await Admin.insertMany(admins);
+          console.log(`Successfully seeded ${admins.length} admins into MongoDB.`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error seeding rosters into MongoDB:", err.message);
+  }
+}
+
 // Helper: Search and validate user by Role and Email
-function findUserByRole(email, role) {
+async function findUserByRole(email, role) {
   const emailLower = email.trim().toLowerCase();
   
   // Dynamic lookup for Arijit Pal from Excel files
@@ -256,9 +568,7 @@ function findUserByRole(email, role) {
     if (adminRow && adminRow.Email) {
       arijitAdminEmail = adminRow.Email.toString().trim().toLowerCase();
     }
-  } catch (e) {
-    console.error("Error reading Arijit Pal email from admin data:", e.message);
-  }
+  } catch (e) {}
   
   try {
     const teacherRows = readExcelFile('teacher data.xlsx');
@@ -266,9 +576,7 @@ function findUserByRole(email, role) {
     if (teacherRow && teacherRow['Additional Email']) {
       arijitTeacherEmail = teacherRow['Additional Email'].toString().trim().toLowerCase();
     }
-  } catch (e) {
-    console.error("Error reading Arijit Pal email from teacher data:", e.message);
-  }
+  } catch (e) {}
 
   // Define allowed emails (with fallbacks in case Excel reads fail)
   const allowedAdminEmails = arijitAdminEmail ? [arijitAdminEmail] : ['arijitp203@gmail.com', 'ap2446961@gmail.com'];
@@ -306,6 +614,55 @@ function findUserByRole(email, role) {
       supervisorEmail: 'nilanjan.chatterjee@uem.edu.in'
     };
   }
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      if (role === 'Admin') {
+        const user = await Admin.findOne({ email: emailLower });
+        if (user) {
+          return {
+            name: user.name,
+            mobile: user.mobile,
+            email: user.email,
+            role: user.role,
+            department: user.department,
+            profilePic: user.profilePic || null
+          };
+        }
+      } else if (role === 'Teacher') {
+        const user = await Teacher.findOne({ email: emailLower });
+        if (user) {
+          return {
+            name: user.name,
+            mobile: user.mobile,
+            email: user.email,
+            role: 'Teacher',
+            additionalName: user.additionalName || null,
+            additionalMobile: user.additionalMobile || null,
+            additionalEmail: user.additionalEmail || null,
+            profilePic: user.profilePic || null
+          };
+        }
+      } else if (role === 'Student') {
+        const user = await Student.findOne({ email: emailLower });
+        if (user) {
+          return {
+            name: user.name,
+            mobile: user.mobile,
+            email: user.email,
+            role: 'Student',
+            department: user.department || 'CSE Data Science',
+            supervisorName: user.supervisorName || null,
+            supervisorMobile: user.supervisorMobile || null,
+            supervisorEmail: user.supervisorEmail || null,
+            profilePic: user.profilePic || null
+          };
+        }
+      }
+    } catch (err) {
+      console.error("Error in findUserByRole (DB mode):", err.message);
+    }
+  }
   
   if (role === 'Admin') {
     try {
@@ -313,7 +670,6 @@ function findUserByRole(email, role) {
       const userRow = rows.find(r => r.Email && r.Email.toString().trim().toLowerCase() === emailLower);
       if (userRow) {
         const userRole = userRow.Role ? userRow.Role.toString().trim().toUpperCase() : '';
-        // Admin matches HOD and A.HOD (any role except Student)
         if (userRole !== 'STUDENT') {
           return {
             name: userRow.Name,
@@ -330,7 +686,6 @@ function findUserByRole(email, role) {
   } else if (role === 'Teacher') {
     try {
       const rows = readExcelFile('teacher data.xlsx');
-      // Look up under Supervisor Email
       const userRow = rows.find(r => r['Supervisor Email'] && r['Supervisor Email'].toString().trim().toLowerCase() === emailLower);
       if (userRow) {
         return {
@@ -349,7 +704,6 @@ function findUserByRole(email, role) {
   } else if (role === 'Student') {
     try {
       let studentProfile = null;
-      // 1. Look up in admin data.xlsx for matching Student
       const adminRows = readExcelFile('admin data.xlsx');
       const adminRow = adminRows.find(r => r.Email && r.Email.toString().trim().toLowerCase() === emailLower);
       if (adminRow) {
@@ -365,7 +719,6 @@ function findUserByRole(email, role) {
         }
       }
       
-      // 2. Look up in teacher data.xlsx to link supervisor details if available
       const teacherRows = readExcelFile('teacher data.xlsx');
       const teacherRow = teacherRows.find(r => r['Additional Email'] && r['Additional Email'].toString().trim().toLowerCase() === emailLower);
       if (teacherRow) {
@@ -391,8 +744,38 @@ function findUserByRole(email, role) {
   
   return null;
 }
+
 // Helper: Search student in student list sheet
-function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
+async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const students = await Student.find({ roll: rollNo.toString().trim() });
+      for (const s of students) {
+        const cleanRowEnroll = s.enrollment.replace(/\D/g, '');
+        const cleanEnteredEnroll = enrollmentNo.toString().replace(/\D/g, '');
+        
+        const isEnrollMatch = (s.enrollment === enrollmentNo.toString().trim()) ||
+                              (cleanRowEnroll.endsWith(cleanEnteredEnroll)) ||
+                              (cleanEnteredEnroll.endsWith(cleanRowEnroll)) ||
+                              (cleanRowEnroll.slice(-6) === cleanEnteredEnroll.slice(-6));
+        if (isEnrollMatch) {
+          return {
+            name: s.name,
+            roll: s.roll,
+            enrollment: s.enrollment,
+            email: s.email,
+            mobile: s.mobile,
+            supervisorName: s.supervisorName,
+            supervisorMobile: s.supervisorMobile,
+            supervisorEmail: s.supervisorEmail
+          };
+        }
+      }
+    } catch (err) {
+      console.error("Error in findStudentByEnrollmentAndRoll (DB mode):", err.message);
+    }
+  }
+
   try {
     const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
     const workbook = xlsx.readFile(filePath);
@@ -447,10 +830,20 @@ function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
 }
 
 // Helper: Find student email by name in database sheets
-function findStudentEmailByName(name) {
+async function findStudentEmailByName(name) {
   const nameLower = name.toLowerCase().trim();
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const student = await Student.findOne({ name: new RegExp('^' + nameLower + '$', 'i') });
+      if (student && student.email && student.email !== 'N/A') {
+        return student.email;
+      }
+    } catch (err) {
+      console.error("Error in findStudentEmailByName (DB mode):", err.message);
+    }
+  }
   
-  // 1. Search in admin data.xlsx
   try {
     const adminRows = readExcelFile('admin data.xlsx');
     const match = adminRows.find(r => r.Name && r.Name.toString().toLowerCase().trim() === nameLower && r.Role && r.Role.toString().toLowerCase().trim() === 'student');
@@ -461,7 +854,6 @@ function findStudentEmailByName(name) {
     console.error("Error searching student email in admin data:", e.message);
   }
   
-  // 2. Search in teacher data.xlsx
   try {
     const teacherRows = readExcelFile('teacher data.xlsx');
     const match = teacherRows.find(r => r['Additional Name'] && r['Additional Name'].toString().toLowerCase().trim() === nameLower);
@@ -492,7 +884,7 @@ app.post('/api/send-otp', async (req, res) => {
     }
     
     // Find student in student list passout sheet
-    const studentInfo = findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
+    const studentInfo = await findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
     if (!studentInfo) {
       console.log(`Failed Student login attempt: Enrollment ${enrollmentNo}, Roll ${rollNo} not found in student list`);
       return res.status(400).json({ 
@@ -502,11 +894,11 @@ app.post('/api/send-otp', async (req, res) => {
     }
     
     // Lookup student email address in our directory
-    userEmail = findStudentEmailByName(studentInfo.name);
+    userEmail = await findStudentEmailByName(studentInfo.name);
     
     // Safety check / bypass for Arijit Pal
     if (studentInfo.name.toLowerCase().includes('arijit pal')) {
-      userEmail = findStudentEmailByName(studentInfo.name) || 'ap2446961@gmail.com';
+      userEmail = await findStudentEmailByName(studentInfo.name) || 'ap2446961@gmail.com';
     }
     
     if (!userEmail) {
@@ -518,7 +910,7 @@ app.post('/api/send-otp', async (req, res) => {
     }
     
     // Fetch full student profile (including supervisor details)
-    userProfile = findUserByRole(userEmail, 'Student');
+    userProfile = await findUserByRole(userEmail, 'Student');
     if (!userProfile) {
       userProfile = {
         name: studentInfo.name,
@@ -534,7 +926,7 @@ app.post('/api/send-otp', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
     }
     
-    userProfile = findUserByRole(email, role);
+    userProfile = await findUserByRole(email, role);
     if (!userProfile) {
       console.log(`Failed login attempt: Email ${email} does not match role ${role}`);
       return res.status(400).json({ 
@@ -665,7 +1057,12 @@ app.post('/api/send-otp', async (req, res) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendVerificationEmail(
+      userEmail,
+      `🔐 ${otp} is your Attendance - CSE(Data Science) ${role} verification code`,
+      htmlContent,
+      `Hello ${greetingName}, your verification code for signing in as ${role} is: ${otp}. It will expire in 5 minutes.`
+    );
     console.log(`OTP (${otp}) successfully sent to ${userEmail} for role ${role}`);
     res.status(200).json({ success: true, message: 'Verification code sent to your email.', email: userEmail });
   } catch (error) {
@@ -707,7 +1104,7 @@ app.post('/api/verify-otp', (req, res) => {
     success: true,
     message: 'Authentication successful.',
     user: {
-      email: email.toLowerCase(),
+    email: email.toLowerCase(),
       role: userRole,
       profile: userProfile
     }
@@ -715,14 +1112,57 @@ app.post('/api/verify-otp', (req, res) => {
 });
 
 // Endpoint: Direct Student Login (Enrollment and Roll Number)
-app.post('/api/student-login', (req, res) => {
+app.post('/api/student-login', async (req, res) => {
   const { enrollmentNo, rollNo } = req.body;
 
   if (!enrollmentNo || !rollNo) {
     return res.status(400).json({ success: false, message: 'Enrollment number and Class Roll number are required.' });
   }
 
-  const studentInfo = findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const studentInfo = await findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
+      if (!studentInfo) {
+        console.log(`Failed Student login: Enrollment ${enrollmentNo}, Roll ${rollNo} not found.`);
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Either you selected wrong role, or wrong enrollment/roll number' 
+        });
+      }
+      
+      const profile = {
+        name: studentInfo.name,
+        email: studentInfo.email || 'N/A',
+        mobile: studentInfo.mobile || 'N/A',
+        role: 'Student',
+        department: 'CSE Data Science',
+        roll: studentInfo.roll,
+        enrollment: studentInfo.enrollment
+      };
+
+      if (studentInfo.supervisorName) {
+        profile.supervisorName = studentInfo.supervisorName;
+        profile.supervisorMobile = studentInfo.supervisorMobile;
+        profile.supervisorEmail = studentInfo.supervisorEmail;
+      }
+
+      console.log(`Student ${studentInfo.name} logged in directly.`);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Authentication successful.',
+        user: {
+          email: profile.email,
+          role: 'Student',
+          profile: profile
+        }
+      });
+    } catch (err) {
+      console.error("Database query failed in student-login:", err.message);
+    }
+  }
+
+  const studentInfo = await findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
   if (!studentInfo) {
     console.log(`Failed Student login: Enrollment ${enrollmentNo}, Roll ${rollNo} not found.`);
     return res.status(400).json({ 
@@ -732,7 +1172,7 @@ app.post('/api/student-login', (req, res) => {
   }
 
   // Find if they have extra details in admin/teacher sheets
-  let email = findStudentEmailByName(studentInfo.name) || 'N/A';
+  let email = (await findStudentEmailByName(studentInfo.name)) || 'N/A';
   let mobile = 'N/A';
   let supervisorName = null;
   let supervisorMobile = null;
@@ -796,20 +1236,36 @@ app.post('/api/student-login', (req, res) => {
 // ============================================================
 
 // Endpoint: Get full student list
-app.get('/api/student-list', (req, res) => {
+app.get('/api/student-list', async (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const students = await Student.find({}, 'name roll enrollment');
+      return res.json({ success: true, students });
+    } catch (err) {
+      console.error("Database query failed in student-list:", err.message);
+    }
+  }
   const students = getAllStudents();
   res.json({ success: true, students });
 });
 
 // Endpoint: Get full teacher list
-app.get('/api/teacher-list', (req, res) => {
+app.get('/api/teacher-list', async (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const teachers = await Teacher.find({}, 'name email mobile');
+      return res.json({ success: true, teachers });
+    } catch (err) {
+      console.error("Database query failed in teacher-list:", err.message);
+    }
+  }
   const teachers = getAllTeachers();
   res.json({ success: true, teachers });
 });
 
 // Endpoint: Mark Attendance
-app.post('/api/attendance/mark', (req, res) => {
-  const { date, subject, year, section, teacherEmail, teacherName, students } = req.body;
+app.post('/api/attendance/mark', async (req, res) => {
+  const { date, subject, year, section, teacherEmail, teacherName, students, sessionToken, source } = req.body;
 
   if (!date || !subject || !year || !section || !teacherEmail || !teacherName || !students || !Array.isArray(students)) {
     return res.status(400).json({ success: false, message: 'Missing required fields: date, subject, year, section, teacherEmail, teacherName, students.' });
@@ -819,8 +1275,10 @@ app.post('/api/attendance/mark', (req, res) => {
     return res.status(400).json({ success: false, message: 'Student list cannot be empty.' });
   }
 
+  const recordId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
   const record = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    id: recordId,
     date,
     subject: subject.trim(),
     year: year.trim(),
@@ -833,23 +1291,62 @@ app.post('/api/attendance/mark', (req, res) => {
       enrollment: s.enrollment,
       present: !!s.present
     })),
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    sessionToken: sessionToken || null,
+    source: source || 'manual'
   };
 
-  const data = readAttendanceData();
-  data.push(record);
-  writeAttendanceData(data);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await Attendance.create(record);
+    } catch (err) {
+      console.error("Error saving attendance to MongoDB:", err.message);
+      return res.status(500).json({ success: false, message: 'Failed to record attendance to database.' });
+    }
+  }
+
+  try {
+    const data = readAttendanceData();
+    data.push(record);
+    writeAttendanceData(data);
+  } catch (fileErr) {
+    console.warn("Local JSON attendance sync skipped/failed:", fileErr.message);
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(500).json({ success: false, message: 'Failed to write attendance to local file.' });
+    }
+  }
 
   console.log(`Attendance marked by ${teacherName} for ${subject} (${year} - ${section}) on ${date} — ${students.filter(s => s.present).length}/${students.length} present`);
   res.json({ success: true, message: 'Attendance recorded successfully.', record });
 });
 
 // Endpoint: Get student's attendance records by enrollment number
-app.get('/api/attendance/student/:enrollment', (req, res) => {
+app.get('/api/attendance/student/:enrollment', async (req, res) => {
   const enrollment = decodeURIComponent(req.params.enrollment).trim();
-  const allRecords = readAttendanceData();
 
-  // Filter records that include this student
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const records = await Attendance.find({ "students.enrollment": enrollment });
+      const studentRecords = records.map(record => {
+        const studentEntry = record.students.find(s => s.enrollment === enrollment);
+        return {
+          id: record.id,
+          date: record.date,
+          subject: record.subject,
+          year: record.year || '',
+          section: record.section || '',
+          teacherName: record.teacherName,
+          present: studentEntry ? studentEntry.present : false
+        };
+      });
+      return res.json({ success: true, records: studentRecords });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database query failed.' });
+    }
+  }
+
+  const allRecords = readAttendanceData();
   const studentRecords = allRecords.filter(record =>
     record.students.some(s => s.enrollment === enrollment)
   ).map(record => {
@@ -869,10 +1366,20 @@ app.get('/api/attendance/student/:enrollment', (req, res) => {
 });
 
 // Endpoint: Get teacher's attendance records by email
-app.get('/api/attendance/teacher/:email', (req, res) => {
+app.get('/api/attendance/teacher/:email', async (req, res) => {
   const email = decodeURIComponent(req.params.email).trim().toLowerCase();
-  const allRecords = readAttendanceData();
 
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const records = await Attendance.find({ teacherEmail: email });
+      return res.json({ success: true, records });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database query failed.' });
+    }
+  }
+
+  const allRecords = readAttendanceData();
   const teacherRecords = allRecords.filter(record =>
     record.teacherEmail === email
   );
@@ -881,13 +1388,57 @@ app.get('/api/attendance/teacher/:email', (req, res) => {
 });
 
 // Endpoint: Get all attendance records (for admin)
-app.get('/api/attendance/all', (req, res) => {
+app.get('/api/attendance/all', async (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const records = await Attendance.find({});
+      return res.json({ success: true, records });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database query failed.' });
+    }
+  }
+
   const allRecords = readAttendanceData();
   res.json({ success: true, records: allRecords });
 });
 
 // Endpoint: Get attendance statistics (for admin)
-app.get('/api/attendance/stats', (req, res) => {
+app.get('/api/attendance/stats', async (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const allRecords = await Attendance.find({});
+      const students = await Student.find({});
+      const teachers = await Teacher.find({});
+
+      const totalClasses = allRecords.length;
+      let totalPresent = 0;
+      let totalEntries = 0;
+
+      allRecords.forEach(record => {
+        record.students.forEach(s => {
+          totalEntries++;
+          if (s.present) totalPresent++;
+        });
+      });
+
+      const overallAttendance = totalEntries > 0 ? Math.round((totalPresent / totalEntries) * 100) : 0;
+
+      return res.json({
+        success: true,
+        stats: {
+          totalStudents: students.length,
+          totalTeachers: teachers.length,
+          totalClasses,
+          overallAttendance
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database query failed.' });
+    }
+  }
+
   const allRecords = readAttendanceData();
   const students = getAllStudents();
   const teachers = getAllTeachers();
@@ -917,22 +1468,40 @@ app.get('/api/attendance/stats', (req, res) => {
 });
 
 // Endpoint: Delete an attendance record (for admin)
-app.delete('/api/attendance/:id', (req, res) => {
+app.delete('/api/attendance/:id', async (req, res) => {
   const id = req.params.id;
-  let data = readAttendanceData();
-  const initialLength = data.length;
-  data = data.filter(record => record.id !== id);
 
-  if (data.length === initialLength) {
-    return res.status(404).json({ success: false, message: 'Record not found.' });
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const result = await Attendance.deleteOne({ id });
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ success: false, message: 'Record not found.' });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database deletion failed.' });
+    }
   }
 
-  writeAttendanceData(data);
+  try {
+    let data = readAttendanceData();
+    const initialLength = data.length;
+    data = data.filter(record => record.id !== id);
+
+    if (data.length === initialLength && mongoose.connection.readyState !== 1) {
+      return res.status(404).json({ success: false, message: 'Record not found.' });
+    }
+    
+    writeAttendanceData(data);
+  } catch (fileErr) {
+    console.warn("Local attendance JSON deletion sync skipped/failed:", fileErr.message);
+  }
+
   res.json({ success: true, message: 'Record deleted successfully.' });
 });
 
 // Endpoint: Update student status in an attendance record (for admin)
-app.patch('/api/attendance/:recordId/student/:enrollment', (req, res) => {
+app.patch('/api/attendance/:recordId/student/:enrollment', async (req, res) => {
   const { recordId, enrollment } = req.params;
   const { present } = req.body;
 
@@ -940,27 +1509,57 @@ app.patch('/api/attendance/:recordId/student/:enrollment', (req, res) => {
     return res.status(400).json({ success: false, message: 'Missing "present" status in request body.' });
   }
 
-  const data = readAttendanceData();
-  const record = data.find(r => r.id === recordId);
+  let updatedRecord = null;
 
-  if (!record) {
-    return res.status(404).json({ success: false, message: 'Attendance record not found.' });
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const record = await Attendance.findOne({ id: recordId });
+      if (!record) {
+        return res.status(404).json({ success: false, message: 'Attendance record not found.' });
+      }
+
+      const student = record.students.find(s => s.enrollment === enrollment);
+      if (!student) {
+        return res.status(404).json({ success: false, message: 'Student not found in this record.' });
+      }
+
+      student.present = !!present;
+      await record.save();
+      updatedRecord = record;
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database update failed.' });
+    }
   }
 
-  const student = record.students.find(s => s.enrollment === enrollment);
-  if (!student) {
-    return res.status(404).json({ success: false, message: 'Student not found in this record.' });
+  try {
+    const data = readAttendanceData();
+    const record = data.find(r => r.id === recordId);
+
+    if (record) {
+      const student = record.students.find(s => s.enrollment === enrollment);
+      if (student) {
+        student.present = !!present;
+        writeAttendanceData(data);
+        if (!updatedRecord) {
+          updatedRecord = record;
+        }
+      } else if (mongoose.connection.readyState !== 1) {
+        return res.status(404).json({ success: false, message: 'Student not found in this record.' });
+      }
+    } else if (mongoose.connection.readyState !== 1) {
+      return res.status(404).json({ success: false, message: 'Attendance record not found.' });
+    }
+  } catch (fileErr) {
+    console.warn("Local attendance JSON patch sync skipped/failed:", fileErr.message);
   }
 
-  student.present = !!present;
-  writeAttendanceData(data);
-
-  console.log(`Admin updated attendance in record ${recordId}: Student ${student.name} (${enrollment}) set to ${present ? 'Present' : 'Absent'}`);
-  res.json({ success: true, message: 'Student status updated successfully.', record });
+  console.log(`Admin updated attendance in record ${recordId}: Student enrollment ${enrollment} set to ${present ? 'Present' : 'Absent'}`);
+  res.json({ success: true, message: 'Student status updated successfully.', record: updatedRecord });
 });
 
 // Endpoint: Submit a student or teacher grievance
-app.post('/api/grievance', (req, res) => {
+app.post('/api/grievance', async (req, res) => {
   const { studentName, studentRoll, studentEnrollment, message, senderRole, senderEmail } = req.body;
 
   const role = senderRole || 'Student';
@@ -974,45 +1573,89 @@ app.post('/api/grievance', (req, res) => {
     return res.status(400).json({ success: false, message: 'Missing roll number or enrollment number for student grievance.' });
   }
 
+  const recordId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
   const record = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    id: recordId,
     senderRole: role,
     senderName: name.trim(),
     senderEmail: senderEmail ? senderEmail.trim().toLowerCase() : null,
     studentRoll: studentRoll ? studentRoll.trim() : null,
     studentEnrollment: studentEnrollment ? studentEnrollment.trim() : null,
-    // Keep backward-compatible properties for admin.html
     studentName: name.trim(),
     message: message.trim(),
     createdAt: new Date().toISOString()
   };
 
-  const data = readGrievanceData();
-  data.push(record);
-  writeGrievanceData(data);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await Grievance.create(record);
+    } catch (err) {
+      console.error("Error saving grievance to MongoDB:", err.message);
+      return res.status(500).json({ success: false, message: 'Failed to submit grievance to database.' });
+    }
+  }
+
+  try {
+    const data = readGrievanceData();
+    data.push(record);
+    writeGrievanceData(data);
+  } catch (fileErr) {
+    console.warn("Local grievance JSON sync skipped/failed:", fileErr.message);
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(500).json({ success: false, message: 'Failed to write grievance to local file.' });
+    }
+  }
 
   console.log(`Grievance submitted by ${role} ${name} (${senderEmail || studentEnrollment})`);
   res.json({ success: true, message: 'Grievance submitted successfully.', grievance: record });
 });
 
 // Endpoint: Get all student grievances (for admin only)
-app.get('/api/grievances', (req, res) => {
+app.get('/api/grievances', async (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const grievances = await Grievance.find({});
+      return res.json({ success: true, grievances });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database query failed.' });
+    }
+  }
+
   const data = readGrievanceData();
   res.json({ success: true, grievances: data });
 });
 
 // Endpoint: Delete a student grievance (for admin only)
-app.delete('/api/grievance/:id', (req, res) => {
+app.delete('/api/grievance/:id', async (req, res) => {
   const id = req.params.id;
-  let data = readGrievanceData();
-  const initialLength = data.length;
-  data = data.filter(g => g.id !== id);
 
-  if (data.length === initialLength) {
-    return res.status(404).json({ success: false, message: 'Grievance not found.' });
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const result = await Grievance.deleteOne({ id });
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ success: false, message: 'Grievance not found.' });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database deletion failed.' });
+    }
   }
 
-  writeGrievanceData(data);
+  try {
+    let data = readGrievanceData();
+    const initialLength = data.length;
+    data = data.filter(g => g.id !== id);
+
+    if (data.length === initialLength && mongoose.connection.readyState !== 1) {
+      return res.status(404).json({ success: false, message: 'Grievance not found.' });
+    }
+    writeGrievanceData(data);
+  } catch (fileErr) {
+    console.warn("Local grievance JSON deletion sync skipped/failed:", fileErr.message);
+  }
+
   res.json({ success: true, message: 'Grievance deleted successfully.' });
 });
 
@@ -1160,7 +1803,12 @@ app.post('/api/email-change/send-otp', async (req, res) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendVerificationEmail(
+      newEmail.trim(),
+      `🔐 ${otp} is your Email Change verification code`,
+      htmlContent,
+      `Your verification code to change your account email address to this one is: ${otp}. It will expire in 5 minutes.`
+    );
     console.log(`Email Change OTP (${otp}) sent to ${newEmail} for role ${role}`);
     res.status(200).json({ success: true, message: 'Verification code sent to your new email.' });
   } catch (error) {
@@ -1170,7 +1818,7 @@ app.post('/api/email-change/send-otp', async (req, res) => {
 });
 
 // Endpoint: Verify OTP & Apply Email Change
-app.post('/api/email-change/verify-otp', (req, res) => {
+app.post('/api/email-change/verify-otp', async (req, res) => {
   const { newEmail, otp } = req.body;
 
   if (!newEmail || !otp) {
@@ -1194,27 +1842,50 @@ app.post('/api/email-change/verify-otp', (req, res) => {
   }
 
   const { currentEmail, role } = cachedData;
-  const oldProfile = findUserByRole(currentEmail, role);
+  const oldProfile = await findUserByRole(currentEmail, role);
 
   // Clear OTP on success
   otpCache.delete(cacheKey);
 
+  // Update MongoDB
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const currentLower = currentEmail.toLowerCase().trim();
+      const newLower = newEmail.toLowerCase().trim();
+      if (role === 'Admin') {
+        await Admin.updateOne({ email: currentLower }, { $set: { email: newLower } });
+      } else if (role === 'Teacher') {
+        await Teacher.updateOne({ email: currentLower }, { $set: { email: newLower } });
+        await Student.updateMany({ supervisorEmail: currentLower }, { $set: { supervisorEmail: newLower } });
+      } else if (role === 'Student') {
+        await Student.updateOne({ email: currentLower }, { $set: { email: newLower } });
+        await Teacher.updateMany({ additionalEmail: currentLower }, { $set: { additionalEmail: newLower } });
+      }
+      console.log(`Updated email from ${currentEmail} to ${newEmail} in MongoDB (${role})`);
+    } catch (dbErr) {
+      console.error("Database email update failed:", dbErr.message);
+    }
+  }
+
   // Update Excel sheets
-  updateEmailInExcels(currentEmail, newEmail, role);
-
-  // Rename profile picture file if it exists
-  handleEmailChangeProfilePic(currentEmail, newEmail);
-
+  try {
+    updateEmailInExcels(currentEmail, newEmail, role);
+    handleEmailChangeProfilePic(currentEmail, newEmail);
+  } catch (fileErr) {
+    console.warn("Excel file/picture email update sync skipped/failed:", fileErr.message);
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(500).json({ success: false, message: 'Failed to update email in Excel.' });
+    }
+  }
 
   // Return new user details so frontend can update its sessionStorage
-  let newProfile = findUserByRole(newEmail, role);
+  let newProfile = await findUserByRole(newEmail, role);
   if (!newProfile && oldProfile) {
     newProfile = {
       ...oldProfile,
       email: newEmail.toLowerCase().trim()
     };
   }
-
 
   res.status(200).json({
     success: true,
@@ -1267,11 +1938,37 @@ function handleEmailChangeProfilePic(oldEmail, newEmail) {
 }
 
 // Endpoint: Serves the profile picture for a given identifier (email or enrollment)
-app.get('/api/profile/pic/:identifier', (req, res) => {
+app.get('/api/profile/pic/:identifier', async (req, res) => {
   const identifier = decodeURIComponent(req.params.identifier).trim().toLowerCase();
   
   if (!identifier) {
     return res.status(400).send('Identifier is required.');
+  }
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      let user = await Student.findOne({ $or: [{ email: identifier }, { enrollment: identifier }] });
+      if (!user) {
+        user = await Teacher.findOne({ email: identifier });
+      }
+      if (!user) {
+        user = await Admin.findOne({ email: identifier });
+      }
+
+      if (user && user.profilePic) {
+        const image = user.profilePic;
+        const semiColonIndex = image.indexOf(';base64,');
+        if (semiColonIndex !== -1) {
+          const mimeType = image.slice(5, semiColonIndex);
+          const base64Data = image.slice(semiColonIndex + 8);
+          const buffer = Buffer.from(base64Data, 'base64');
+          res.set('Content-Type', mimeType);
+          return res.send(buffer);
+        }
+      }
+    } catch (dbErr) {
+      console.error("Database query for profile picture failed:", dbErr.message);
+    }
   }
 
   ensureUploadsDir();
@@ -1296,7 +1993,7 @@ app.get('/api/profile/pic/:identifier', (req, res) => {
 });
 
 // Endpoint: Upload base64 profile picture
-app.post('/api/profile/upload-pic', (req, res) => {
+app.post('/api/profile/upload-pic', async (req, res) => {
   const { identifier, image } = req.body;
 
   if (!identifier || !image) {
@@ -1326,9 +2023,42 @@ app.post('/api/profile/upload-pic', (req, res) => {
     return res.status(400).json({ success: false, message: 'Unsupported image type. Please upload PNG, JPG, JPEG, GIF, or WEBP.' });
   }
 
-  ensureUploadsDir();
+  if (mongoose.connection.readyState === 1) {
+    try {
+      let updated = false;
+      
+      let result = await Student.updateOne(
+        { $or: [{ email: cleanIdentifier }, { enrollment: cleanIdentifier }] },
+        { $set: { profilePic: image } }
+      );
+      if (result.matchedCount > 0) updated = true;
+
+      if (!updated) {
+        result = await Teacher.updateOne(
+          { email: cleanIdentifier },
+          { $set: { profilePic: image } }
+        );
+        if (result.matchedCount > 0) updated = true;
+      }
+
+      if (!updated) {
+        result = await Admin.updateOne(
+          { email: cleanIdentifier },
+          { $set: { profilePic: image } }
+        );
+        if (result.matchedCount > 0) updated = true;
+      }
+
+      if (!updated) {
+        console.warn(`User with identifier ${cleanIdentifier} not found in database to attach profile picture.`);
+      }
+    } catch (dbErr) {
+      console.error("Database save for profile picture failed:", dbErr.message);
+    }
+  }
 
   try {
+    ensureUploadsDir();
     const files = fs.readdirSync(UPLOADS_DIR);
     files.forEach(file => {
       const fileExt = path.extname(file);
@@ -1341,12 +2071,14 @@ app.post('/api/profile/upload-pic', (req, res) => {
     const targetPath = path.join(UPLOADS_DIR, `${cleanIdentifier}${ext}`);
     fs.writeFileSync(targetPath, buffer);
     console.log(`Saved profile picture for ${cleanIdentifier} to ${targetPath}`);
-
-    res.json({ success: true, message: 'Profile picture uploaded successfully.' });
-  } catch (err) {
-    console.error("Error saving profile picture:", err.message);
-    res.status(500).json({ success: false, message: 'Server failed to save the profile picture.' });
+  } catch (fileErr) {
+    console.warn("Local profile pic file save skipped/failed:", fileErr.message);
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(500).json({ success: false, message: 'Server failed to save the profile picture.' });
+    }
   }
+
+  res.json({ success: true, message: 'Profile picture uploaded successfully.' });
 });
 
 // ============================================================
@@ -1354,7 +2086,7 @@ app.post('/api/profile/upload-pic', (req, res) => {
 // ============================================================
 
 // Endpoint: Teacher creates a live session
-app.post('/api/session/create', (req, res) => {
+app.post('/api/session/create', async (req, res) => {
   const { teacherEmail, teacherName, subject, year, section, date } = req.body;
   if (!teacherEmail || !teacherName || !subject || !year || !section || !date) {
     return res.status(400).json({ success: false, message: 'Missing required fields.' });
@@ -1375,17 +2107,75 @@ app.post('/api/session/create', (req, res) => {
     expiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString()  // 4-hour expiry
   };
 
-  const sessions = readSessionsData();
-  sessions.push(session);
-  writeSessionsData(sessions);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await LiveSession.create(session);
+    } catch (err) {
+      console.error("Error creating session in MongoDB:", err.message);
+      return res.status(500).json({ success: false, message: 'Failed to create live session in database.' });
+    }
+  }
+
+  try {
+    const sessions = readSessionsData();
+    sessions.push(session);
+    writeSessionsData(sessions);
+  } catch (fileErr) {
+    console.warn("Local session JSON sync skipped/failed:", fileErr.message);
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(500).json({ success: false, message: 'Failed to write session to local file.' });
+    }
+  }
 
   console.log(`Live session created by ${teacherName} for ${subject} (${year} - ${section}) on ${date} | Token: ${token}`);
   res.json({ success: true, token, message: 'Session created.' });
 });
 
 // Endpoint: Get session info by token (used by student to preview)
-app.get('/api/session/:token', (req, res) => {
+app.get('/api/session/:token', async (req, res) => {
   const { token } = req.params;
+  const { enrollment } = req.query;
+
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const session = await LiveSession.findOne({ token });
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
+      }
+
+      // Check expiry
+      if (new Date() > new Date(session.expiresAt) && session.status === 'active') {
+        session.status = 'expired';
+        await session.save();
+      }
+
+      let alreadyMarked = false;
+      if (enrollment && session.markedStudents) {
+        alreadyMarked = session.markedStudents.some(s => s.enrollment.trim() === enrollment.trim());
+      }
+
+      return res.json({
+        success: true,
+        session: {
+          token: session.token,
+          teacherName: session.teacherName,
+          subject: session.subject,
+          year: session.year,
+          section: session.section,
+          date: session.date,
+          status: session.status,
+          markedCount: session.markedStudents.length,
+          alreadyMarked: alreadyMarked
+        }
+      });
+    } catch (err) {
+      console.error("Database query failed in GET /api/session/:token:", err.message);
+      return res.status(500).json({ success: false, message: 'Database query failed.' });
+    }
+  }
+
   const sessions = readSessionsData();
   const session = sessions.find(s => s.token === token);
 
@@ -1399,6 +2189,11 @@ app.get('/api/session/:token', (req, res) => {
     writeSessionsData(sessions);
   }
 
+  let alreadyMarked = false;
+  if (enrollment && session.markedStudents) {
+    alreadyMarked = session.markedStudents.some(s => s.enrollment.trim() === enrollment.trim());
+  }
+
   res.json({
     success: true,
     session: {
@@ -1409,14 +2204,36 @@ app.get('/api/session/:token', (req, res) => {
       section: session.section,
       date: session.date,
       status: session.status,
-      markedCount: session.markedStudents.length
+      markedCount: session.markedStudents.length,
+      alreadyMarked: alreadyMarked
     }
   });
 });
 
 // Endpoint: Teacher polls live count (lightweight, returns only count + status)
-app.get('/api/session/:token/poll', (req, res) => {
+app.get('/api/session/:token/poll', async (req, res) => {
   const { token } = req.params;
+
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const session = await LiveSession.findOne({ token });
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found.' });
+      }
+      return res.json({
+        success: true,
+        status: session.status,
+        markedCount: session.markedStudents.length,
+        markedStudents: session.markedStudents.map(s => ({ name: s.name, roll: s.roll }))
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database query failed.' });
+    }
+  }
+
   const sessions = readSessionsData();
   const session = sessions.find(s => s.token === token);
 
@@ -1433,7 +2250,7 @@ app.get('/api/session/:token/poll', (req, res) => {
 });
 
 // Endpoint: Student marks themselves present
-app.post('/api/session/:token/mark', (req, res) => {
+app.post('/api/session/:token/mark', async (req, res) => {
   const { token } = req.params;
   const { name, roll, enrollment } = req.body;
 
@@ -1441,64 +2258,129 @@ app.post('/api/session/:token/mark', (req, res) => {
     return res.status(400).json({ success: false, message: 'Student name, roll, and enrollment are required.' });
   }
 
-  const sessions = readSessionsData();
-  const sessionIndex = sessions.findIndex(s => s.token === token);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const session = await LiveSession.findOne({ token });
+      if (!session) {
+        return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
+      }
 
-  if (sessionIndex === -1) {
-    return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
+      if (session.status !== 'active') {
+        return res.status(403).json({
+          success: false,
+          closed: true,
+          message: session.status === 'closed'
+            ? 'Attendance is already recorded. This session is closed.'
+            : 'This session has expired.'
+        });
+      }
+
+      // Check expiry
+      if (new Date() > new Date(session.expiresAt)) {
+        session.status = 'expired';
+        await session.save();
+        return res.status(403).json({ success: false, closed: true, message: 'This session has expired.' });
+      }
+
+      // Prevent duplicate marking by same student
+      const alreadyMarked = session.markedStudents.some(s => s.enrollment === enrollment.trim());
+      if (alreadyMarked) {
+        return res.json({ success: true, alreadyMarked: true, message: 'You have already marked your attendance for this session.' });
+      }
+
+      session.markedStudents.push({
+        name: name.trim(),
+        roll: roll.toString().trim(),
+        enrollment: enrollment.trim(),
+        markedAt: new Date()
+      });
+
+      await session.save();
+      console.log(`Student ${name} (${enrollment}) marked present in session ${token} (DB mode)`);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: 'Database save failed.' });
+    }
   }
 
-  const session = sessions[sessionIndex];
+  try {
+    const sessions = readSessionsData();
+    const sessionIndex = sessions.findIndex(s => s.token === token);
 
-  if (session.status !== 'active') {
-    return res.status(403).json({
-      success: false,
-      closed: true,
-      message: session.status === 'closed'
-        ? 'Attendance is already recorded. This session is closed.'
-        : 'This session has expired.'
-    });
+    if (sessionIndex !== -1) {
+      const session = sessions[sessionIndex];
+      if (session.status !== 'active' && mongoose.connection.readyState !== 1) {
+        return res.status(403).json({
+          success: false,
+          closed: true,
+          message: session.status === 'closed'
+            ? 'Attendance is already recorded. This session is closed.'
+            : 'This session has expired.'
+        });
+      }
+
+      if (new Date() > new Date(session.expiresAt)) {
+        session.status = 'expired';
+        sessions[sessionIndex] = session;
+        writeSessionsData(sessions);
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(403).json({ success: false, closed: true, message: 'This session has expired.' });
+        }
+      }
+
+      const alreadyMarked = session.markedStudents.some(s => s.enrollment === enrollment.trim());
+      if (alreadyMarked) {
+        if (mongoose.connection.readyState !== 1) {
+          return res.json({ success: true, alreadyMarked: true, message: 'You have already marked your attendance for this session.' });
+        }
+      } else {
+        session.markedStudents.push({
+          name: name.trim(),
+          roll: roll.toString().trim(),
+          enrollment: enrollment.trim(),
+          markedAt: new Date().toISOString()
+        });
+
+        sessions[sessionIndex] = session;
+        writeSessionsData(sessions);
+        console.log(`Student ${name} (${enrollment}) marked present in session ${token} (File mode)`);
+      }
+    } else if (mongoose.connection.readyState !== 1) {
+      return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
+    }
+  } catch (fileErr) {
+    console.warn("Local session JSON marking sync skipped/failed:", fileErr.message);
   }
 
-  // Check expiry
-  if (new Date() > new Date(session.expiresAt)) {
-    session.status = 'expired';
-    sessions[sessionIndex] = session;
-    writeSessionsData(sessions);
-    return res.status(403).json({ success: false, closed: true, message: 'This session has expired.' });
-  }
-
-  // Prevent duplicate marking by same student
-  const alreadyMarked = session.markedStudents.some(s => s.enrollment === enrollment.trim());
-  if (alreadyMarked) {
-    return res.json({ success: true, alreadyMarked: true, message: 'You have already marked your attendance for this session.' });
-  }
-
-  session.markedStudents.push({
-    name: name.trim(),
-    roll: roll.toString().trim(),
-    enrollment: enrollment.trim(),
-    markedAt: new Date().toISOString()
-  });
-
-  sessions[sessionIndex] = session;
-  writeSessionsData(sessions);
-
-  console.log(`Student ${name} (${enrollment}) marked present in session ${token}`);
   res.json({ success: true, message: `Your attendance has been marked! ✅` });
 });
 
 // Endpoint: Teacher closes session and records attendance into the main attendance system
-app.post('/api/session/:token/close', (req, res) => {
+app.post('/api/session/:token/close', async (req, res) => {
   const { token } = req.params;
-  const sessions = readSessionsData();
-  const sessionIndex = sessions.findIndex(s => s.token === token);
 
-  if (sessionIndex === -1) {
-    return res.status(404).json({ success: false, message: 'Session not found.' });
+  let session = null;
+  if (mongoose.connection.readyState === 1) {
+    try {
+      session = await LiveSession.findOne({ token });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  const session = sessions[sessionIndex];
+  // Fallback to local files if not in DB mode
+  let localSessionIndex = -1;
+  const sessions = readSessionsData();
+  if (!session) {
+    localSessionIndex = sessions.findIndex(s => s.token === token);
+    if (localSessionIndex !== -1) {
+      session = sessions[localSessionIndex];
+    }
+  }
+
+  if (!session) {
+    return res.status(404).json({ success: false, message: 'Session not found.' });
+  }
 
   if (session.status === 'closed') {
     return res.json({ success: true, alreadyClosed: true, message: 'Session already closed and attendance recorded.' });
@@ -1507,17 +2389,43 @@ app.post('/api/session/:token/close', (req, res) => {
   // Close the session
   session.status = 'closed';
   session.closedAt = new Date().toISOString();
-  sessions[sessionIndex] = session;
-  writeSessionsData(sessions);
 
-  // Get full student list to include all students (marked = present, rest = absent)
-  const allStudents = getAllStudents();
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await LiveSession.updateOne({ token }, { $set: { status: 'closed', closedAt: new Date() } });
+    } catch (dbErr) {
+      console.error("Failed to close session in database:", dbErr.message);
+    }
+  }
+
+  try {
+    const localIndex = sessions.findIndex(s => s.token === token);
+    if (localIndex !== -1) {
+      sessions[localIndex].status = 'closed';
+      sessions[localIndex].closedAt = new Date().toISOString();
+      writeSessionsData(sessions);
+    }
+  } catch (fileErr) {
+    console.warn("Local session close sync skipped/failed:", fileErr.message);
+  }
+
+  // Get full student list to include all students
+  let allStudents = [];
+  if (mongoose.connection.readyState === 1) {
+    try {
+      allStudents = await Student.find({}, 'name roll enrollment');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  if (allStudents.length === 0) {
+    allStudents = getAllStudents();
+  }
+
   const markedEnrollments = new Set(session.markedStudents.map(s => s.enrollment));
 
   let studentsForRecord;
   if (allStudents.length > 0) {
-    // Filter by year & section (if possible match from roll/enrollment heuristics)
-    // Smart strategy: students who marked themselves are present; all others in the class are absent
     studentsForRecord = allStudents.map(s => ({
       name: s.name,
       roll: s.roll,
@@ -1525,7 +2433,6 @@ app.post('/api/session/:token/close', (req, res) => {
       present: markedEnrollments.has(s.enrollment)
     }));
   } else {
-    // Fallback: only include the marked students as present
     studentsForRecord = session.markedStudents.map(s => ({
       name: s.name,
       roll: s.roll,
@@ -1534,13 +2441,13 @@ app.post('/api/session/:token/close', (req, res) => {
     }));
   }
 
-  // Only record if at least one student marked present
   if (studentsForRecord.length === 0) {
     return res.json({ success: true, message: 'Session closed. No students were found to record.', markedCount: 0 });
   }
 
+  const recordId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
   const record = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    id: recordId,
     date: session.date,
     subject: session.subject,
     year: session.year,
@@ -1553,9 +2460,21 @@ app.post('/api/session/:token/close', (req, res) => {
     createdAt: new Date().toISOString()
   };
 
-  const attendanceData = readAttendanceData();
-  attendanceData.push(record);
-  writeAttendanceData(attendanceData);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await Attendance.create(record);
+    } catch (dbErr) {
+      console.error("Failed to record live session attendance to MongoDB:", dbErr.message);
+    }
+  }
+
+  try {
+    const attendanceData = readAttendanceData();
+    attendanceData.push(record);
+    writeAttendanceData(attendanceData);
+  } catch (fileErr) {
+    console.warn("Local attendance JSON live session sync skipped/failed:", fileErr.message);
+  }
 
   const presentCount = session.markedStudents.length;
   console.log(`Session ${token} closed. Recorded attendance: ${presentCount} present, ${studentsForRecord.length - presentCount} absent.`);
@@ -1784,8 +2703,34 @@ function removeStudent(enrollment) {
   xlsx.writeFile(workbook, filePath);
 }
 
-app.get('/api/admin/users', (req, res) => {
+app.get('/api/admin/users', async (req, res) => {
   try {
+    if (mongoose.connection.readyState === 1) {
+      const admins = await Admin.find({});
+      const teachers = await Teacher.find({});
+      const students = await Student.find({});
+      return res.json({
+        success: true,
+        admins: admins.map(a => ({
+          name: a.name,
+          mobile: a.mobile,
+          email: a.email,
+          role: a.role,
+          department: a.department
+        })),
+        teachers: teachers.map(t => ({
+          name: t.name,
+          email: t.email,
+          mobile: t.mobile
+        })),
+        students: students.map(s => ({
+          name: s.name,
+          roll: s.roll,
+          enrollment: s.enrollment
+        }))
+      });
+    }
+
     let admins = [];
     if (fs.existsSync(path.join(__dirname, 'admin data.xlsx'))) {
       const rows = readExcelFile('admin data.xlsx');
@@ -1815,74 +2760,145 @@ app.get('/api/admin/users', (req, res) => {
   }
 });
 
-app.post('/api/admin/users/add', (req, res) => {
+app.post('/api/admin/users/add', async (req, res) => {
   const { role, data } = req.body;
   if (!role || !data) {
     return res.status(400).json({ success: false, message: 'Role and user data are required.' });
   }
 
   try {
-    if (role === 'Admin') {
-      const { name, mobile, email, adminRole, department } = data;
-      if (!name || !email || !adminRole) {
-        return res.status(400).json({ success: false, message: 'Name, email, and specific role are required.' });
+    if (mongoose.connection.readyState === 1) {
+      if (role === 'Admin') {
+        const { name, mobile, email, adminRole, department } = data;
+        if (!name || !email || !adminRole) {
+          return res.status(400).json({ success: false, message: 'Name, email, and specific role are required.' });
+        }
+        
+        const exists = await Admin.findOne({ email: email.toLowerCase() }) || await Student.findOne({ email: email.toLowerCase() });
+        if (exists) {
+          return res.status(400).json({ success: false, message: 'An admin or student with this email already exists.' });
+        }
+        
+        await Admin.create({
+          name: name.trim(),
+          mobile: mobile ? mobile.trim() : 'N/A',
+          email: email.trim().toLowerCase(),
+          role: adminRole.trim(),
+          department: department ? department.trim() : 'CSE Data Science'
+        });
+        console.log(`Admin ${name} (${email}) added to DB.`);
+      } else if (role === 'Teacher') {
+        const { name, mobile, email } = data;
+        if (!name || !email) {
+          return res.status(400).json({ success: false, message: 'Name and email are required.' });
+        }
+        
+        const exists = await Teacher.findOne({ email: email.toLowerCase() });
+        if (exists) {
+          return res.status(400).json({ success: false, message: 'A teacher with this email already exists.' });
+        }
+        
+        await Teacher.create({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          mobile: mobile ? mobile.trim() : 'N/A'
+        });
+        console.log(`Teacher ${name} (${email}) added to DB.`);
+      } else if (role === 'Student') {
+        const { name, roll, enrollment } = data;
+        if (!name || !roll || !enrollment) {
+          return res.status(400).json({ success: false, message: 'Name, Class Roll, and Enrollment Number are required.' });
+        }
+        
+        const existsEnroll = await Student.findOne({ enrollment: enrollment.trim() });
+        if (existsEnroll) {
+          return res.status(400).json({ success: false, message: 'A student with this enrollment number already exists.' });
+        }
+        const existsRoll = await Student.findOne({ roll: roll.trim() });
+        if (existsRoll) {
+          return res.status(400).json({ success: false, message: 'A student with this Class Roll number already exists.' });
+        }
+        
+        await Student.create({
+          name: name.trim().toUpperCase(),
+          roll: roll.trim(),
+          enrollment: enrollment.trim(),
+          email: 'N/A',
+          mobile: 'N/A'
+        });
+        console.log(`Student ${name} (${enrollment}) added to DB.`);
       }
-      addAdmin(name, mobile || 'N/A', email, adminRole, department || 'CSE Data Science');
-      console.log(`Admin ${name} (${email}) added by admin.`);
-      res.json({ success: true, message: 'Admin user added successfully.' });
-    } 
-    else if (role === 'Teacher') {
-      const { name, mobile, email } = data;
-      if (!name || !email) {
-        return res.status(400).json({ success: false, message: 'Name and email are required.' });
-      }
-      addTeacher(name, mobile || 'N/A', email);
-      console.log(`Teacher ${name} (${email}) added by admin.`);
-      res.json({ success: true, message: 'Teacher added successfully.' });
-    } 
-    else if (role === 'Student') {
-      const { name, roll, enrollment } = data;
-      if (!name || !roll || !enrollment) {
-        return res.status(400).json({ success: false, message: 'Name, Class Roll, and Enrollment Number are required.' });
-      }
-      addStudent(name, roll, enrollment);
-      console.log(`Student ${name} (${enrollment}) added by admin.`);
-      res.json({ success: true, message: 'Student added successfully.' });
-    } 
-    else {
-      res.status(400).json({ success: false, message: 'Invalid role type.' });
     }
+
+    try {
+      if (role === 'Admin') {
+        const { name, mobile, email, adminRole, department } = data;
+        addAdmin(name, mobile || 'N/A', email, adminRole, department || 'CSE Data Science');
+      } else if (role === 'Teacher') {
+        const { name, mobile, email } = data;
+        addTeacher(name, mobile || 'N/A', email);
+      } else if (role === 'Student') {
+        const { name, roll, enrollment } = data;
+        addStudent(name, roll, enrollment);
+      }
+    } catch (fileErr) {
+      console.warn("Excel user creation sync skipped/failed:", fileErr.message);
+      if (mongoose.connection.readyState !== 1) {
+        throw fileErr;
+      }
+    }
+
+    res.json({ success: true, message: `${role} added successfully.` });
   } catch (err) {
     console.error('Error adding user:', err.message);
     res.status(400).json({ success: false, message: err.message });
   }
 });
 
-app.post('/api/admin/users/delete', (req, res) => {
+app.post('/api/admin/users/delete', async (req, res) => {
   const { role, identifier } = req.body;
   if (!role || !identifier) {
     return res.status(400).json({ success: false, message: 'Role and identifier are required.' });
   }
 
   try {
-    if (role === 'Admin') {
-      removeAdmin(identifier);
-      console.log(`Admin ${identifier} removed by admin.`);
-      res.json({ success: true, message: 'Admin user removed successfully.' });
-    } 
-    else if (role === 'Teacher') {
-      removeTeacher(identifier);
-      console.log(`Teacher ${identifier} removed by admin.`);
-      res.json({ success: true, message: 'Teacher removed successfully.' });
-    } 
-    else if (role === 'Student') {
-      removeStudent(identifier);
-      console.log(`Student ${identifier} removed by admin.`);
-      res.json({ success: true, message: 'Student removed successfully.' });
-    } 
-    else {
-      res.status(400).json({ success: false, message: 'Invalid role type.' });
+    if (mongoose.connection.readyState === 1) {
+      if (role === 'Admin') {
+        const emailLower = identifier.trim().toLowerCase();
+        if (emailLower === 'nilanjan.chatterjee@uem.edu.in' || emailLower === 'ap2446961@gmail.com') {
+          return res.status(400).json({ success: false, message: 'Default system administrator cannot be removed.' });
+        }
+        const result = await Admin.deleteOne({ email: emailLower });
+        if (result.deletedCount === 0) {
+          return res.status(400).json({ success: false, message: 'Admin user not found.' });
+        }
+      } else if (role === 'Teacher') {
+        const emailLower = identifier.trim().toLowerCase();
+        await Teacher.deleteOne({ email: emailLower });
+        await Student.updateMany({ supervisorEmail: emailLower }, {
+          $set: { supervisorName: null, supervisorMobile: null, supervisorEmail: null }
+        });
+      } else if (role === 'Student') {
+        await Student.deleteOne({ enrollment: identifier.trim() });
+      }
     }
+
+    try {
+      if (role === 'Admin') {
+        removeAdmin(identifier);
+      } else if (role === 'Teacher') {
+        removeTeacher(identifier);
+      } else if (role === 'Student') {
+        removeStudent(identifier);
+      }
+    } catch (fileErr) {
+      console.warn("Excel user deletion sync skipped/failed:", fileErr.message);
+      if (mongoose.connection.readyState !== 1) {
+        throw fileErr;
+      }
+    }
+
+    res.json({ success: true, message: `${role} removed successfully.` });
   } catch (err) {
     console.error('Error removing user:', err.message);
     res.status(400).json({ success: false, message: err.message });

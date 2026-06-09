@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "mq4un2dgligc4",
+    "senderRole": "Teacher",
+    "senderName": "Prof. (Dr.) Anay Ghosh",
+    "senderEmail": "anay.ghosh@uem.edu.in",
+    "studentRoll": null,
+    "studentEnrollment": null,
+    "studentName": "Prof. (Dr.) Anay Ghosh",
+    "message": "please mark x absent",
+    "createdAt": "2026-06-08T06:48:00.196Z"
+  }
+]
