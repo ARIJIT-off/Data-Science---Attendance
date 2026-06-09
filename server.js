@@ -4,14 +4,40 @@ const xlsx = require('xlsx');
 const path = require('path');
 const fs = require('fs');
 
+// Flag to completely toggle MongoDB Atlas vs Local Excel/JSON mode
+const USE_MONGODB = false;
+
+// Persistent data directory for local files (useful for Docker/Railway volume mapping)
+const DATA_DIR = path.join(__dirname, 'persistent_data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Helper to resolve persistent file paths and auto-copy default files on first run
+function getPersistentPath(filename) {
+  const destPath = path.join(DATA_DIR, filename);
+  if (!fs.existsSync(destPath)) {
+    const srcPath = path.join(__dirname, filename);
+    if (fs.existsSync(srcPath)) {
+      try {
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`Copied default spreadsheet ${filename} to persistent_data folder.`);
+      } catch (err) {
+        console.error(`Error copying default spreadsheet ${filename} to persistent_data:`, err.message);
+      }
+    }
+  }
+  return destPath;
+}
+
 // Attendance data file path
-const ATTENDANCE_FILE = path.join(__dirname, 'attendance_data.json');
+const ATTENDANCE_FILE = getPersistentPath('attendance_data.json');
 
 // Grievances data file path
-const GRIEVANCES_FILE = path.join(__dirname, 'grievances.json');
+const GRIEVANCES_FILE = getPersistentPath('grievances.json');
 
 // Live attendance sessions file path
-const SESSIONS_FILE = path.join(__dirname, 'sessions_data.json');
+const SESSIONS_FILE = getPersistentPath('sessions_data.json');
 
 // Helper: Read sessions data
 function readSessionsData() {
@@ -99,7 +125,7 @@ function writeAttendanceData(data) {
 // Helper: Get all students from student list Excel
 function getAllStudents() {
   try {
-    const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
+    const filePath = getPersistentPath('student_list passout 2028.xlsx');
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -330,7 +356,7 @@ async function sendVerificationEmail(toEmail, subject, htmlContent, textContent)
 
 // Helper: Read sheet data dynamically
 function readExcelFile(filename) {
-  const filePath = path.join(__dirname, filename);
+  const filePath = getPersistentPath(filename);
   const workbook = xlsx.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
@@ -432,6 +458,9 @@ const Grievance = mongoose.model('Grievance', grievanceSchema);
 const MONGODB_URI = process.env.MONGODB_URI || credentials.mongodbUri || 'mongodb+srv://noreplyuemkattendance_db_user:Xuelk1U1ZC0wBMEt@cluster0.1qgvtim.mongodb.net/attendance?retryWrites=true&w=majority';
 
 async function ensureDbConnected() {
+  if (!USE_MONGODB) {
+    return false;
+  }
   if (mongoose.connection.readyState === 1) {
     return true;
   }
@@ -459,12 +488,16 @@ async function ensureDbConnected() {
 }
 
 // Trigger initial connection attempt
-ensureDbConnected().catch(err => console.error("Initial DB connection failed:", err.message));
+if (USE_MONGODB) {
+  ensureDbConnected().catch(err => console.error("Initial DB connection failed:", err.message));
+}
 
 // Middleware to ensure DB connection is active before processing API requests (crucial for serverless environments)
 app.use('/api', async (req, res, next) => {
   try {
-    await ensureDbConnected();
+    if (USE_MONGODB) {
+      await ensureDbConnected();
+    }
   } catch (err) {
     console.error("Database connection middleware error:", err.message);
   }
@@ -556,7 +589,7 @@ async function seedRosters() {
     const adminCount = await Admin.countDocuments();
     if (adminCount === 0) {
       console.log("Database Admin collection is empty. Seeding from Excel data...");
-      const filePath = path.join(__dirname, 'admin data.xlsx');
+      const filePath = getPersistentPath('admin data.xlsx');
       if (fs.existsSync(filePath)) {
         const rows = readExcelFile('admin data.xlsx');
         const admins = rows
@@ -805,7 +838,7 @@ async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
   }
 
   try {
-    const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
+    const filePath = getPersistentPath('student_list passout 2028.xlsx');
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -1700,7 +1733,7 @@ function updateEmailInExcels(currentEmail, newEmail, role) {
 
   // 1. Update in admin data.xlsx
   try {
-    const adminPath = path.join(__dirname, 'admin data.xlsx');
+    const adminPath = getPersistentPath('admin data.xlsx');
     if (fs.existsSync(adminPath)) {
       const workbook = xlsx.readFile(adminPath);
       const sheetName = workbook.SheetNames[0];
@@ -1727,7 +1760,7 @@ function updateEmailInExcels(currentEmail, newEmail, role) {
 
   // 2. Update in teacher data.xlsx
   try {
-    const teacherPath = path.join(__dirname, 'teacher data.xlsx');
+    const teacherPath = getPersistentPath('teacher data.xlsx');
     if (fs.existsSync(teacherPath)) {
       const workbook = xlsx.readFile(teacherPath);
       const sheetName = workbook.SheetNames[0];
@@ -1931,7 +1964,7 @@ app.post('/api/email-change/verify-otp', async (req, res) => {
 // PROFILE PICTURE SYSTEM ENDPOINTS & HELPERS
 // ============================================================
 
-const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads', 'profile_pics');
+const UPLOADS_DIR = path.join(DATA_DIR, 'profile_pics');
 
 // Helper: Ensure uploads directory exists
 function ensureUploadsDir() {
@@ -2520,7 +2553,7 @@ app.post('/api/session/:token/close', async (req, res) => {
 // ============================================================
 
 function addAdmin(name, mobile, email, role, department) {
-  const filePath = path.join(__dirname, 'admin data.xlsx');
+  const filePath = getPersistentPath('admin data.xlsx');
   let data = [];
   let workbook;
   const sheetName = 'Department Roles';
@@ -2549,7 +2582,7 @@ function addAdmin(name, mobile, email, role, department) {
 }
 
 function removeAdmin(email) {
-  const filePath = path.join(__dirname, 'admin data.xlsx');
+  const filePath = getPersistentPath('admin data.xlsx');
   if (!fs.existsSync(filePath)) return;
   const workbook = xlsx.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
@@ -2573,7 +2606,7 @@ function removeAdmin(email) {
 }
 
 function addTeacher(name, mobile, email) {
-  const filePath = path.join(__dirname, 'teacher data.xlsx');
+  const filePath = getPersistentPath('teacher data.xlsx');
   let data = [];
   let workbook;
   const sheetName = 'Admin Emails';
@@ -2605,7 +2638,7 @@ function addTeacher(name, mobile, email) {
 }
 
 function removeTeacher(email) {
-  const filePath = path.join(__dirname, 'teacher data.xlsx');
+  const filePath = getPersistentPath('teacher data.xlsx');
   if (!fs.existsSync(filePath)) return;
   const workbook = xlsx.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
@@ -2633,7 +2666,7 @@ function removeTeacher(email) {
 }
 
 function addStudent(name, roll, enrollment) {
-  const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
+  const filePath = getPersistentPath('student_list passout 2028.xlsx');
   if (!fs.existsSync(filePath)) {
     throw new Error('student_list passout 2028.xlsx file not found.');
   }
@@ -2687,7 +2720,7 @@ function addStudent(name, roll, enrollment) {
 }
 
 function removeStudent(enrollment) {
-  const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
+  const filePath = getPersistentPath('student_list passout 2028.xlsx');
   if (!fs.existsSync(filePath)) {
     throw new Error('student_list passout 2028.xlsx file not found.');
   }
@@ -2761,7 +2794,7 @@ app.get('/api/admin/users', async (req, res) => {
     }
 
     let admins = [];
-    if (fs.existsSync(path.join(__dirname, 'admin data.xlsx'))) {
+    if (fs.existsSync(getPersistentPath('admin data.xlsx'))) {
       const rows = readExcelFile('admin data.xlsx');
       admins = rows
         .filter(r => r.Role && r.Role.toString().trim().toUpperCase() !== 'STUDENT')
