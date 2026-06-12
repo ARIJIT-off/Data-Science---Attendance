@@ -179,8 +179,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Structure: { email: { otp: '1234', role: 'Student', profile: {...}, expiresAt: timestamp } }
 const otpCache = new Map();
 
-// Helper: load SMTP credentials from mailmain.xlsx
+// Helper: load SMTP credentials from mailmain.xlsx or env variables
 function loadCredentials() {
+  // Try environment variables first (best practice for production/Railway)
+  if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
+    console.log(`Loaded credentials from environment variables: Sender Email is ${process.env.SMTP_EMAIL}`);
+    return { email: process.env.SMTP_EMAIL, password: process.env.SMTP_PASSWORD };
+  }
+
   try {
     const workbook = xlsx.readFile(path.join(__dirname, 'mailmain.xlsx'));
     const sheetName = workbook.SheetNames[0];
@@ -206,10 +212,10 @@ function loadCredentials() {
       throw new Error("Credentials not found in Excel columns. Ensure Row 2 has Email Address and Row 3 has App Password.");
     }
 
-    console.log(`Loaded credentials successfully: Sender Email is ${email}`);
+    console.log(`Loaded credentials successfully from mailmain.xlsx: Sender Email is ${email}`);
     return { email, password };
   } catch (error) {
-    console.error("CRITICAL ERROR: Failed to load SMTP credentials from mailmain.xlsx.");
+    console.error("CRITICAL ERROR: Failed to load SMTP credentials.");
     console.error(error.message);
     process.exit(1);
   }
