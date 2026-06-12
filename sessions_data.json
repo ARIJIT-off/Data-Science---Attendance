@@ -255,5 +255,84 @@
     "createdAt": "2026-06-08T06:49:40.566Z",
     "expiresAt": "2026-06-08T10:49:40.566Z",
     "closedAt": "2026-06-08T06:51:55.063Z"
+  },
+  {
+    "token": "Q6JJ6pn2QEOWLGYRW0RJmRMV",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Data Analysis",
+    "year": "1st Year",
+    "section": "Sec A",
+    "date": "2026-06-10",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "RANODIP GHOSH",
+        "roll": "35",
+        "enrollment": "12024002037058",
+        "markedAt": "2026-06-09T21:55:09.151Z"
+      }
+    ],
+    "createdAt": "2026-06-09T21:54:32.617Z",
+    "expiresAt": "2026-06-10T01:54:32.617Z",
+    "closedAt": "2026-06-09T21:55:22.054Z"
+  },
+  {
+    "token": "Ghgs78wzN9m7BRscsQNlemuk",
+    "teacherEmail": "nilanjan.chatterjee@uem.edu.in",
+    "teacherName": "Prof. Nilanjan Chatterjee",
+    "subject": "Fuzzy Physics",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "section": "Sec A",
+    "date": "2026-06-11",
+    "status": "active",
+    "markedStudents": [],
+    "createdAt": "2026-06-11T11:26:17.062Z",
+    "expiresAt": "2026-06-11T15:26:17.062Z"
+  },
+  {
+    "token": "sjCRSyvhWou0603vMzHwq57W",
+    "teacherEmail": "nilanjan.chatterjee@uem.edu.in",
+    "teacherName": "Prof. Nilanjan Chatterjee",
+    "subject": "Fuzzy Physics",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "section": "Sec A",
+    "date": "2026-06-11",
+    "status": "closed",
+    "markedStudents": [],
+    "createdAt": "2026-06-11T11:26:37.753Z",
+    "expiresAt": "2026-06-11T15:26:37.753Z",
+    "closedAt": "2026-06-11T11:26:37.770Z"
+  },
+  {
+    "token": "rhLxKb8JDCNnTrEt2nYxkB3G",
+    "teacherEmail": "nilanjan.chatterjee@uem.edu.in",
+    "teacherName": "Prof. Nilanjan Chatterjee",
+    "subject": "Fuzzy Physics",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "section": "Sec A",
+    "date": "2026-06-11",
+    "status": "closed",
+    "markedStudents": [],
+    "createdAt": "2026-06-11T12:50:00.217Z",
+    "expiresAt": "2026-06-11T16:50:00.217Z",
+    "closedAt": "2026-06-11T12:50:00.233Z"
+  },
+  {
+    "token": "qZ39YQAPcuNxLdDPEGJMlKHG",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Workshop/Manufacturing Practices",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
+    "status": "active",
+    "markedStudents": [],
+    "createdAt": "2026-06-12T09:12:32.283Z",
+    "expiresAt": "2026-06-12T13:12:32.283Z"
   }
 ]

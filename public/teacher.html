@@ -6,8 +6,8 @@
   <title>Teacher Dashboard — Attendance - CSE(Data Science)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="teacher.css">
   <!-- Client-side export & upload support libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- QR Code generation library -->
@@ -161,13 +161,20 @@
       background: linear-gradient(135deg, #ef4444, #dc2626) !important;
       box-shadow: 0 4px 16px rgba(239,68,68,0.35) !important;
     }
-    /* Split bottom layout on desktop */
+    /* Layout adjusted to full width main content */
     @media (min-width: 1025px) {
       .dashboard-bottom-grid {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr; /* left main content, right sidebar grievance */
+        display: flex;
+        flex-direction: column;
         gap: 24px;
-        align-items: start;
+        align-items: flex-start;
+      }
+      .main-content-panel {
+        width: 100%;
+      }
+      .inform-admin-card-wrapper {
+        width: 50%;
+        max-width: 600px;
       }
     }
     .excel-instruction-box {
@@ -180,13 +187,7 @@
       line-height: 1.5;
     }
 
-    /* ── Font Styling ── */
-    :root {
-      --font-family: 'Times New Roman', Times, 'Georgia', serif !important;
-    }
-    *, body, button, input, select, textarea, table, th, td, div, span, p, h1, h2, h3, h4, h5, h6 {
-      font-family: 'Times New Roman', Times, 'Georgia', serif !important;
-    }
+
   </style>
 </head>
 <body>
@@ -252,11 +253,13 @@
 
     <!-- Tabs -->
     <div class="tabs-container">
-      <button class="tab-btn active" data-tab="tab-mark" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        Mark Attendance
+      <button class="tab-btn active" data-tab="tab-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Mark Attendance</span>
       </button>
-      <button class="tab-btn" data-tab="tab-records" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-        My Records
+      <button class="tab-btn" data-tab="tab-records">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>My Records</span>
       </button>
     </div>
 
@@ -289,30 +292,37 @@
             <div id="manual-entry-panel">
               <div class="form-row">
                 <div class="form-group" style="flex: 1.2;">
+                  <input placeholder=" " type="date" class="form-input" id="attendance-date">
                   <label class="form-label">Date</label>
-                  <input type="date" class="form-input" id="attendance-date">
-                </div>
-                <div class="form-group" style="flex: 2;">
-                  <label class="form-label">Subject</label>
-                  <input type="text" class="form-input" id="attendance-subject">
                 </div>
                 <div class="form-group" style="flex: 1.2;">
-                  <label class="form-label">Year</label>
                   <select class="form-input" id="attendance-year">
                     <option value="1st Year">1st Year</option>
                     <option value="2nd Year">2nd Year</option>
                     <option value="3rd Year">3rd Year</option>
                     <option value="4th Year">4th Year</option>
                   </select>
+                  <label class="form-label">Year</label>
                 </div>
                 <div class="form-group" style="flex: 1.2;">
-                  <label class="form-label">Section</label>
+                  <select class="form-input" id="attendance-semester">
+                  </select>
+                  <label class="form-label">Semester</label>
+                </div>
+                <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="attendance-section">
                     <option value="Sec A">Sec A</option>
                     <option value="Sec B">Sec B</option>
                     <option value="Sec C">Sec C</option>
                     <option value="Sec D">Sec D</option>
                   </select>
+                  <label class="form-label">Section</label>
+                </div>
+                <div class="form-group" style="flex: 2;">
+                  <select class="form-input" id="attendance-subject">
+                    <option value="">Choose Subject</option>
+                  </select>
+                  <label class="form-label">Subject</label>
                 </div>
               </div>
 
@@ -355,30 +365,37 @@
 
               <div class="form-row">
                 <div class="form-group" style="flex: 1.2;">
+                  <input placeholder=" " type="date" class="form-input" id="upload-date">
                   <label class="form-label">Date</label>
-                  <input type="date" class="form-input" id="upload-date">
-                </div>
-                <div class="form-group" style="flex: 2;">
-                  <label class="form-label">Subject</label>
-                  <input type="text" class="form-input" id="upload-subject">
                 </div>
                 <div class="form-group" style="flex: 1.2;">
-                  <label class="form-label">Year</label>
                   <select class="form-input" id="upload-year">
                     <option value="1st Year">1st Year</option>
                     <option value="2nd Year">2nd Year</option>
                     <option value="3rd Year">3rd Year</option>
                     <option value="4th Year">4th Year</option>
                   </select>
+                  <label class="form-label">Year</label>
                 </div>
                 <div class="form-group" style="flex: 1.2;">
-                  <label class="form-label">Section</label>
+                  <select class="form-input" id="upload-semester">
+                  </select>
+                  <label class="form-label">Semester</label>
+                </div>
+                <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="upload-section">
                     <option value="Sec A">Sec A</option>
                     <option value="Sec B">Sec B</option>
                     <option value="Sec C">Sec C</option>
                     <option value="Sec D">Sec D</option>
                   </select>
+                  <label class="form-label">Section</label>
+                </div>
+                <div class="form-group" style="flex: 2;">
+                  <select class="form-input" id="upload-subject">
+                    <option value="">Choose Subject</option>
+                  </select>
+                  <label class="form-label">Subject</label>
                 </div>
               </div>
 
@@ -415,30 +432,37 @@
               <div id="live-step-setup">
                 <div class="form-row">
                   <div class="form-group" style="flex: 1.2;">
-                    <label class="form-label">Date</label>
-                    <input type="date" class="form-input" id="live-date">
-                  </div>
-                  <div class="form-group" style="flex: 2;">
-                    <label class="form-label">Subject</label>
-                    <input type="text" class="form-input" id="live-subject">
+                  <input placeholder=" " type="date" class="form-input" id="live-date">
+                  <label class="form-label">Date</label>
                   </div>
                   <div class="form-group" style="flex: 1.2;">
-                    <label class="form-label">Year</label>
-                    <select class="form-input" id="live-year">
+                  <select class="form-input" id="live-year">
                       <option value="1st Year">1st Year</option>
                       <option value="2nd Year">2nd Year</option>
                       <option value="3rd Year">3rd Year</option>
                       <option value="4th Year">4th Year</option>
                     </select>
+                  <label class="form-label">Year</label>
                   </div>
                   <div class="form-group" style="flex: 1.2;">
-                    <label class="form-label">Section</label>
-                    <select class="form-input" id="live-section">
+                  <select class="form-input" id="live-semester">
+                    </select>
+                  <label class="form-label">Semester</label>
+                  </div>
+                  <div class="form-group" style="flex: 1.2;">
+                  <select class="form-input" id="live-section">
                       <option value="Sec A">Sec A</option>
                       <option value="Sec B">Sec B</option>
                       <option value="Sec C">Sec C</option>
                       <option value="Sec D">Sec D</option>
                     </select>
+                  <label class="form-label">Section</label>
+                  </div>
+                  <div class="form-group" style="flex: 2;">
+                  <select class="form-input" id="live-subject">
+                      <option value="">Choose Subject</option>
+                    </select>
+                  <label class="form-label">Subject</label>
                   </div>
                 </div>
                 <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
@@ -530,16 +554,24 @@
 
       <!-- Grievance Card Area -->
       <div class="inform-admin-card-wrapper">
-        <div class="glass-card inform-admin-card">
-          <div class="section-title" style="margin-bottom: 8px;">Inform to Admin</div>
-          <p class="card-subtitle" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
+        <div class="glass-card inform-admin-card" style="position: relative; overflow: hidden;">
+          <!-- Abstract Graphic background for the card -->
+          <svg class="admin-panel-bg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="position:absolute; top:-50px; right:-50px; width:150px; height:150px; opacity:0.05; pointer-events:none; transform: rotate(15deg);">
+            <path fill="currentColor" d="M42.7,-73.4C55.9,-67.5,67.6,-57.4,75.9,-44.6C84.3,-31.8,89.3,-15.9,88.7,-0.3C88.1,15.2,82,30.5,73.4,43.7C64.8,56.9,53.8,68,40.5,75.1C27.2,82.3,13.6,85.5,0.2,85.2C-13.3,84.9,-26.5,81.1,-38.2,73.5C-49.9,65.9,-60.1,54.5,-68.2,41.4C-76.3,28.3,-82.3,14.2,-83.4,-0.6C-84.5,-15.4,-80.7,-30.8,-72.4,-43.8C-64.1,-56.8,-51.2,-67.4,-37.6,-73.1C-24,-78.9,-12,-79.9,1.5,-82.5C15,-85.1,30,-89.4,42.7,-73.4Z" transform="translate(100 100)" />
+          </svg>
+          <div class="section-title" style="margin-bottom: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-magenta)" stroke-width="2" style="width:20px;height:20px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Inform Admin
+          </div>
+          <p class="card-subtitle" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
             Submit any queries, correction requests, or grievances directly to the HOD/Admin.
           </p>
-          <div class="form-group" style="margin-bottom: 12px;">
-            <textarea id="grievance-message" class="grievance-textarea" rows="5" placeholder="Type your message to the admin board here..." maxlength="500"></textarea>
+          <div class="form-group" style="margin-bottom: 16px; position:relative;">
+            <textarea id="grievance-message" class="form-input grievance-textarea" rows="4" placeholder="Type your message to the admin board here..." maxlength="500" style="resize:none; padding-bottom:24px;"></textarea>
+            <div id="grievance-counter" style="position:absolute; bottom:8px; right:12px; font-size:11px; color:var(--text-muted);">0 / 500</div>
           </div>
-          <button id="btn-submit-grievance" class="btn btn-primary btn-sm" style="width: 100%;" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <button id="btn-submit-grievance" class="btn btn-primary" style="width: 100%; justify-content:center;" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px; transition:transform 0.3s var(--transition-bounce);"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             Send Message
           </button>
         </div>
@@ -564,8 +596,8 @@
         <div id="email-view-input" class="modal-view active">
           <p class="subtitle" style="margin-bottom: 16px;">Enter your new email address. We will send a verification code to it.</p>
           <div class="form-group">
-            <label class="form-label" for="new-email-input">New Email Address</label>
-            <input type="email" id="new-email-input" class="form-input" placeholder="newemail@domain.com">
+                  <input type="email" id="new-email-input" class="form-input" placeholder="newemail@domain.com">
+                  <label class="form-label" for="new-email-input">New Email Address</label>
           </div>
           <button id="btn-submit-new-email" class="btn btn-primary" style="margin-top: 16px; width:100%;" disabled>
             <span>Send OTP</span>
@@ -691,26 +723,49 @@ async function loadStudentRoster() {
 
 function renderRoster(students) {
   const container = document.getElementById('roster-container');
-  document.getElementById('total-count').textContent = allStudents.length;
+  const selectedYear = document.getElementById('attendance-year').value;
+  const selectedSection = document.getElementById('attendance-section').value;
 
-  if (students.length === 0) {
-    container.innerHTML = '<div class="empty-state"><p>No students found.</p></div>';
+  // Filter the list by Year and Section
+  const filtered = students.filter(s => s.year === selectedYear && s.section === selectedSection);
+
+  document.getElementById('total-count').textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><p>No student roster available for the selected Year and Section.</p></div>`;
+    document.getElementById('selected-count').textContent = '0';
     return;
   }
 
   let html = '';
-  students.forEach(s => {
+  filtered.forEach(s => {
+    // Generate initials for avatar
+    const initials = s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    
     html += `
       <div class="checkbox-row" data-name="${s.name.toLowerCase()}">
-        <input type="checkbox" class="student-checkbox" data-roll="${s.roll}" data-name="${s.name}" data-enrollment="${s.enrollment}">
+        <div class="custom-checkbox-wrapper">
+          <input type="checkbox" class="student-checkbox" data-roll="${s.roll}" data-name="${s.name}" data-enrollment="${s.enrollment}">
+        </div>
+        <div class="student-avatar">${initials}</div>
         <span class="roll-num">${s.roll}</span>
         <span class="student-name">${s.name}</span>
         <span class="enrollment-num">${s.enrollment}</span>
       </div>
     `;
   });
+  
+  html += `
+    <div class="selection-progress-container">
+      <div class="selection-progress-bar" id="selection-progress-bar"></div>
+    </div>
+  `;
+  
   container.innerHTML = html;
   updateSelectCount();
+
+  // Reset search filter
+  document.getElementById('student-search').value = '';
 
   // Attach checkbox change listeners
   container.querySelectorAll('.student-checkbox').forEach(cb => {
@@ -719,9 +774,19 @@ function renderRoster(students) {
 }
 
 function updateSelectCount() {
+  const checkboxes = document.querySelectorAll('.student-checkbox');
   const checked = document.querySelectorAll('.student-checkbox:checked').length;
+  const total = checkboxes.length;
+  
   document.getElementById('selected-count').textContent = checked;
   document.getElementById('btn-submit-attendance').disabled = false; // Allow submitting even with 0 selected (all absent)
+  
+  // Update progress bar
+  const progressBar = document.getElementById('selection-progress-bar');
+  if (progressBar) {
+    const percentage = total === 0 ? 0 : (checked / total) * 100;
+    progressBar.style.width = `${percentage}%`;
+  }
 }
 
 // ===== Select All / Deselect All =====
@@ -735,7 +800,7 @@ document.getElementById('btn-deselect-all').addEventListener('click', () => {
   updateSelectCount();
 });
 
-// ===== Search Filter =====
+// ===== Search Filter & Dropdown Listeners =====
 document.getElementById('student-search').addEventListener('input', (e) => {
   const q = e.target.value.toLowerCase();
   document.querySelectorAll('.checkbox-row').forEach(row => {
@@ -744,17 +809,27 @@ document.getElementById('student-search').addEventListener('input', (e) => {
   });
 });
 
+document.getElementById('attendance-year').addEventListener('change', () => {
+  renderRoster(allStudents);
+});
+
+document.getElementById('attendance-section').addEventListener('change', () => {
+  renderRoster(allStudents);
+});
+
 // ===== Submit Attendance =====
 document.getElementById('btn-submit-attendance').addEventListener('click', async () => {
   const date = document.getElementById('attendance-date').value;
   const subject = document.getElementById('attendance-subject').value.trim();
   const year = document.getElementById('attendance-year').value;
+  const semester = document.getElementById('attendance-semester').value;
   const section = document.getElementById('attendance-section').value;
 
   if (!date) { showToast('Please select a date.', 'error'); return; }
-  if (!subject) { showToast('Please enter a subject name.', 'error'); return; }
   if (!year) { showToast('Please select a year.', 'error'); return; }
+  if (!semester) { showToast('Please select a semester.', 'error'); return; }
   if (!section) { showToast('Please select a section.', 'error'); return; }
+  if (!subject) { showToast('Please select a subject.', 'error'); return; }
 
   const students = [];
   document.querySelectorAll('.student-checkbox').forEach(cb => {
@@ -783,6 +858,7 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
         date,
         subject,
         year,
+        semester,
         section,
         teacherEmail: profile.email,
         teacherName: profile.name,
@@ -815,6 +891,7 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
 // ===== Load Records =====
 async function loadRecords() {
   const container = document.getElementById('records-container');
+  const expandedIds = Array.from(container.querySelectorAll('.record-card.expanded')).map(card => card.id);
   container.innerHTML = '<div class="loading-overlay"><div class="spinner"></div><span>Loading records...</span></div>';
 
   try {
@@ -832,6 +909,7 @@ async function loadRecords() {
       return;
     }
 
+
     teacherRecords = data.records;
     const records = [...teacherRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
     let html = '';
@@ -843,8 +921,8 @@ async function loadRecords() {
       let studentsHtml = '<div style="padding:8px 0;">';
       record.students.forEach(s => {
         const badge = s.present
-          ? '<span class="badge-present">P</span>'
-          : '<span class="badge-absent">A</span>';
+          ? `<span class="badge-present interactive" onclick="toggleStudentAttendance('${record.id}', '${s.enrollment}', false)" title="Click to mark Absent" style="cursor:pointer;">P</span>`
+          : `<span class="badge-absent interactive" onclick="toggleStudentAttendance('${record.id}', '${s.enrollment}', true)" title="Click to mark Present" style="cursor:pointer;">A</span>`;
         studentsHtml += `
           <div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:13px;">
             <span style="font-weight:700; color:var(--color-cyan); min-width:28px;">${s.roll}</span>
@@ -860,22 +938,27 @@ async function loadRecords() {
           <div class="record-header" onclick="toggleRecord('${record.id}')">
             <div class="record-info">
               <span class="record-date">${dateStr}</span>
-              <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.year || 'N/A'} - ${record.section || 'N/A'}</span></span>
+              <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
               <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
             </div>
             <svg class="record-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="record-body">
-            <div class="download-actions" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 12px; align-items: center;">
-              <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Export As:</span>
-              <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'pdf')" style="padding: 5px 10px; font-size:11px;" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF
-              </button>
-              <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'png')" style="padding: 5px 10px; font-size:11px;" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> PNG
-              </button>
-              <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'xlsx')" style="padding: 5px 10px; font-size:11px;" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg> Excel
+            <div class="download-actions" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 12px; align-items: center; justify-content: space-between;">
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Export As:</span>
+                <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'pdf')" style="padding: 5px 10px; font-size:11px;" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'png')" style="padding: 5px 10px; font-size:11px;" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> PNG
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="exportRecord('${record.id}', 'xlsx')" style="padding: 5px 10px; font-size:11px;" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg> Excel
+                </button>
+              </div>
+              <button class="btn btn-sm btn-secondary" onclick="deleteRecord('${record.id}')" style="color:var(--color-error); border-color:rgba(244,63,94,0.2); padding: 5px 10px; font-size:11px;" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete
               </button>
             </div>
             ${studentsHtml}
@@ -884,6 +967,11 @@ async function loadRecords() {
       `;
     });
     container.innerHTML = html;
+
+    expandedIds.forEach(id => {
+      const card = document.getElementById(id);
+      if (card) card.classList.add('expanded');
+    });
 
   } catch (err) {
     console.error(err);
@@ -896,9 +984,151 @@ function toggleRecord(id) {
   if (card) card.classList.toggle('expanded');
 }
 
+async function deleteRecord(id) {
+  if (!confirm('Are you sure you want to delete this attendance record?')) return;
+  try {
+    const res = await fetch('/api/attendance/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Record deleted successfully.', 'success');
+      loadRecords();
+    } else {
+      showToast(data.message || 'Failed to delete record.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Error deleting record.', 'error');
+  }
+}
+
+async function toggleStudentAttendance(recordId, enrollment, newStatus) {
+  try {
+    const res = await fetch('/api/attendance/' + recordId + '/student/' + enrollment, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ present: newStatus })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Attendance updated.', 'success');
+      loadRecords();
+    } else {
+      showToast(data.message || 'Failed to update attendance.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Error updating attendance.', 'error');
+  }
+}
+
+// ===== Load Subjects =====
+let allSubjects = [];
+
+async function loadSubjects() {
+  try {
+    const res = await fetch('/api/admin/subjects');
+    const data = await res.json();
+    if (data.success) {
+      allSubjects = data.subjects;
+      
+      // Populate semester dropdowns
+      updateSemesterDropdown('attendance-year', 'attendance-semester');
+      updateSemesterDropdown('upload-year', 'upload-semester');
+      updateSemesterDropdown('live-year', 'live-semester');
+
+      // Populate subject dropdowns initially
+      updateSubjectsDropdown('attendance-year', 'attendance-semester', 'attendance-subject');
+      updateSubjectsDropdown('upload-year', 'upload-semester', 'upload-subject');
+      updateSubjectsDropdown('live-year', 'live-semester', 'live-subject');
+    }
+  } catch (err) {
+    console.error('Failed to load subjects:', err);
+  }
+}
+
+function updateSemesterDropdown(yearSelectId, semesterSelectId) {
+  const yearVal = document.getElementById(yearSelectId).value;
+  const semSelect = document.getElementById(semesterSelectId);
+  if (!semSelect) return;
+  
+  semSelect.innerHTML = '';
+  let options = [];
+  if (yearVal === '1st Year') {
+    options = ['1st Sem', '2nd Sem'];
+  } else if (yearVal === '2nd Year') {
+    options = ['3rd Sem', '4th Sem'];
+  } else if (yearVal === '3rd Year') {
+    options = ['5th Sem', '6th Sem'];
+  } else if (yearVal === '4th Year') {
+    options = ['7th Sem', '8th Sem'];
+  }
+  
+  options.forEach(optVal => {
+    const opt = document.createElement('option');
+    opt.value = optVal;
+    opt.textContent = optVal;
+    semSelect.appendChild(opt);
+  });
+}
+
+function updateSubjectsDropdown(yearSelectId, semesterSelectId, subjectSelectId) {
+  const yearVal = document.getElementById(yearSelectId).value;
+  const semesterVal = document.getElementById(semesterSelectId).value;
+  const subjectSelect = document.getElementById(subjectSelectId);
+  if (!subjectSelect) return;
+
+  const filtered = allSubjects.filter(s => s.year === yearVal && s.semester === semesterVal);
+  
+  subjectSelect.innerHTML = '';
+  if (filtered.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'No subjects registered for this class';
+    subjectSelect.appendChild(opt);
+  } else {
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Choose Subject';
+    subjectSelect.appendChild(defaultOpt);
+    
+    filtered.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.subjectName;
+      opt.textContent = `${s.subjectName} (${s.subjectCode})`;
+      subjectSelect.appendChild(opt);
+    });
+  }
+}
+
+// Attach event listeners for year and semester dropdowns to update semester and subject options
+document.getElementById('attendance-year').addEventListener('change', () => {
+  updateSemesterDropdown('attendance-year', 'attendance-semester');
+  updateSubjectsDropdown('attendance-year', 'attendance-semester', 'attendance-subject');
+});
+document.getElementById('attendance-semester').addEventListener('change', () => {
+  updateSubjectsDropdown('attendance-year', 'attendance-semester', 'attendance-subject');
+});
+
+document.getElementById('upload-year').addEventListener('change', () => {
+  updateSemesterDropdown('upload-year', 'upload-semester');
+  updateSubjectsDropdown('upload-year', 'upload-semester', 'upload-subject');
+});
+document.getElementById('upload-semester').addEventListener('change', () => {
+  updateSubjectsDropdown('upload-year', 'upload-semester', 'upload-subject');
+});
+
+document.getElementById('live-year').addEventListener('change', () => {
+  updateSemesterDropdown('live-year', 'live-semester');
+  updateSubjectsDropdown('live-year', 'live-semester', 'live-subject');
+});
+document.getElementById('live-semester').addEventListener('change', () => {
+  updateSubjectsDropdown('live-year', 'live-semester', 'live-subject');
+});
+
 // ===== Init =====
 loadStudentRoster();
 loadRecords();
+loadSubjects();
 
 // ===== Email Change Modal Logic =====
 const emailModal = document.getElementById('email-modal');
@@ -1172,6 +1402,14 @@ if (btnMethodLive) {
 
 
 // ===== Inform to Admin Grievance Submission =====
+const grievanceTextarea = document.getElementById('grievance-message');
+const grievanceCounter = document.getElementById('grievance-counter');
+if (grievanceTextarea && grievanceCounter) {
+  grievanceTextarea.addEventListener('input', () => {
+    const len = grievanceTextarea.value.length;
+    grievanceCounter.textContent = `${len} / 500`;
+  });
+}
 const btnSubmitGrievance = document.getElementById('btn-submit-grievance');
 if (btnSubmitGrievance) {
   btnSubmitGrievance.addEventListener('click', async () => {
@@ -1351,12 +1589,14 @@ if (btnSubmitUpload) {
     const date = document.getElementById('upload-date').value;
     const subject = document.getElementById('upload-subject').value.trim();
     const year = document.getElementById('upload-year').value;
+    const semester = document.getElementById('upload-semester').value;
     const section = document.getElementById('upload-section').value;
 
     if (!date) { showToast('Please select a date.', 'error'); return; }
-    if (!subject) { showToast('Please enter a subject name.', 'error'); return; }
     if (!year) { showToast('Please select a year.', 'error'); return; }
+    if (!semester) { showToast('Please select a semester.', 'error'); return; }
     if (!section) { showToast('Please select a section.', 'error'); return; }
+    if (!subject) { showToast('Please select a subject.', 'error'); return; }
     if (!parsedExcelStudents || parsedExcelStudents.length === 0) {
       showToast('Please upload a valid excel sheet first.', 'error');
       return;
@@ -1411,6 +1651,7 @@ if (btnSubmitUpload) {
           date,
           subject,
           year,
+          semester,
           section,
           teacherEmail: profile.email,
           teacherName: profile.name,
@@ -1450,7 +1691,7 @@ async function exportRecord(recordId, type) {
 
   const dateStr = record.date;
   const subjectStr = record.subject;
-  const yearSec = `${record.year || 'N/A'} - ${record.section || 'N/A'}`;
+  const yearSec = `${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}`;
   const filename = `Attendance_${subjectStr.replace(/[^a-zA-Z0-9]/g, '_')}_${dateStr}`;
 
   if (type === 'xlsx') {
@@ -1582,10 +1823,27 @@ if (btnGenerate) {
     const date = document.getElementById('live-date').value;
     const subject = document.getElementById('live-subject').value.trim();
     const year = document.getElementById('live-year').value;
+    const semester = document.getElementById('live-semester').value;
     const section = document.getElementById('live-section').value;
 
-    if (!date || !subject) {
-      showToast('Please fill in Date and Subject first.', 'error');
+    if (!date) {
+      showToast('Please select a date.', 'error');
+      return;
+    }
+    if (!year) {
+      showToast('Please select a year.', 'error');
+      return;
+    }
+    if (!semester) {
+      showToast('Please select a semester.', 'error');
+      return;
+    }
+    if (!section) {
+      showToast('Please select a section.', 'error');
+      return;
+    }
+    if (!subject) {
+      showToast('Please select a subject.', 'error');
       return;
     }
 
@@ -1599,7 +1857,7 @@ if (btnGenerate) {
         body: JSON.stringify({
           teacherEmail: profile.email,
           teacherName: profile.name,
-          subject, year, section, date
+          subject, year, semester, section, date
         })
       });
       const result = await res.json();

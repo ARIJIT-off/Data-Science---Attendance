@@ -480,6 +480,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/><path d="M9 16V8h6v8M9 12h6"/></svg>
                 <span>CSE Data Science</span>
               </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span id="student-year-section">—</span>
+              </span>
             </div>
           </div>
         </div>
@@ -767,6 +771,9 @@ const studentName = profile.name || 'Student';
 document.getElementById('student-name').textContent = studentName;
 document.getElementById('student-roll').textContent = 'Roll: ' + (profile.roll || 'N/A');
 document.getElementById('student-enrollment').textContent = profile.enrollment || 'N/A';
+const studYear = profile.year || '2nd Year';
+const studSection = profile.section || 'Sec A';
+document.getElementById('student-year-section').textContent = `${studYear} (${studSection})`;
 
 // ===== Populate Profile Picture =====
 const userEnrollClean = encodeURIComponent(profile.enrollment || 'unknown');
@@ -981,7 +988,7 @@ function renderHistory(records) {
         : '<span class="badge-absent">Absent</span>';
       
       const yearSecHtml = (r.year && r.section)
-        ? ` <span style="font-size:10px; opacity:0.75; padding:2px 6px; background:rgba(255,255,255,0.06); border-radius:3px; margin-left:6px; font-weight:400;">${r.year} - ${r.section}</span>`
+        ? ` <span style="font-size:10px; opacity:0.75; padding:2px 6px; background:rgba(255,255,255,0.06); border-radius:3px; margin-left:6px; font-weight:400;">${r.year}${r.semester ? ' (' + r.semester + ')' : ''} - ${r.section}</span>`
         : '';
 
       tbody.innerHTML += `
@@ -1422,7 +1429,7 @@ async function loadSessionByToken(token) {
     document.getElementById('si-subject').textContent = session.subject;
     document.getElementById('si-teacher').textContent = session.teacherName;
     document.getElementById('si-date').textContent = formatDateString(session.date);
-    document.getElementById('si-yearsec').textContent = `${session.year} · ${session.section}`;
+    document.getElementById('si-yearsec').textContent = `${session.year}${session.semester ? ' (' + session.semester + ')' : ''} · ${session.section}`;
 
     // Show info panel
     document.getElementById('session-info-panel').style.display = 'block';

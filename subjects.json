@@ -1,0 +1,674 @@
+[
+  {
+    "id": "1781176280963p9zo1",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Chemistry",
+    "subjectCode": "BSCCH102"
+  },
+  {
+    "id": "1781176280964s2r1a",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Basic Electrical Engineering",
+    "subjectCode": "ESCEE101"
+  },
+  {
+    "id": "1781176280965uzuee",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Engineering Mechanics - I",
+    "subjectCode": "ESCME102"
+  },
+  {
+    "id": "1781176280966nmftn",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Mathematics - I",
+    "subjectCode": "BSCM103"
+  },
+  {
+    "id": "1781176280967w956l",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "English",
+    "subjectCode": "HSMC101"
+  },
+  {
+    "id": "1781176280968ckmsn",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Essential Studies for Professionals - I",
+    "subjectCode": "ESP101"
+  },
+  {
+    "id": "1781176280969eh5ir",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Chemistry Laboratory",
+    "subjectCode": "BSCCH192"
+  },
+  {
+    "id": "17811762809708x36q",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Basic Electrical Engineering Laboratory",
+    "subjectCode": "ESCEE191"
+  },
+  {
+    "id": "1781176280971bkm4l",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Workshop/Manufacturing Practices",
+    "subjectCode": "ESCME193"
+  },
+  {
+    "id": "1781176280972v7yv9",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Language Laboratory",
+    "subjectCode": "HSMC191"
+  },
+  {
+    "id": "1781176280974yvgon",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Design Thinking & Innovation - Basic",
+    "subjectCode": "IVC181"
+  },
+  {
+    "id": "1781176280975xdc9s",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Economics, Finance and Entrepreneurship Skills - Foundation",
+    "subjectCode": "IVC182"
+  },
+  {
+    "id": "1781176280976pogkf",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Introduction to AI and Data Science using Python",
+    "subjectCode": "IVC183"
+  },
+  {
+    "id": "1781176280977olamg",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Co-curricular Subjects",
+    "subjectCode": "MCC181B"
+  },
+  {
+    "id": "1781176280978mroq3",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "subjectName": "Skill Development for Professionals - I",
+    "subjectCode": "SDP181"
+  },
+  {
+    "id": "1781176706621i0o2n",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Mathematics - IV",
+    "subjectCode": "BSM401"
+  },
+  {
+    "id": "17811767066220qgtn",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Operating Systems",
+    "subjectCode": "PCCCS401"
+  },
+  {
+    "id": "1781176706623exfkk",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Database Management Systems",
+    "subjectCode": "PCCCS402"
+  },
+  {
+    "id": "1781176706624399ah",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Design and Analysis of Algorithms",
+    "subjectCode": "PCCCS403"
+  },
+  {
+    "id": "1781176706625jfvk8",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Computer Organization and Architecture",
+    "subjectCode": "PCCDS401"
+  },
+  {
+    "id": "1781176706627p09lk",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Humanities - II (Economics for Engineers)",
+    "subjectCode": "HSMC401"
+  },
+  {
+    "id": "1781176706628khamu",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Essential Studies for Professionals - IV",
+    "subjectCode": "ESP401"
+  },
+  {
+    "id": "17811767066295fjg1",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Operating Systems Laboratory",
+    "subjectCode": "PCCCS491"
+  },
+  {
+    "id": "17811767066301wmxh",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Database Management Systems Laboratory",
+    "subjectCode": "PCCCS492"
+  },
+  {
+    "id": "1781176706631mqzuu",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Design and Analysis of Algorithms Laboratory",
+    "subjectCode": "PCCCS493"
+  },
+  {
+    "id": "1781176706632pdbwg",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Innovative Project - II",
+    "subjectCode": "PRJCS481"
+  },
+  {
+    "id": "1781176706633nk3uu",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Skill Development for Professionals - IV",
+    "subjectCode": "SDP481"
+  },
+  {
+    "id": "1781176706634kgk5y",
+    "year": "2nd Year",
+    "semester": "4th Sem",
+    "subjectName": "Introduction to Basic Astronomy - II",
+    "subjectCode": "MINOR401T"
+  },
+  {
+    "id": "1781176724934t5t1x",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Java Programming",
+    "subjectCode": "PCCCS501"
+  },
+  {
+    "id": "17811767249356v64s",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Data Mining and Data Warehousing",
+    "subjectCode": "PCCDS501"
+  },
+  {
+    "id": "1781176724936ts3f5",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Artificial Intelligence",
+    "subjectCode": "PCCDS502"
+  },
+  {
+    "id": "1781176724937dryl9",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Program Elective - I",
+    "subjectCode": "PECCS501"
+  },
+  {
+    "id": "1781176724938fnlhe",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Open Elective - I",
+    "subjectCode": "OECCS501"
+  },
+  {
+    "id": "1781176724939ql9z7",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Humanities - III (Industrial Psychology)",
+    "subjectCode": "HSMC501"
+  },
+  {
+    "id": "1781176724940e6db5",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Java Programming Laboratory",
+    "subjectCode": "PCCCS591"
+  },
+  {
+    "id": "1781176724941nl9d8",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Data Mining and Data Warehousing Laboratory",
+    "subjectCode": "PCCDS591"
+  },
+  {
+    "id": "17811767249426dqqi",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Artificial Intelligence Laboratory",
+    "subjectCode": "PCCDS592"
+  },
+  {
+    "id": "1781176724943odci9",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Innovative Project - III",
+    "subjectCode": "PRJCS581"
+  },
+  {
+    "id": "1781176724944g2tk9",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Skill Development for Professionals - V",
+    "subjectCode": "SDP581"
+  },
+  {
+    "id": "1781176724945vpg8x",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "subjectName": "Introduction to Basic Astronomy - III",
+    "subjectCode": "MINOR501T"
+  },
+  {
+    "id": "17811767398170x791",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Computer Networks",
+    "subjectCode": "PCCCS601"
+  },
+  {
+    "id": "1781176739818fn3pl",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Machine Learning",
+    "subjectCode": "PCCDS601"
+  },
+  {
+    "id": "17811767398197hh9s",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Big Data Analytics",
+    "subjectCode": "PCCDS602"
+  },
+  {
+    "id": "17811767398207zpd8",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Program Elective - II",
+    "subjectCode": "PECCS601"
+  },
+  {
+    "id": "17811767398213vhux",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Open Elective - II",
+    "subjectCode": "OECCS601"
+  },
+  {
+    "id": "1781176739822v61b4",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Humanities - IV (Engineering Ethics)",
+    "subjectCode": "HSMC601"
+  },
+  {
+    "id": "1781176739823yuh3c",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Computer Networks Laboratory",
+    "subjectCode": "PCCCS691"
+  },
+  {
+    "id": "1781176739824he524",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Machine Learning Laboratory",
+    "subjectCode": "PCCDS691"
+  },
+  {
+    "id": "1781176739825llx2i",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Big Data Analytics Laboratory",
+    "subjectCode": "PCCDS692"
+  },
+  {
+    "id": "1781176739826l2igm",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Project - I",
+    "subjectCode": "PRJCS681"
+  },
+  {
+    "id": "17811767398278dpdg",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Skill Development for Professionals - VI",
+    "subjectCode": "SDP681"
+  },
+  {
+    "id": "1781176739828vc3ro",
+    "year": "3rd Year",
+    "semester": "6th Sem",
+    "subjectName": "Introduction to Basic Astronomy - IV",
+    "subjectCode": "MINOR601T"
+  },
+  {
+    "id": "1781176758494r7xtf",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Deep Learning",
+    "subjectCode": "PCCDS701"
+  },
+  {
+    "id": "1781176758495zpnw2",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Cloud Computing",
+    "subjectCode": "PCCDS702"
+  },
+  {
+    "id": "1781176758496dtkaz",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Program Elective - III",
+    "subjectCode": "PECCS701"
+  },
+  {
+    "id": "1781176758497ihxw8",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Program Elective - IV",
+    "subjectCode": "PECCS702"
+  },
+  {
+    "id": "1781176758498yxqjw",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Open Elective - III",
+    "subjectCode": "OECCS701"
+  },
+  {
+    "id": "1781176758499ifcct",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Humanities - V (Principles of Management)",
+    "subjectCode": "HSMC701"
+  },
+  {
+    "id": "1781176758500nplrp",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Deep Learning Laboratory",
+    "subjectCode": "PCCDS791"
+  },
+  {
+    "id": "1781176758501ui4ej",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Cloud Computing Laboratory",
+    "subjectCode": "PCCDS792"
+  },
+  {
+    "id": "1781176758502x0msd",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Project - II",
+    "subjectCode": "PRJCS781"
+  },
+  {
+    "id": "1781176758503meumb",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Industrial Internship",
+    "subjectCode": "INT781"
+  },
+  {
+    "id": "1781176758504n95sn",
+    "year": "4th Year",
+    "semester": "7th Sem",
+    "subjectName": "Skill Development for Professionals - VII",
+    "subjectCode": "SDP781"
+  },
+  {
+    "id": "17811767681382qnh8",
+    "year": "4th Year",
+    "semester": "8th Sem",
+    "subjectName": "Program Elective - V",
+    "subjectCode": "PECCS801"
+  },
+  {
+    "id": "1781176768139dfvhh",
+    "year": "4th Year",
+    "semester": "8th Sem",
+    "subjectName": "Open Elective - IV",
+    "subjectCode": "OECCS801"
+  },
+  {
+    "id": "1781176768140yd0lq",
+    "year": "4th Year",
+    "semester": "8th Sem",
+    "subjectName": "Humanities - VI (Project Management & Finance)",
+    "subjectCode": "HSMC801"
+  },
+  {
+    "id": "1781176768141j5a7k",
+    "year": "4th Year",
+    "semester": "8th Sem",
+    "subjectName": "Project - III (Major Project)",
+    "subjectCode": "PRJCS881"
+  },
+  {
+    "id": "178117676814290xas",
+    "year": "4th Year",
+    "semester": "8th Sem",
+    "subjectName": "Grand Viva",
+    "subjectCode": "GP881"
+  },
+  {
+    "id": "1781176768143y6qhg",
+    "year": "4th Year",
+    "semester": "8th Sem",
+    "subjectName": "Skill Development for Professionals - VIII",
+    "subjectCode": "SDP881"
+  },
+  {
+    "id": "1781200558582s0coz",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Mathematics - II",
+    "subjectCode": "BSCM203"
+  },
+  {
+    "id": "1781200558583ohiqr",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Physics",
+    "subjectCode": "BSCPH201"
+  },
+  {
+    "id": "1781200558584ddq6z",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Programming for Problem Solving",
+    "subjectCode": "ESCCS201"
+  },
+  {
+    "id": "1781200558585dv2n8",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Engineering Mechanics - II",
+    "subjectCode": "ESCME202"
+  },
+  {
+    "id": "1781200558586mggx3",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Biology for Engineers",
+    "subjectCode": "BSCBE204"
+  },
+  {
+    "id": "1781200558587w81fh",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Essential Studies for Professionals - II",
+    "subjectCode": "ESP201"
+  },
+  {
+    "id": "1781200558588rb6zp",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Engineering Graphics & Design",
+    "subjectCode": "ESCME292"
+  },
+  {
+    "id": "1781200558589kgftm",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Physics Laboratory",
+    "subjectCode": "BSCPH291"
+  },
+  {
+    "id": "17812005585900d7md",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Programming for Problem Solving Laboratory",
+    "subjectCode": "ESCCS291"
+  },
+  {
+    "id": "178120055859127nz6",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Skill Development for Professionals - II",
+    "subjectCode": "SDP281"
+  },
+  {
+    "id": "17812005585926r5h9",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Design Thinking & Innovation - Intermediate",
+    "subjectCode": "IVC281"
+  },
+  {
+    "id": "178120055859313rac",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Economics, Finance and Entrepreneurship Skills - Intermediate",
+    "subjectCode": "IVC282"
+  },
+  {
+    "id": "17812005585943hd83",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Electronics - Fundamentals & Principles",
+    "subjectCode": "IVC283"
+  },
+  {
+    "id": "1781200558595vz6xb",
+    "year": "1st Year",
+    "semester": "2nd Sem",
+    "subjectName": "Co-Curricular Subjects",
+    "subjectCode": "MCC281A"
+  },
+  {
+    "id": "1781244835328dsno2",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Mathematics - III",
+    "subjectCode": "BSM301"
+  },
+  {
+    "id": "1781244835329stady",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Analog Electronic Circuits",
+    "subjectCode": "ESC301"
+  },
+  {
+    "id": "1781244835330stzl4",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Digital Electronics",
+    "subjectCode": "ESC302"
+  },
+  {
+    "id": "1781244835331udygf",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Data Structure & Algorithms",
+    "subjectCode": "PCCCS301"
+  },
+  {
+    "id": "1781244835332wdp7x",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Humanities - I (Principles of Management)",
+    "subjectCode": "HSMCS301"
+  },
+  {
+    "id": "1781244835333bealf",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Essential Studies for Professionals - III",
+    "subjectCode": "ESP301"
+  },
+  {
+    "id": "1781244835334mri23",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "IT Workshop (MATLAB)",
+    "subjectCode": "PCCCS372"
+  },
+  {
+    "id": "1781244835335bo244",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Analog Electronic Circuits Laboratory",
+    "subjectCode": "ESC391"
+  },
+  {
+    "id": "1781244835336u7n29",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Digital Electronics Laboratory",
+    "subjectCode": "ESC392"
+  },
+  {
+    "id": "1781244835337caw6y",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Data Structure & Algorithms Laboratory",
+    "subjectCode": "PCCCS391"
+  },
+  {
+    "id": "178124483533832ef3",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Innovative Project - I",
+    "subjectCode": "PRJCS381"
+  },
+  {
+    "id": "17812448353397tyo1",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Skill Development for Professionals - III",
+    "subjectCode": "SDP381"
+  },
+  {
+    "id": "1781244835340i3fwc",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "subjectName": "Introduction to Basic Astronomy - I",
+    "subjectCode": "MINOR301T"
+  }
+]
