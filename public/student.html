@@ -1414,7 +1414,9 @@ async function loadSessionByToken(token) {
 
   try {
     const enrollment = profile ? (profile.enrollment || '') : '';
-    const res = await fetch(`/api/session/${encodeURIComponent(token)}?enrollment=${encodeURIComponent(enrollment)}`);
+    const studYear = profile ? (profile.year || '2nd Year') : '';
+    const studSection = profile ? (profile.section || 'Sec A') : '';
+    const res = await fetch(`/api/session/${encodeURIComponent(token)}?enrollment=${encodeURIComponent(enrollment)}&year=${encodeURIComponent(studYear)}&section=${encodeURIComponent(studSection)}`);
     const result = await res.json();
 
     if (!result.success) {
@@ -1489,7 +1491,9 @@ if (btnMarkPresent) {
         body: JSON.stringify({
           name: profile.name,
           roll: profile.roll,
-          enrollment: profile.enrollment
+          enrollment: profile.enrollment,
+          year: profile.year || '2nd Year',
+          section: profile.section || 'Sec A'
         })
       });
       const result = await res.json();

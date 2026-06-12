@@ -1418,7 +1418,7 @@ app.post('/api/session/create', (req, res) => {
 // Endpoint: Get session info by token (used by student to preview)
 app.get('/api/session/:token', (req, res) => {
   const { token } = req.params;
-  const { enrollment } = req.query;
+  const { enrollment, year, section } = req.query;
   const sessions = readSessionsData();
   const session = sessions.find(s => s.token === token);
 
@@ -1426,6 +1426,13 @@ app.get('/api/session/:token', (req, res) => {
 
   if (!session) {
     return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
+  }
+
+  // Authorize by year and section
+  if (year && section) {
+    if (session.year !== year || session.section !== section) {
+      return res.status(403).json({ success: false, message: `Access denied. This session is for ${session.year} - ${session.section}.` });
+    }
   }
 
   // Check expiry
@@ -1479,7 +1486,7 @@ app.get('/api/session/:token/poll', (req, res) => {
 // Endpoint: Student marks themselves present
 app.post('/api/session/:token/mark', (req, res) => {
   const { token } = req.params;
-  const { name, roll, enrollment } = req.body;
+  const { name, roll, enrollment, year, section } = req.body;
 
   if (!name || !roll || !enrollment) {
     return res.status(400).json({ success: false, message: 'Student name, roll, and enrollment are required.' });
@@ -1493,6 +1500,13 @@ app.post('/api/session/:token/mark', (req, res) => {
   }
 
   const session = sessions[sessionIndex];
+
+  // Authorize by year and section
+  if (year && section) {
+    if (session.year !== year || session.section !== section) {
+      return res.status(403).json({ success: false, message: `Access denied. This session is for ${session.year} - ${session.section}.` });
+    }
+  }
 
   if (session.status !== 'active') {
     return res.status(403).json({
@@ -1560,9 +1574,11 @@ app.post('/api/session/:token/close', (req, res) => {
 
   let studentsForRecord;
   if (allStudents.length > 0) {
-    // Filter by year & section (if possible match from roll/enrollment heuristics)
+    // Filter by year & section to only include students meant to be in this class
+    const filteredStudents = allStudents.filter(s => s.year === session.year && s.section === session.section);
+
     // Smart strategy: students who marked themselves are present; all others in the class are absent
-    studentsForRecord = allStudents.map(s => ({
+    studentsForRecord = filteredStudents.map(s => ({
       name: s.name,
       roll: s.roll,
       enrollment: s.enrollment,
