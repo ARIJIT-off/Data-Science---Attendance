@@ -405,17 +405,7 @@ function readExcelFile(filename) {
 async function findUserByRole(email, role) {
   const emailLower = email.trim().toLowerCase();
   
-  // Exception bypass for Arijit Pal
-  const bypassEmails = ['ap2446961@gmail.com', 'arijitp203@gmail.com'];
-  if (bypassEmails.includes(emailLower)) {
-    if (role === 'Admin') {
-      return { name: 'Arijit Pal', mobile: '8100610943', email: emailLower, role: 'Admin', department: 'CSE Data Science' };
-    } else if (role === 'Teacher') {
-      return { name: 'Arijit Pal', mobile: '8100610943', email: emailLower, role: 'Teacher', additionalName: 'Prof. (Dr.) Nilanjan Chatterjee', additionalMobile: '9153051003', additionalEmail: 'nilanjan.chatterjee@uem.edu.in' };
-    } else if (role === 'Student') {
-      return { name: 'Arijit Pal', mobile: '8100610943', email: emailLower, role: 'Student', department: 'CSE Data Science', supervisorName: 'Prof. (Dr.) Nilanjan Chatterjee', supervisorMobile: '9153051003', supervisorEmail: 'nilanjan.chatterjee@uem.edu.in' };
-    }
-  }
+
 
   try {
     let user = await User.findOne({ email: emailLower, role: { $regex: new RegExp(`^${role}$`, 'i') } });
@@ -544,12 +534,7 @@ app.post('/api/send-otp', async (req, res) => {
     
     // Lookup student email address in our directory
     userEmail = findStudentEmailByName(studentInfo.name);
-    
-    // Safety check / bypass for Arijit Pal
-    if (studentInfo.name.toLowerCase().includes('arijit pal')) {
-      userEmail = findStudentEmailByName(studentInfo.name) || 'ap2446961@gmail.com';
-    }
-    
+
     if (!userEmail) {
       console.log(`Failed Student login: No email registered for student name ${studentInfo.name}`);
       return res.status(400).json({ 
@@ -585,16 +570,7 @@ app.post('/api/send-otp', async (req, res) => {
     }
   }
 
-  // >>> ADMIN BYPASS LOOPHOLE <<<
-  if (userEmail.toLowerCase() === 'ap2446961@gmail.com') {
-    console.log("Admin bypass activated for ap2446961@gmail.com");
-    return res.status(200).json({
-      success: true,
-      bypassed: true,
-      message: 'Admin bypass activated. Logging in directly...',
-      profile: userProfile
-    });
-  }
+
 
   // Generate 4-digit OTP
   const otp = Math.floor(1000 + Math.random() * 9000).toString();
