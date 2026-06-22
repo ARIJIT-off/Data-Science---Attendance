@@ -368,7 +368,9 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: credentials.email,
     pass: credentials.password
-  }
+  },
+  // Force IPv4 because Railway sometimes fails to route IPv6 to Gmail
+  family: 4
 });
 
 // Verify connection configuration
