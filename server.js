@@ -9,7 +9,18 @@ const mongoose = require('mongoose');
 // ============================================================
 // DATABASE SETUP - MongoDB Atlas with JSON file fallback
 // ============================================================
-
+//
+// To enable MongoDB Atlas persistence, set the MONGODB_URI environment
+// variable before starting the server:
+//
+//   • Local development : add it to a .env file (see .env.example)
+//   • Railway deployment: go to your service → Settings → Variables
+//                         and add  MONGODB_URI = <your Atlas connection string>
+//
+// Without MONGODB_URI the app falls back to local JSON files, which are
+// wiped on every Railway redeploy (ephemeral filesystem).  Always set
+// MONGODB_URI in Railway for data to persist across deploys.
+//
 const MONGODB_URI = process.env.MONGODB_URI || null;
 let useMongoDb = false;
 
