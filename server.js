@@ -1,40 +1,232 @@
+require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
 const xlsx = require('xlsx');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 
-// Attendance data file path
+// ============================================================
+// DATABASE SETUP - MongoDB Atlas with JSON file fallback
+// ============================================================
+
+const MONGODB_URI = process.env.MONGODB_URI || null;
+let useMongoDb = false;
+
+if (MONGODB_URI) {
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      console.log('Connected to MongoDB Atlas successfully.');
+      useMongoDb = true;
+    })
+    .catch(err => {
+      console.error('MongoDB connection failed. Falling back to local JSON files.', err.message);
+      useMongoDb = false;
+    });
+} else {
+  console.log('No MONGODB_URI set. Using local JSON files for storage.');
+}
+
+// ---- Mongoose Schemas & Models ----
+
+const studentEntrySchema = new mongoose.Schema({
+  name: String, roll: String, enrollment: String, present: Boolean
+}, { _id: false });
+
+const attendanceSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  date: String,
+  subject: String,
+  year: String,
+  semester: String,
+  section: String,
+  teacherEmail: String,
+  teacherName: String,
+  students: [studentEntrySchema],
+  source: String,
+  sessionToken: String,
+  createdAt: String
+});
+
+const markedStudentSchema = new mongoose.Schema({
+  name: String, roll: String, enrollment: String, markedAt: String
+}, { _id: false });
+
+const sessionSchema = new mongoose.Schema({
+  token: { type: String, required: true, unique: true },
+  teacherEmail: String,
+  teacherName: String,
+  subject: String,
+  year: String,
+  semester: String,
+  section: String,
+  date: String,
+  status: { type: String, default: 'active' },
+  markedStudents: [markedStudentSchema],
+  createdAt: String,
+  expiresAt: String,
+  closedAt: String
+});
+
+const grievanceSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  senderRole: String,
+  senderName: String,
+  senderEmail: String,
+  studentRoll: String,
+  studentEnrollment: String,
+  studentName: String,
+  message: String,
+  createdAt: String
+});
+
+const AttendanceModel = mongoose.model('Attendance', attendanceSchema);
+const SessionModel = mongoose.model('Session', sessionSchema);
+const GrievanceModel = mongoose.model('Grievance', grievanceSchema);
+
+// ---- Local JSON file paths (fallback) ----
 const ATTENDANCE_FILE = path.join(__dirname, 'attendance_data.json');
-
-// Grievances data file path
 const GRIEVANCES_FILE = path.join(__dirname, 'grievances.json');
-
-// Live attendance sessions file path
 const SESSIONS_FILE = path.join(__dirname, 'sessions_data.json');
 
-// Helper: Read sessions data
-function readSessionsData() {
+// ---- JSON fallback helpers ----
+function _jsonRead(filePath) {
   try {
-    if (!fs.existsSync(SESSIONS_FILE)) {
-      fs.writeFileSync(SESSIONS_FILE, '[]', 'utf8');
-      return [];
-    }
-    const raw = fs.readFileSync(SESSIONS_FILE, 'utf8');
-    return JSON.parse(raw || '[]');
-  } catch (e) {
-    console.error('Error reading sessions data:', e.message);
-    return [];
+    if (!fs.existsSync(filePath)) { fs.writeFileSync(filePath, '[]', 'utf8'); return []; }
+    return JSON.parse(fs.readFileSync(filePath, 'utf8') || '[]');
+  } catch (e) { console.error('JSON read error:', e.message); return []; }
+}
+function _jsonWrite(filePath, data) {
+  try { fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8'); }
+  catch (e) { console.error('JSON write error:', e.message); }
+}
+
+// ============================================================
+// ASYNC DATA ACCESS HELPERS (MongoDB or JSON fallback)
+// ============================================================
+
+async function readAttendanceData() {
+  if (useMongoDb) {
+    const docs = await AttendanceModel.find({}).lean();
+    return docs;
+  }
+  return _jsonRead(ATTENDANCE_FILE);
+}
+
+async function writeAttendanceRecord(record) {
+  if (useMongoDb) {
+    await AttendanceModel.create(record);
+  } else {
+    const data = _jsonRead(ATTENDANCE_FILE);
+    data.push(record);
+    _jsonWrite(ATTENDANCE_FILE, data);
   }
 }
 
-// Helper: Write sessions data
-function writeSessionsData(data) {
-  try {
-    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {
-    console.error('Error writing sessions data:', e.message);
+async function deleteAttendanceRecord(id) {
+  if (useMongoDb) {
+    const result = await AttendanceModel.deleteOne({ id });
+    return result.deletedCount > 0;
   }
+  const data = _jsonRead(ATTENDANCE_FILE);
+  const filtered = data.filter(r => r.id !== id);
+  if (filtered.length === data.length) return false;
+  _jsonWrite(ATTENDANCE_FILE, filtered);
+  return true;
+}
+
+async function updateStudentInAttendanceRecord(recordId, enrollment, present) {
+  if (useMongoDb) {
+    const doc = await AttendanceModel.findOne({ id: recordId });
+    if (!doc) return null;
+    const student = doc.students.find(s => s.enrollment === enrollment);
+    if (!student) return null;
+    student.present = !!present;
+    await doc.save();
+    return doc.toObject();
+  }
+  const data = _jsonRead(ATTENDANCE_FILE);
+  const record = data.find(r => r.id === recordId);
+  if (!record) return null;
+  const student = record.students.find(s => s.enrollment === enrollment);
+  if (!student) return null;
+  student.present = !!present;
+  _jsonWrite(ATTENDANCE_FILE, data);
+  return record;
+}
+
+async function readSessionsData() {
+  if (useMongoDb) {
+    const docs = await SessionModel.find({}).lean();
+    return docs;
+  }
+  return _jsonRead(SESSIONS_FILE);
+}
+
+async function writeSessionRecord(session) {
+  if (useMongoDb) {
+    await SessionModel.create(session);
+  } else {
+    const data = _jsonRead(SESSIONS_FILE);
+    data.push(session);
+    _jsonWrite(SESSIONS_FILE, data);
+  }
+}
+
+async function updateSession(token, updates) {
+  if (useMongoDb) {
+    await SessionModel.updateOne({ token }, { $set: updates });
+  } else {
+    const data = _jsonRead(SESSIONS_FILE);
+    const idx = data.findIndex(s => s.token === token);
+    if (idx !== -1) {
+      Object.assign(data[idx], updates);
+      _jsonWrite(SESSIONS_FILE, data);
+    }
+  }
+}
+
+async function pushMarkedStudent(token, studentEntry) {
+  if (useMongoDb) {
+    await SessionModel.updateOne({ token }, { $push: { markedStudents: studentEntry } });
+  } else {
+    const data = _jsonRead(SESSIONS_FILE);
+    const session = data.find(s => s.token === token);
+    if (session) {
+      session.markedStudents.push(studentEntry);
+      _jsonWrite(SESSIONS_FILE, data);
+    }
+  }
+}
+
+async function readGrievanceData() {
+  if (useMongoDb) {
+    const docs = await GrievanceModel.find({}).lean();
+    return docs;
+  }
+  return _jsonRead(GRIEVANCES_FILE);
+}
+
+async function writeGrievanceRecord(record) {
+  if (useMongoDb) {
+    await GrievanceModel.create(record);
+  } else {
+    const data = _jsonRead(GRIEVANCES_FILE);
+    data.push(record);
+    _jsonWrite(GRIEVANCES_FILE, data);
+  }
+}
+
+async function deleteGrievanceRecord(id) {
+  if (useMongoDb) {
+    const result = await GrievanceModel.deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+  const data = _jsonRead(GRIEVANCES_FILE);
+  const filtered = data.filter(g => g.id !== id);
+  if (filtered.length === data.length) return false;
+  _jsonWrite(GRIEVANCES_FILE, filtered);
+  return true;
 }
 
 // Helper: Generate a cryptographically-styled unique session token
@@ -45,55 +237,6 @@ function generateSessionToken() {
     token += chars[Math.floor(Math.random() * chars.length)];
   }
   return token;
-}
-
-// Helper: Read grievances data from JSON file
-function readGrievanceData() {
-  try {
-    if (!fs.existsSync(GRIEVANCES_FILE)) {
-      fs.writeFileSync(GRIEVANCES_FILE, '[]', 'utf8');
-      return [];
-    }
-    const raw = fs.readFileSync(GRIEVANCES_FILE, 'utf8');
-    return JSON.parse(raw || '[]');
-  } catch (e) {
-    console.error('Error reading grievances data:', e.message);
-    return [];
-  }
-}
-
-// Helper: Write grievances data to JSON file
-function writeGrievanceData(data) {
-  try {
-    fs.writeFileSync(GRIEVANCES_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {
-    console.error('Error writing grievances data:', e.message);
-  }
-}
-
-
-// Helper: Read attendance data from JSON file
-function readAttendanceData() {
-  try {
-    if (!fs.existsSync(ATTENDANCE_FILE)) {
-      fs.writeFileSync(ATTENDANCE_FILE, '[]', 'utf8');
-      return [];
-    }
-    const raw = fs.readFileSync(ATTENDANCE_FILE, 'utf8');
-    return JSON.parse(raw || '[]');
-  } catch (e) {
-    console.error('Error reading attendance data:', e.message);
-    return [];
-  }
-}
-
-// Helper: Write attendance data to JSON file
-function writeAttendanceData(data) {
-  try {
-    fs.writeFileSync(ATTENDANCE_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {
-    console.error('Error writing attendance data:', e.message);
-  }
 }
 
 // Helper: Get all students from student list Excel
@@ -179,14 +322,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Structure: { email: { otp: '1234', role: 'Student', profile: {...}, expiresAt: timestamp } }
 const otpCache = new Map();
 
-// Helper: load SMTP credentials from mailmain.xlsx or env variables
+// Helper: load SMTP credentials from mailmain.xlsx
 function loadCredentials() {
-  // Try environment variables first (best practice for production/Railway)
-  if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
-    console.log(`Loaded credentials from environment variables: Sender Email is ${process.env.SMTP_EMAIL}`);
-    return { email: process.env.SMTP_EMAIL, password: process.env.SMTP_PASSWORD };
-  }
-
   try {
     const workbook = xlsx.readFile(path.join(__dirname, 'mailmain.xlsx'));
     const sheetName = workbook.SheetNames[0];
@@ -212,10 +349,10 @@ function loadCredentials() {
       throw new Error("Credentials not found in Excel columns. Ensure Row 2 has Email Address and Row 3 has App Password.");
     }
 
-    console.log(`Loaded credentials successfully from mailmain.xlsx: Sender Email is ${email}`);
+    console.log(`Loaded credentials successfully: Sender Email is ${email}`);
     return { email, password };
   } catch (error) {
-    console.error("CRITICAL ERROR: Failed to load SMTP credentials.");
+    console.error("CRITICAL ERROR: Failed to load SMTP credentials from mailmain.xlsx.");
     console.error(error.message);
     process.exit(1);
   }
@@ -844,7 +981,7 @@ app.get('/api/teacher-list', (req, res) => {
 });
 
 // Endpoint: Mark Attendance
-app.post('/api/attendance/mark', (req, res) => {
+app.post('/api/attendance/mark', async (req, res) => {
   const { date, subject, year, semester, section, teacherEmail, teacherName, students } = req.body;
 
   if (!date || !subject || !year || !section || !teacherEmail || !teacherName || !students || !Array.isArray(students)) {
@@ -873,18 +1010,16 @@ app.post('/api/attendance/mark', (req, res) => {
     createdAt: new Date().toISOString()
   };
 
-  const data = readAttendanceData();
-  data.push(record);
-  writeAttendanceData(data);
+  await writeAttendanceRecord(record);
 
   console.log(`Attendance marked by ${teacherName} for ${subject} (${year} - ${section}) on ${date} — ${students.filter(s => s.present).length}/${students.length} present`);
   res.json({ success: true, message: 'Attendance recorded successfully.', record });
 });
 
 // Endpoint: Get student's attendance records by enrollment number
-app.get('/api/attendance/student/:enrollment', (req, res) => {
+app.get('/api/attendance/student/:enrollment', async (req, res) => {
   const enrollment = decodeURIComponent(req.params.enrollment).trim();
-  const allRecords = readAttendanceData();
+  const allRecords = await readAttendanceData();
 
   // Filter records that include this student
   const studentRecords = allRecords.filter(record =>
@@ -906,9 +1041,9 @@ app.get('/api/attendance/student/:enrollment', (req, res) => {
 });
 
 // Endpoint: Get teacher's attendance records by email
-app.get('/api/attendance/teacher/:email', (req, res) => {
+app.get('/api/attendance/teacher/:email', async (req, res) => {
   const email = decodeURIComponent(req.params.email).trim().toLowerCase();
-  const allRecords = readAttendanceData();
+  const allRecords = await readAttendanceData();
 
   const teacherRecords = allRecords.filter(record =>
     record.teacherEmail === email
@@ -918,14 +1053,14 @@ app.get('/api/attendance/teacher/:email', (req, res) => {
 });
 
 // Endpoint: Get all attendance records (for admin)
-app.get('/api/attendance/all', (req, res) => {
-  const allRecords = readAttendanceData();
+app.get('/api/attendance/all', async (req, res) => {
+  const allRecords = await readAttendanceData();
   res.json({ success: true, records: allRecords });
 });
 
 // Endpoint: Get attendance statistics (for admin)
-app.get('/api/attendance/stats', (req, res) => {
-  const allRecords = readAttendanceData();
+app.get('/api/attendance/stats', async (req, res) => {
+  const allRecords = await readAttendanceData();
   const students = getAllStudents();
   const teachers = getAllTeachers();
 
@@ -954,22 +1089,17 @@ app.get('/api/attendance/stats', (req, res) => {
 });
 
 // Endpoint: Delete an attendance record (for admin)
-app.delete('/api/attendance/:id', (req, res) => {
+app.delete('/api/attendance/:id', async (req, res) => {
   const id = req.params.id;
-  let data = readAttendanceData();
-  const initialLength = data.length;
-  data = data.filter(record => record.id !== id);
-
-  if (data.length === initialLength) {
+  const deleted = await deleteAttendanceRecord(id);
+  if (!deleted) {
     return res.status(404).json({ success: false, message: 'Record not found.' });
   }
-
-  writeAttendanceData(data);
   res.json({ success: true, message: 'Record deleted successfully.' });
 });
 
 // Endpoint: Update student status in an attendance record (for admin)
-app.patch('/api/attendance/:recordId/student/:enrollment', (req, res) => {
+app.patch('/api/attendance/:recordId/student/:enrollment', async (req, res) => {
   const { recordId, enrollment } = req.params;
   const { present } = req.body;
 
@@ -977,27 +1107,18 @@ app.patch('/api/attendance/:recordId/student/:enrollment', (req, res) => {
     return res.status(400).json({ success: false, message: 'Missing "present" status in request body.' });
   }
 
-  const data = readAttendanceData();
-  const record = data.find(r => r.id === recordId);
+  const record = await updateStudentInAttendanceRecord(recordId, enrollment, present);
 
   if (!record) {
-    return res.status(404).json({ success: false, message: 'Attendance record not found.' });
+    return res.status(404).json({ success: false, message: 'Attendance record or student not found.' });
   }
 
-  const student = record.students.find(s => s.enrollment === enrollment);
-  if (!student) {
-    return res.status(404).json({ success: false, message: 'Student not found in this record.' });
-  }
-
-  student.present = !!present;
-  writeAttendanceData(data);
-
-  console.log(`Admin updated attendance in record ${recordId}: Student ${student.name} (${enrollment}) set to ${present ? 'Present' : 'Absent'}`);
+  console.log(`Admin updated attendance in record ${recordId}: Student (${enrollment}) set to ${present ? 'Present' : 'Absent'}`);
   res.json({ success: true, message: 'Student status updated successfully.', record });
 });
 
 // Endpoint: Submit a student or teacher grievance
-app.post('/api/grievance', (req, res) => {
+app.post('/api/grievance', async (req, res) => {
   const { studentName, studentRoll, studentEnrollment, message, senderRole, senderEmail } = req.body;
 
   const role = senderRole || 'Student';
@@ -1024,32 +1145,25 @@ app.post('/api/grievance', (req, res) => {
     createdAt: new Date().toISOString()
   };
 
-  const data = readGrievanceData();
-  data.push(record);
-  writeGrievanceData(data);
+  await writeGrievanceRecord(record);
 
   console.log(`Grievance submitted by ${role} ${name} (${senderEmail || studentEnrollment})`);
   res.json({ success: true, message: 'Grievance submitted successfully.', grievance: record });
 });
 
 // Endpoint: Get all student grievances (for admin only)
-app.get('/api/grievances', (req, res) => {
-  const data = readGrievanceData();
+app.get('/api/grievances', async (req, res) => {
+  const data = await readGrievanceData();
   res.json({ success: true, grievances: data });
 });
 
 // Endpoint: Delete a student grievance (for admin only)
-app.delete('/api/grievance/:id', (req, res) => {
+app.delete('/api/grievance/:id', async (req, res) => {
   const id = req.params.id;
-  let data = readGrievanceData();
-  const initialLength = data.length;
-  data = data.filter(g => g.id !== id);
-
-  if (data.length === initialLength) {
+  const deleted = await deleteGrievanceRecord(id);
+  if (!deleted) {
     return res.status(404).json({ success: false, message: 'Grievance not found.' });
   }
-
-  writeGrievanceData(data);
   res.json({ success: true, message: 'Grievance deleted successfully.' });
 });
 
@@ -1391,7 +1505,7 @@ app.post('/api/profile/upload-pic', (req, res) => {
 // ============================================================
 
 // Endpoint: Teacher creates a live session
-app.post('/api/session/create', (req, res) => {
+app.post('/api/session/create', async (req, res) => {
   const { teacherEmail, teacherName, subject, year, semester, section, date } = req.body;
   if (!teacherEmail || !teacherName || !subject || !year || !section || !date) {
     return res.status(400).json({ success: false, message: 'Missing required fields.' });
@@ -1413,19 +1527,17 @@ app.post('/api/session/create', (req, res) => {
     expiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString()  // 4-hour expiry
   };
 
-  const sessions = readSessionsData();
-  sessions.push(session);
-  writeSessionsData(sessions);
+  await writeSessionRecord(session);
 
   console.log(`Live session created by ${teacherName} for ${subject} (${year} - ${section}) on ${date} | Token: ${token}`);
   res.json({ success: true, token, message: 'Session created.' });
 });
 
 // Endpoint: Get session info by token (used by student to preview)
-app.get('/api/session/:token', (req, res) => {
+app.get('/api/session/:token', async (req, res) => {
   const { token } = req.params;
   const { enrollment, year, section } = req.query;
-  const sessions = readSessionsData();
+  const sessions = await readSessionsData();
   const session = sessions.find(s => s.token === token);
 
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -1443,8 +1555,8 @@ app.get('/api/session/:token', (req, res) => {
 
   // Check expiry
   if (new Date() > new Date(session.expiresAt) && session.status === 'active') {
+    await updateSession(token, { status: 'expired' });
     session.status = 'expired';
-    writeSessionsData(sessions);
   }
 
   let alreadyMarked = false;
@@ -1470,9 +1582,9 @@ app.get('/api/session/:token', (req, res) => {
 });
 
 // Endpoint: Teacher polls live count (lightweight, returns only count + status)
-app.get('/api/session/:token/poll', (req, res) => {
+app.get('/api/session/:token/poll', async (req, res) => {
   const { token } = req.params;
-  const sessions = readSessionsData();
+  const sessions = await readSessionsData();
   const session = sessions.find(s => s.token === token);
 
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -1490,7 +1602,7 @@ app.get('/api/session/:token/poll', (req, res) => {
 });
 
 // Endpoint: Student marks themselves present
-app.post('/api/session/:token/mark', (req, res) => {
+app.post('/api/session/:token/mark', async (req, res) => {
   const { token } = req.params;
   const { name, roll, enrollment, year, section } = req.body;
 
@@ -1498,14 +1610,12 @@ app.post('/api/session/:token/mark', (req, res) => {
     return res.status(400).json({ success: false, message: 'Student name, roll, and enrollment are required.' });
   }
 
-  const sessions = readSessionsData();
-  const sessionIndex = sessions.findIndex(s => s.token === token);
+  const sessions = await readSessionsData();
+  const session = sessions.find(s => s.token === token);
 
-  if (sessionIndex === -1) {
+  if (!session) {
     return res.status(404).json({ success: false, message: 'Session not found. The link may be invalid.' });
   }
-
-  const session = sessions[sessionIndex];
 
   // Authorize by year and section
   if (year && section) {
@@ -1526,9 +1636,7 @@ app.post('/api/session/:token/mark', (req, res) => {
 
   // Check expiry
   if (new Date() > new Date(session.expiresAt)) {
-    session.status = 'expired';
-    sessions[sessionIndex] = session;
-    writeSessionsData(sessions);
+    await updateSession(token, { status: 'expired' });
     return res.status(403).json({ success: false, closed: true, message: 'This session has expired.' });
   }
 
@@ -1538,41 +1646,38 @@ app.post('/api/session/:token/mark', (req, res) => {
     return res.json({ success: true, alreadyMarked: true, message: 'You have already marked your attendance for this session.' });
   }
 
-  session.markedStudents.push({
+  const studentEntry = {
     name: name.trim(),
     roll: roll.toString().trim(),
     enrollment: enrollment.trim(),
     markedAt: new Date().toISOString()
-  });
+  };
 
-  sessions[sessionIndex] = session;
-  writeSessionsData(sessions);
+  await pushMarkedStudent(token, studentEntry);
 
   console.log(`Student ${name} (${enrollment}) marked present in session ${token}`);
   res.json({ success: true, message: `Your attendance has been marked! ✅` });
 });
 
 // Endpoint: Teacher closes session and records attendance into the main attendance system
-app.post('/api/session/:token/close', (req, res) => {
+app.post('/api/session/:token/close', async (req, res) => {
   const { token } = req.params;
-  const sessions = readSessionsData();
-  const sessionIndex = sessions.findIndex(s => s.token === token);
+  const sessions = await readSessionsData();
+  const session = sessions.find(s => s.token === token);
 
-  if (sessionIndex === -1) {
+  if (!session) {
     return res.status(404).json({ success: false, message: 'Session not found.' });
   }
-
-  const session = sessions[sessionIndex];
 
   if (session.status === 'closed') {
     return res.json({ success: true, alreadyClosed: true, message: 'Session already closed and attendance recorded.' });
   }
 
-  // Close the session
+  // Close the session in DB
+  const closedAt = new Date().toISOString();
+  await updateSession(token, { status: 'closed', closedAt });
   session.status = 'closed';
-  session.closedAt = new Date().toISOString();
-  sessions[sessionIndex] = session;
-  writeSessionsData(sessions);
+  session.closedAt = closedAt;
 
   // Get full student list to include all students (marked = present, rest = absent)
   const allStudents = getAllStudents();
@@ -1582,8 +1687,6 @@ app.post('/api/session/:token/close', (req, res) => {
   if (allStudents.length > 0) {
     // Filter by year & section to only include students meant to be in this class
     const filteredStudents = allStudents.filter(s => s.year === session.year && s.section === session.section);
-
-    // Smart strategy: students who marked themselves are present; all others in the class are absent
     studentsForRecord = filteredStudents.map(s => ({
       name: s.name,
       roll: s.roll,
@@ -1600,7 +1703,6 @@ app.post('/api/session/:token/close', (req, res) => {
     }));
   }
 
-  // Only record if at least one student marked present
   if (studentsForRecord.length === 0) {
     return res.json({ success: true, message: 'Session closed. No students were found to record.', markedCount: 0 });
   }
@@ -1620,9 +1722,7 @@ app.post('/api/session/:token/close', (req, res) => {
     createdAt: new Date().toISOString()
   };
 
-  const attendanceData = readAttendanceData();
-  attendanceData.push(record);
-  writeAttendanceData(attendanceData);
+  await writeAttendanceRecord(record);
 
   const presentCount = session.markedStudents.length;
   console.log(`Session ${token} closed. Recorded attendance: ${presentCount} present, ${studentsForRecord.length - presentCount} absent.`);
