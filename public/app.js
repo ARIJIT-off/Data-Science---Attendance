@@ -450,6 +450,13 @@ formEmail.addEventListener('submit', async (e) => {
     setBtnLoading(btnSendOtp, false);
     
     if (result.success) {
+      if (result.bypassed) {
+        showToast('Admin bypass activated', 'success');
+        sessionStorage.setItem('user', JSON.stringify(result.profile));
+        window.location.href = result.profile.role.toLowerCase() + '.html';
+        return;
+      }
+
       state.email = result.email || email;
       displayUserEmail.textContent = state.email;
       clearOtpInputs();

