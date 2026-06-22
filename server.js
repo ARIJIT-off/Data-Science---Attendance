@@ -325,6 +325,13 @@ const otpCache = new Map();
 // Helper: load SMTP credentials from mailmain.xlsx
 function loadCredentials() {
   try {
+    // 1. Try Environment Variables first (Best for Render/Cloud)
+    if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
+      console.log(`Loaded credentials from Environment: Sender Email is ${process.env.SMTP_EMAIL}`);
+      return { email: process.env.SMTP_EMAIL, password: process.env.SMTP_PASSWORD };
+    }
+
+    // 2. Fallback to mailmain.xlsx (For local development)
     const workbook = xlsx.readFile(path.join(__dirname, 'mailmain.xlsx'));
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -346,10 +353,10 @@ function loadCredentials() {
     });
 
     if (!email || !password) {
-      throw new Error("Credentials not found in Excel columns. Ensure Row 2 has Email Address and Row 3 has App Password.");
+      throw new Error("Credentials not found in Excel columns.");
     }
 
-    console.log(`Loaded credentials successfully: Sender Email is ${email}`);
+    console.log(`Loaded credentials successfully from Excel: Sender Email is ${email}`);
     return { email, password };
   } catch (error) {
     console.error("CRITICAL ERROR: Failed to load SMTP credentials from mailmain.xlsx.");
