@@ -240,73 +240,34 @@ function generateSessionToken() {
 }
 
 // Helper: Get all students from student list Excel
-function getAllStudents() {
+async function getAllStudents() {
   try {
-    const filePath = path.join(__dirname, 'student_list passout 2028.xlsx');
-    const workbook = xlsx.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-
-    let headerRowIndex = -1;
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      if (row && row.includes('Class Roll') && row.includes('Student Name')) {
-        headerRowIndex = i;
-        break;
-      }
-    }
-
-    if (headerRowIndex === -1) return [];
-
-    const rollCol = data[headerRowIndex].indexOf('Class Roll');
-    const nameCol = data[headerRowIndex].indexOf('Student Name');
-    const enrollCol = data[headerRowIndex].indexOf('Enrollment No.');
-    const yearCol = data[headerRowIndex].indexOf('Year');
-    const sectionCol = data[headerRowIndex].indexOf('Section');
-
-    const students = [];
-    for (let i = headerRowIndex + 1; i < data.length; i++) {
-      const row = data[i];
-      if (row && row[rollCol] !== undefined && row[rollCol] !== null && row[nameCol]) {
-        students.push({
-          roll: row[rollCol].toString().trim(),
-          name: row[nameCol].toString().trim(),
-          enrollment: row[enrollCol] ? row[enrollCol].toString().trim() : '',
-          year: yearCol !== -1 && row[yearCol] ? row[yearCol].toString().trim() : '2nd Year',
-          section: sectionCol !== -1 && row[sectionCol] ? row[sectionCol].toString().trim() : 'Sec A'
-        });
-      }
-    }
-    return students;
+    const users = await User.find({ role: { $regex: /^student$/i } }).lean();
+    return users.map(u => ({
+      roll: u.rollNo || u.roll || '',
+      name: u.name,
+      enrollment: u.enrollmentNo || u.enrollment || '',
+      year: u.year || '2nd Year',
+      section: u.section || 'Sec A',
+      email: u.email
+    }));
   } catch (e) {
-    console.error('Error reading student list:', e.message);
+    console.error('Error in getAllStudents:', e.message);
     return [];
   }
 }
 
 // Helper: Get all teachers from teacher data Excel
-function getAllTeachers() {
+async function getAllTeachers() {
   try {
-    const rows = readExcelFile('teacher data.xlsx');
-    const teachers = [];
-    const seen = new Set();
-    rows.forEach(r => {
-      if (r['Supervisor Name'] && r['Supervisor Email']) {
-        const email = r['Supervisor Email'].toString().trim();
-        if (!seen.has(email.toLowerCase())) {
-          seen.add(email.toLowerCase());
-          teachers.push({
-            name: r['Supervisor Name'].toString().trim(),
-            email: email,
-            mobile: r['Supervisor Mobile'] ? r['Supervisor Mobile'].toString().trim() : 'N/A'
-          });
-        }
-      }
-    });
-    return teachers;
+    const users = await User.find({ role: { $regex: /^teacher$/i } }).lean();
+    return users.map(u => ({
+      name: u.name,
+      email: u.email,
+      department: u.department || ''
+    }));
   } catch (e) {
-    console.error('Error reading teacher list:', e.message);
+    console.error('Error in getAllTeachers:', e.message);
     return [];
   }
 }
@@ -478,31 +439,16 @@ async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
 }
 
 // Helper: Find student email by name in database sheets
-function findStudentEmailByName(name) {
-  const nameLower = name.toLowerCase().trim();
-  
-  // 1. Search in admin data.xlsx
+async function findStudentEmailByName(name) {
   try {
-    const adminRows = readExcelFile('admin data.xlsx');
-    const match = adminRows.find(r => r.Name && r.Name.toString().toLowerCase().trim() === nameLower && r.Role && r.Role.toString().toLowerCase().trim() === 'student');
-    if (match && match.Email) {
-      return match.Email.toString().trim();
-    }
+    const nameLower = name.toLowerCase().trim();
+    const user = await User.findOne({ name: { $regex: new RegExp(`^${nameLower}$`, 'i') }, role: { $regex: /^student$/i } }).lean();
+    if (user && user.email) return user.email;
+    const user2 = await User.findOne({ additionalName: { $regex: new RegExp(`^${nameLower}$`, 'i') } }).lean();
+    if (user2 && user2.additionalEmail) return user2.additionalEmail;
   } catch (e) {
-    console.error("Error searching student email in admin data:", e.message);
+    console.error("Error searching student email:", e.message);
   }
-  
-  // 2. Search in teacher data.xlsx
-  try {
-    const teacherRows = readExcelFile('teacher data.xlsx');
-    const match = teacherRows.find(r => r['Additional Name'] && r['Additional Name'].toString().toLowerCase().trim() === nameLower);
-    if (match && match['Additional Email']) {
-      return match['Additional Email'].toString().trim();
-    }
-  } catch (e) {
-    console.error("Error searching student email in teacher data:", e.message);
-  }
-  
   return null;
 }
 
@@ -523,7 +469,7 @@ app.post('/api/send-otp', async (req, res) => {
     }
     
     // Find student in student list passout sheet
-    const studentInfo = findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
+    const studentInfo = await findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
     if (!studentInfo) {
       console.log(`Failed Student login attempt: Enrollment ${enrollmentNo}, Roll ${rollNo} not found in student list`);
       return res.status(400).json({ 
@@ -533,7 +479,7 @@ app.post('/api/send-otp', async (req, res) => {
     }
     
     // Lookup student email address in our directory
-    userEmail = findStudentEmailByName(studentInfo.name);
+    userEmail = await findStudentEmailByName(studentInfo.name);
 
     if (!userEmail) {
       console.log(`Failed Student login: No email registered for student name ${studentInfo.name}`);
@@ -745,14 +691,14 @@ app.post('/api/verify-otp', async (req, res) => {
 });
 
 // Endpoint: Direct Student Login (Enrollment and Roll Number)
-app.post('/api/student-login', (req, res) => {
+app.post('/api/student-login', async (req, res) => {
   const { enrollmentNo, rollNo } = req.body;
 
   if (!enrollmentNo || !rollNo) {
     return res.status(400).json({ success: false, message: 'Enrollment number and Class Roll number are required.' });
   }
 
-  const studentInfo = findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
+  const studentInfo = await findStudentByEnrollmentAndRoll(enrollmentNo, rollNo);
   if (!studentInfo) {
     console.log(`Failed Student login: Enrollment ${enrollmentNo}, Roll ${rollNo} not found.`);
     return res.status(400).json({ 
@@ -828,14 +774,14 @@ app.post('/api/student-login', (req, res) => {
 // ============================================================
 
 // Endpoint: Get full student list
-app.get('/api/student-list', (req, res) => {
-  const students = getAllStudents();
+app.get('/api/student-list', async (req, res) => {
+  const students = await getAllStudents();
   res.json({ success: true, students });
 });
 
 // Endpoint: Get full teacher list
-app.get('/api/teacher-list', (req, res) => {
-  const teachers = getAllTeachers();
+app.get('/api/teacher-list', async (req, res) => {
+  const teachers = await getAllTeachers();
   res.json({ success: true, teachers });
 });
 
@@ -920,7 +866,7 @@ app.get('/api/attendance/all', async (req, res) => {
 // Endpoint: Get attendance statistics (for admin)
 app.get('/api/attendance/stats', async (req, res) => {
   const allRecords = await readAttendanceData();
-  const students = getAllStudents();
+  const students = await getAllStudents();
   const teachers = getAllTeachers();
 
   const totalClasses = allRecords.length;
@@ -1366,7 +1312,7 @@ app.post('/api/session/:token/close', async (req, res) => {
   session.closedAt = closedAt;
 
   // Get full student list to include all students (marked = present, rest = absent)
-  const allStudents = getAllStudents();
+  const allStudents = await getAllStudents();
   const markedEnrollments = new Set(session.markedStudents.map(s => s.enrollment));
 
   let studentsForRecord;
