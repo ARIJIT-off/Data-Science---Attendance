@@ -809,16 +809,7 @@
 
     <!-- Profile Card + Inline Stats -->
     <div class="profile-card">
-      <div class="profile-avatar" id="avatar-container" onclick="triggerAvatarUpload()">
-        <img id="avatar-img" src="" alt="Profile Pic" onload="this.style.display='block'; document.getElementById('avatar-svg-placeholder').style.display='none';" onerror="this.style.display='none'; document.getElementById('avatar-svg-placeholder').style.display='block';">
-        <svg id="avatar-svg-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/>
-        </svg>
-        <div class="avatar-overlay">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </div>
-      </div>
-      <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="handleAvatarSelected(event)">
+
       <div class="profile-info">
         <span class="role-badge badge-admin" id="admin-role-badge">Admin</span>
         <div class="profile-name" id="admin-name">Loading...</div>
@@ -1968,61 +1959,7 @@ btnResendNewEmailOtp.addEventListener('click', async () => {
   btnResendNewEmailOtp.textContent = 'Resend OTP';
 });
 
-// ===== Profile Picture Upload =====
-function triggerAvatarUpload() {
-  document.getElementById('avatar-file-input').click();
-}
 
-async function handleAvatarSelected(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  if (file.size > 5 * 1024 * 1024) {
-    showToast('File size must be under 5MB.', 'error');
-    return;
-  }
-
-  if (!file.type.startsWith('image/')) {
-    showToast('Please select a valid image file.', 'error');
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = async function(e) {
-    const base64Data = e.target.result;
-    
-    try {
-      showToast('Uploading profile picture...', 'info');
-      const res = await fetch('/api/profile/upload-pic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          identifier: profile.email,
-          image: base64Data
-        })
-      });
-      const result = await res.json();
-      if (result.success) {
-        showToast('Profile picture updated successfully!', 'success');
-        const userEmailClean = encodeURIComponent(profile.email);
-        const img = document.getElementById('avatar-img');
-        img.src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`;
-        img.style.display = 'block';
-      } else {
-        showToast(result.message || 'Failed to upload picture.', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Server error during upload.', 'error');
-    }
-  };
-  
-  reader.onerror = function() {
-    showToast('Failed to read file.', 'error');
-  };
-  
-  reader.readAsDataURL(file);
-}
 
 // ===== Background Video Parallax =====
 const bgVideo = document.querySelector('.admin-video-bg video');

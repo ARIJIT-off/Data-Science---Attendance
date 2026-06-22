@@ -330,9 +330,198 @@
     "semester": "1st Sem",
     "section": "Sec A",
     "date": "2026-06-12",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-12T09:13:15.259Z"
+      }
+    ],
+    "createdAt": "2026-06-12T09:12:32.283Z",
+    "expiresAt": "2026-06-12T13:12:32.283Z",
+    "closedAt": "2026-06-12T09:13:28.751Z"
+  },
+  {
+    "token": "cplOp2UN9mP9E1g3ynHDxUM2",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Basic Electrical Engineering",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
+    "status": "active",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-12T09:15:28.892Z"
+      }
+    ],
+    "createdAt": "2026-06-12T09:15:09.475Z",
+    "expiresAt": "2026-06-12T13:15:09.475Z"
+  },
+  {
+    "token": "5PubgcRE56VmNuCG0n0NGvSM",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Co-curricular Subjects",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-12T09:33:39.257Z"
+      }
+    ],
+    "createdAt": "2026-06-12T09:33:07.819Z",
+    "expiresAt": "2026-06-12T13:33:07.819Z",
+    "closedAt": "2026-06-12T09:33:49.967Z"
+  },
+  {
+    "token": "nHoJ45GuspwNFP18wsvt3yUo",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Basic Electrical Engineering",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-12T09:34:27.280Z"
+      }
+    ],
+    "createdAt": "2026-06-12T09:34:13.413Z",
+    "expiresAt": "2026-06-12T13:34:13.413Z",
+    "closedAt": "2026-06-12T09:34:40.842Z"
+  },
+  {
+    "token": "r6uO9aq68f7lQBHpe87l3wzw",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Economics, Finance and Entrepreneurship Skills - Foundation",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-12T09:40:35.687Z"
+      }
+    ],
+    "createdAt": "2026-06-12T09:40:22.883Z",
+    "expiresAt": "2026-06-12T13:40:22.883Z",
+    "closedAt": "2026-06-12T09:40:45.862Z"
+  },
+  {
+    "token": "GKNQh8LJMvVvGRtYrlmP5D9J",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Co-curricular Subjects",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
     "status": "active",
     "markedStudents": [],
-    "createdAt": "2026-06-12T09:12:32.283Z",
-    "expiresAt": "2026-06-12T13:12:32.283Z"
+    "createdAt": "2026-06-12T09:41:19.519Z",
+    "expiresAt": "2026-06-12T13:41:19.519Z"
+  },
+  {
+    "token": "Kgid1TMnE1xZ67bxiztfsZC7",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "IT Workshop (MATLAB)",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-12T09:41:57.164Z"
+      }
+    ],
+    "createdAt": "2026-06-12T09:41:40.192Z",
+    "expiresAt": "2026-06-12T13:41:40.192Z",
+    "closedAt": "2026-06-12T09:42:05.438Z"
+  },
+  {
+    "token": "U8cdUd1neK88ZimCmH0MN5br",
+    "teacherEmail": "ap2446961@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Language Laboratory",
+    "year": "1st Year",
+    "semester": "1st Sem",
+    "section": "Sec A",
+    "date": "2026-06-12",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "NILADRI MONDAL",
+        "roll": "1",
+        "enrollment": "120250002037001",
+        "markedAt": "2026-06-12T09:49:58.619Z"
+      }
+    ],
+    "createdAt": "2026-06-12T09:47:15.200Z",
+    "expiresAt": "2026-06-12T13:47:15.200Z",
+    "closedAt": "2026-06-12T09:50:13.970Z"
+  },
+  {
+    "token": "VRyWkQ14D5Ulm7wslTbEUXhs",
+    "teacherEmail": "chak.ayantika@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Java Programming",
+    "year": "3rd Year",
+    "semester": "5th Sem",
+    "section": "Sec A",
+    "date": "2026-06-22",
+    "status": "active",
+    "markedStudents": [],
+    "createdAt": "2026-06-22T06:47:17.933Z",
+    "expiresAt": "2026-06-22T10:47:17.933Z"
+  },
+  {
+    "token": "KwUYhiqbTU8XvIK8eXiUbHXD",
+    "teacherEmail": "chak.ayantika@gmail.com",
+    "teacherName": "Arijit Pal",
+    "subject": "Data Structure & Algorithms Laboratory",
+    "year": "2nd Year",
+    "semester": "3rd Sem",
+    "section": "Sec A",
+    "date": "2026-06-22",
+    "status": "closed",
+    "markedStudents": [
+      {
+        "name": "ARIJIT PAL",
+        "roll": "2",
+        "enrollment": "12024002037046",
+        "markedAt": "2026-06-22T10:06:00.016Z"
+      }
+    ],
+    "createdAt": "2026-06-22T10:05:26.220Z",
+    "expiresAt": "2026-06-22T14:05:26.220Z",
+    "closedAt": "2026-06-22T10:23:20.799Z"
   }
 ]
