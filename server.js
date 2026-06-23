@@ -6,6 +6,9 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 
+// Globally disable Mongoose buffering so it fails fast on Vercel if DB is down
+mongoose.set('bufferCommands', false);
+
 // ============================================================
 // DATABASE SETUP - MongoDB Atlas with JSON file fallback
 // ============================================================
@@ -501,6 +504,13 @@ async function findStudentEmailByName(name) {
 app.post('/api/send-otp', async (req, res) => {
   const { email, role, enrollmentNo, rollNo } = req.body;
 
+  if (MONGODB_URI && !cached.conn) {
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Database connection failed. Please ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas Network Access.' 
+    });
+  }
+
   if (!role || !['Admin', 'Teacher', 'Student'].includes(role)) {
     return res.status(400).json({ success: false, message: 'Please select a valid role.' });
   }
@@ -738,6 +748,13 @@ app.post('/api/verify-otp', async (req, res) => {
 // Endpoint: Direct Student Login (Enrollment and Roll Number)
 app.post('/api/student-login', async (req, res) => {
   const { enrollmentNo, rollNo } = req.body;
+
+  if (MONGODB_URI && !cached.conn) {
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Database connection failed. Please ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas Network Access.' 
+    });
+  }
 
   if (!enrollmentNo || !rollNo) {
     return res.status(400).json({ success: false, message: 'Enrollment number and Class Roll number are required.' });
