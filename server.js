@@ -329,6 +329,7 @@ app.use(async (req, res, next) => {
 
 // Temporary in-memory cache for OTPs
 // Structure: { email: { otp: '1234', role: 'Student', profile: {...}, expiresAt: timestamp } }
+const User = require('./models/User');
 const Otp = require('./models/Otp');
 const Subject = require('./models/Subject');
 
