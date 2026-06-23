@@ -336,45 +336,48 @@ const Subject = require('./models/Subject');
 
 // Helper: load SMTP credentials from mailmain.xlsx
 function loadCredentials() {
-  try {
-    // 1. Try Environment Variables first (Best for Render/Cloud)
-    if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
-      console.log(`Loaded credentials from Environment: Sender Email is ${process.env.SMTP_EMAIL}`);
-      return { email: process.env.SMTP_EMAIL, password: process.env.SMTP_PASSWORD };
-    }
-
-    // 2. Fallback to mailmain.xlsx (For local development)
-    const workbook = xlsx.readFile(path.join(__dirname, 'mailmain.xlsx'));
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-    
-    let email = null;
-    let password = null;
-
-    data.forEach(row => {
-      if (row && row[0] && row[1]) {
-        const field = row[0].toString().trim().toLowerCase();
-        const val = row[1].toString().trim();
-        if (field.includes('email')) {
-          email = val;
-        } else if (field.includes('password') || field.includes('app password')) {
-          password = val;
-        }
-      }
-    });
-
-    if (!email || !password) {
-      throw new Error("Credentials not found in Excel columns.");
-    }
-
-    console.log(`Loaded credentials successfully from Excel: Sender Email is ${email}`);
-    return { email, password };
-  } catch (error) {
-    console.error("CRITICAL ERROR: Failed to load SMTP credentials from mailmain.xlsx.");
-    console.error(error.message);
-    process.exit(1);
+  // 1. Try Environment Variables first (required for Vercel/Cloud)
+  if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
+    console.log(`Loaded credentials from Environment: Sender Email is ${process.env.SMTP_EMAIL}`);
+    return { email: process.env.SMTP_EMAIL, password: process.env.SMTP_PASSWORD };
   }
+
+  // 2. Fallback to mailmain.xlsx (For local development only)
+  try {
+    const mailFilePath = path.join(__dirname, 'mailmain.xlsx');
+    if (fs.existsSync(mailFilePath)) {
+      const workbook = xlsx.readFile(mailFilePath);
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+      
+      let email = null;
+      let password = null;
+
+      data.forEach(row => {
+        if (row && row[0] && row[1]) {
+          const field = row[0].toString().trim().toLowerCase();
+          const val = row[1].toString().trim();
+          if (field.includes('email')) {
+            email = val;
+          } else if (field.includes('password') || field.includes('app password')) {
+            password = val;
+          }
+        }
+      });
+
+      if (email && password) {
+        console.log(`Loaded credentials from Excel: Sender Email is ${email}`);
+        return { email, password };
+      }
+    }
+  } catch (error) {
+    console.warn('Could not load mailmain.xlsx (expected on Vercel):', error.message);
+  }
+
+  // 3. Fatal: No credentials found anywhere
+  console.error('CRITICAL: No SMTP credentials found. Set SMTP_EMAIL and SMTP_PASSWORD environment variables.');
+  return { email: null, password: null };
 }
 
 const credentials = loadCredentials();
@@ -545,7 +548,7 @@ app.post('/api/send-otp', async (req, res) => {
     }
     
     // Fetch full student profile (including supervisor details)
-    userProfile = findUserByRole(userEmail, 'Student');
+    userProfile = await findUserByRole(userEmail, 'Student');
     if (!userProfile) {
       userProfile = {
         name: studentInfo.name,
@@ -561,7 +564,7 @@ app.post('/api/send-otp', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
     }
     
-    userProfile = findUserByRole(email, role);
+    userProfile = await findUserByRole(email, role);
     if (!userProfile) {
       console.log(`Failed login attempt: Email ${email} does not match role ${role}`);
       return res.status(400).json({ 
@@ -770,34 +773,22 @@ app.post('/api/student-login', async (req, res) => {
   }
 
   // Find if they have extra details in admin/teacher sheets
-  let email = findStudentEmailByName(studentInfo.name) || 'N/A';
+  let email = (await findStudentEmailByName(studentInfo.name)) || 'N/A';
   let mobile = 'N/A';
   let supervisorName = null;
   let supervisorMobile = null;
   let supervisorEmail = null;
 
-  // Check in admin data.xlsx
+  // Check in MongoDB for additional user info
   try {
-    const adminRows = readExcelFile('admin data.xlsx');
-    const match = adminRows.find(r => r.Name && r.Name.toString().toLowerCase().trim() === studentInfo.name.toLowerCase().trim());
-    if (match) {
-      if (match.Email) email = match.Email.toString().trim();
-      if (match.Mobile) mobile = match.Mobile.toString().trim();
+    const userDoc = await User.findOne({ name: { $regex: new RegExp(`^${studentInfo.name}$`, 'i') } }).lean();
+    if (userDoc) {
+      if (userDoc.email && !userDoc.email.endsWith('@student.local')) email = userDoc.email;
+      if (userDoc.mobile) mobile = userDoc.mobile;
     }
-  } catch (e) {}
-
-  // Check in teacher data.xlsx
-  try {
-    const teacherRows = readExcelFile('teacher data.xlsx');
-    const match = teacherRows.find(r => r['Additional Name'] && r['Additional Name'].toString().toLowerCase().trim() === studentInfo.name.toLowerCase().trim());
-    if (match) {
-      if (match['Additional Email']) email = match['Additional Email'].toString().trim();
-      if (match['Additional Mobile']) mobile = match['Additional Mobile'].toString().trim();
-      supervisorName = match['Supervisor Name'];
-      supervisorMobile = match['Supervisor Mobile'];
-      supervisorEmail = match['Supervisor Email'];
-    }
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error looking up student details:', e.message);
+  }
 
   const profile = {
     name: studentInfo.name,
@@ -929,7 +920,7 @@ app.get('/api/attendance/all', async (req, res) => {
 app.get('/api/attendance/stats', async (req, res) => {
   const allRecords = await readAttendanceData();
   const students = await getAllStudents();
-  const teachers = getAllTeachers();
+  const teachers = await getAllTeachers();
 
   const totalClasses = allRecords.length;
   let totalPresent = 0;
