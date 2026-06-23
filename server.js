@@ -13,18 +13,51 @@ const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGODB_URI || null;
 let useMongoDb = false;
 
-if (MONGODB_URI) {
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
+// Global Mongoose connection cache for Serverless environments like Vercel
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (!MONGODB_URI) {
+    console.log('No MONGODB_URI set. Using local JSON files for storage.');
+    return;
+  }
+  
+  if (cached.conn) {
+    useMongoDb = true;
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      bufferCommands: false, // Vercel best practice to avoid hanging
+      serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+    }).then((mongoose) => {
       console.log('Connected to MongoDB Atlas successfully.');
       useMongoDb = true;
-    })
-    .catch(err => {
-      console.error('MongoDB connection failed. Falling back to local JSON files.', err.message);
+      return mongoose;
+    }).catch(err => {
+      console.error('MongoDB connection failed.', err.message);
       useMongoDb = false;
+      cached.promise = null;
+      throw err;
     });
-} else {
-  console.log('No MONGODB_URI set. Using local JSON files for storage.');
+  }
+  
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+  }
+  
+  return cached.conn;
+}
+
+// Also trigger connection immediately on startup
+if (MONGODB_URI) {
+  connectDB().catch(() => {});
 }
 
 // ---- Mongoose Schemas & Models ----
@@ -278,6 +311,18 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Intercept requests to ensure DB connection is ready
+app.use(async (req, res, next) => {
+  if (MONGODB_URI && !cached.conn) {
+    try {
+      await connectDB();
+    } catch (e) {
+      // Ignore here, let routes handle or fail fast
+    }
+  }
+  next();
+});
 
 // Temporary in-memory cache for OTPs
 // Structure: { email: { otp: '1234', role: 'Student', profile: {...}, expiresAt: timestamp } }
