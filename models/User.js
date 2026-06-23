@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
   // Student specific fields
   enrollment: { type: String },
   roll: { type: String },
+  year: { type: String },
+  section: { type: String },
   
   createdAt: { type: Date, default: Date.now }
 });

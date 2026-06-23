@@ -1130,7 +1130,8 @@ document.getElementById('admin-role-badge').textContent = roleText;
 
 // ===== Populate Profile Picture =====
 const userEmailClean = encodeURIComponent(profile.email);
-document.getElementById('avatar-img').src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`;
+const avatarImg = document.getElementById('avatar-img');
+if (avatarImg) { avatarImg.src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`; }
 
 
 // ===== Toast =====
@@ -2485,15 +2486,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      if (!confirm(`WARNING: Are you sure you want to delete ALL students in ${year} - ${section}? This will permanently remove them from the roster.`)) {
-        return;
-      }
-      
       try {
-        const response = await fetch('/api/admin/users/delete-bulk-class', {
+        // First, check how many students match the selected year+section
+        // and how many have no year/section set (legacy records)
+        const checkRes = await fetch('/api/admin/users/delete-bulk-class-check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ year, section })
+        });
+        const check = await checkRes.json();
+        
+        if (!check.success) {
+          showToast(check.message || 'Failed to check student data.', 'error');
+          return;
+        }
+        
+        const exactCount = check.exactCount || 0;
+        const legacyCount = check.legacyCount || 0;
+        const totalCount = exactCount + legacyCount;
+        
+        if (totalCount === 0) {
+          showToast(`No students found in ${year} - ${section}. The roster is already empty.`, 'warning');
+          return;
+        }
+        
+        let confirmMsg = `WARNING: This will permanently delete ALL students in ${year} - ${section}.\n\n`;
+        confirmMsg += `Found: ${exactCount} student(s) tagged to this class`;
+        if (legacyCount > 0) {
+          confirmMsg += `\n\n⚠️ Note: ${legacyCount} student(s) have no class tag set. Since this is the only class, they will also be deleted.\n\nIf you have students in MULTIPLE classes, please first use "Bulk Upload" to re-import each class separately with the correct Year & Section selected.`;
+        }
+        confirmMsg += `\n\nTotal to delete: ${totalCount} student(s)\n\nAre you sure?`;
+        
+        if (!confirm(confirmMsg)) return;
+        
+        const response = await fetch('/api/admin/users/delete-bulk-class', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ year, section, includeLegacy: true })
         });
         const result = await response.json();
         if (result.success) {

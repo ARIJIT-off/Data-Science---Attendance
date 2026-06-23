@@ -767,7 +767,8 @@ document.getElementById('student-year-section').textContent = `${studYear} (${st
 
 // ===== Populate Profile Picture =====
 const userEnrollClean = encodeURIComponent(profile.enrollment || 'unknown');
-document.getElementById('avatar-img').src = `/api/profile/pic/${userEnrollClean}?t=${Date.now()}`;
+const avatarImg = document.getElementById('avatar-img');
+if (avatarImg) { avatarImg.src = `/api/profile/pic/${userEnrollClean}?t=${Date.now()}`; }
 
 // ===== Toast =====
 function showToast(message, type = 'info') {

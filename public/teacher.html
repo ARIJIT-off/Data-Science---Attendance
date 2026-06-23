@@ -650,7 +650,8 @@ document.getElementById('teacher-email').textContent = profile.email || '';
 
 // ===== Populate Profile Picture =====
 const userEmailClean = encodeURIComponent(profile.email);
-document.getElementById('avatar-img').src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`;
+const avatarImg = document.getElementById('avatar-img');
+if (avatarImg) { avatarImg.src = `/api/profile/pic/${userEmailClean}?t=${Date.now()}`; }
 
 
 // Set default date to today
@@ -716,7 +717,6 @@ function renderRoster(students) {
   const selectedYear = document.getElementById('attendance-year').value;
   const selectedSection = document.getElementById('attendance-section').value;
 
-  // Filter the list by Year and Section
   const filtered = students.filter(s => s.year === selectedYear && s.section === selectedSection);
 
   document.getElementById('total-count').textContent = filtered.length;
@@ -729,64 +729,108 @@ function renderRoster(students) {
 
   let html = '';
   filtered.forEach(s => {
-    // Generate initials for avatar
     const initials = s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    
     html += `
-      <div class="checkbox-row" data-name="${s.name.toLowerCase()}">
+      <div class="checkbox-row" data-name="${s.name.toLowerCase()}" data-state="unset">
         <div class="custom-checkbox-wrapper">
           <input type="checkbox" class="student-checkbox" data-roll="${s.roll}" data-name="${s.name}" data-enrollment="${s.enrollment}">
         </div>
+        <span class="attendance-state-dot"></span>
         <div class="student-avatar">${initials}</div>
         <span class="roll-num">${s.roll}</span>
         <span class="student-name">${s.name}</span>
         <span class="enrollment-num">${s.enrollment}</span>
+        <span class="attendance-state-label">—</span>
       </div>
     `;
   });
-  
+
   html += `
     <div class="selection-progress-container">
       <div class="selection-progress-bar" id="selection-progress-bar"></div>
     </div>
   `;
-  
+
   container.innerHTML = html;
   updateSelectCount();
 
-  // Reset search filter
   document.getElementById('student-search').value = '';
 
-  // Attach checkbox change listeners
-  container.querySelectorAll('.student-checkbox').forEach(cb => {
-    cb.addEventListener('change', updateSelectCount);
+  // Attach click handler to every card row for 3-state toggle
+  container.querySelectorAll('.checkbox-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const cb = row.querySelector('.student-checkbox');
+      const label = row.querySelector('.attendance-state-label');
+      const currentState = row.dataset.state;
+
+      if (currentState === 'unset' || currentState === undefined) {
+        // → PRESENT
+        row.dataset.state = 'present';
+        row.classList.remove('checkbox-row--absent');
+        row.classList.add('checkbox-row--present');
+        label.textContent = 'P';
+        cb.checked = true;
+        cb.dataset.markedAbsent = '';
+      } else if (currentState === 'present') {
+        // → ABSENT
+        row.dataset.state = 'absent';
+        row.classList.remove('checkbox-row--present');
+        row.classList.add('checkbox-row--absent');
+        label.textContent = 'A';
+        cb.checked = false;
+        cb.dataset.markedAbsent = 'true';
+      } else {
+        // → UNSET (reset)
+        row.dataset.state = 'unset';
+        row.classList.remove('checkbox-row--present', 'checkbox-row--absent');
+        label.textContent = '—';
+        cb.checked = false;
+        cb.dataset.markedAbsent = '';
+      }
+
+      updateSelectCount();
+    });
   });
 }
 
 function updateSelectCount() {
-  const checkboxes = document.querySelectorAll('.student-checkbox');
-  const checked = document.querySelectorAll('.student-checkbox:checked').length;
-  const total = checkboxes.length;
-  
-  document.getElementById('selected-count').textContent = checked;
-  document.getElementById('btn-submit-attendance').disabled = false; // Allow submitting even with 0 selected (all absent)
-  
-  // Update progress bar
+  const rows = document.querySelectorAll('.checkbox-row[data-state]');
+  const presentCount = Array.from(rows).filter(r => r.dataset.state === 'present').length;
+  const total = rows.length;
+
+  document.getElementById('selected-count').textContent = presentCount;
+  document.getElementById('btn-submit-attendance').disabled = false;
+
   const progressBar = document.getElementById('selection-progress-bar');
   if (progressBar) {
-    const percentage = total === 0 ? 0 : (checked / total) * 100;
+    const percentage = total === 0 ? 0 : (presentCount / total) * 100;
     progressBar.style.width = `${percentage}%`;
   }
 }
 
 // ===== Select All / Deselect All =====
 document.getElementById('btn-select-all').addEventListener('click', () => {
-  document.querySelectorAll('.checkbox-row:not([style*="display: none"]) .student-checkbox').forEach(cb => cb.checked = true);
+  document.querySelectorAll('.checkbox-row[data-state]:not([style*="display: none"])').forEach(row => {
+    const cb = row.querySelector('.student-checkbox');
+    const label = row.querySelector('.attendance-state-label');
+    row.dataset.state = 'present';
+    row.classList.remove('checkbox-row--absent');
+    row.classList.add('checkbox-row--present');
+    if (label) label.textContent = 'P';
+    if (cb) { cb.checked = true; cb.dataset.markedAbsent = ''; }
+  });
   updateSelectCount();
 });
 
 document.getElementById('btn-deselect-all').addEventListener('click', () => {
-  document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.checkbox-row[data-state]').forEach(row => {
+    const cb = row.querySelector('.student-checkbox');
+    const label = row.querySelector('.attendance-state-label');
+    row.dataset.state = 'unset';
+    row.classList.remove('checkbox-row--present', 'checkbox-row--absent');
+    if (label) label.textContent = '—';
+    if (cb) { cb.checked = false; cb.dataset.markedAbsent = ''; }
+  });
   updateSelectCount();
 });
 
@@ -860,9 +904,16 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
 
     if (result.success) {
       showToast('Attendance recorded successfully!', 'success');
-      // Reset form
+      // Reset form and all card states
       document.getElementById('attendance-subject').value = '';
-      document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+      document.querySelectorAll('.checkbox-row[data-state]').forEach(row => {
+        const cb = row.querySelector('.student-checkbox');
+        const label = row.querySelector('.attendance-state-label');
+        row.dataset.state = 'unset';
+        row.classList.remove('checkbox-row--present', 'checkbox-row--absent');
+        if (label) label.textContent = '—';
+        if (cb) { cb.checked = false; cb.dataset.markedAbsent = ''; }
+      });
       updateSelectCount();
       // Reload records in the background
       loadRecords();

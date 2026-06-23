@@ -554,7 +554,40 @@ btnLogout.addEventListener('click', () => {
 // ==========================================================================
 // Initialization
 // ==========================================================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   setupRoleSelector();
   setupOtpInputs();
+  await checkStudentCount();
 });
+
+async function checkStudentCount() {
+  try {
+    const res = await fetch('/api/stats/student-count');
+    const data = await res.json();
+    const studentPill = document.querySelector('.role-pill[data-role="Student"]');
+    
+    if (data.success && data.count === 0) {
+      if (studentPill) {
+        studentPill.disabled = true;
+        studentPill.title = "Student login is disabled. No students are currently enrolled.";
+        studentPill.style.opacity = '0.5';
+        studentPill.style.cursor = 'not-allowed';
+      }
+      
+      // If student was selected by default, switch to Teacher
+      if (state.role === 'Student') {
+        const teacherPill = document.querySelector('.role-pill[data-role="Teacher"]');
+        if (teacherPill) teacherPill.click();
+      }
+    } else {
+       if (studentPill) {
+        studentPill.disabled = false;
+        studentPill.title = "";
+        studentPill.style.opacity = '1';
+        studentPill.style.cursor = 'pointer';
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch student count', err);
+  }
+}

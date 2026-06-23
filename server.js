@@ -833,6 +833,16 @@ app.get('/api/student-list', async (req, res) => {
   res.json({ success: true, students });
 });
 
+// Endpoint: Get student count
+app.get('/api/stats/student-count', async (req, res) => {
+  try {
+    const count = await User.countDocuments({ role: { $regex: /^student$/i } });
+    res.json({ success: true, count });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Endpoint: Get full teacher list
 app.get('/api/teacher-list', async (req, res) => {
   const teachers = await getAllTeachers();
@@ -1802,11 +1812,15 @@ function removeStudentsByClass(year, section) {
 
 app.get('/api/admin/users', async (req, res) => {
   try {
-    const users = await User.find({});
+    const users = await User.find({}).lean();
     
     const admins = users.filter(u => u.role === 'Admin');
     const teachers = users.filter(u => u.role === 'Teacher');
-    const students = users.filter(u => u.role === 'Student');
+    const students = users.filter(u => u.role === 'Student').map(u => ({
+      ...u,
+      year: u.year || '2nd Year',
+      section: u.section || 'Sec A'
+    }));
 
     res.json({
       success: true,
@@ -1849,7 +1863,7 @@ app.post('/api/admin/users/add', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Name, Class Roll, and Enrollment Number are required.' });
       }
       const email = `${enrollment.toLowerCase()}@student.local`;
-      await User.create({ name, roll, enrollment, email, role: 'Student' });
+      await User.create({ name, roll, enrollment, email, role: 'Student', year: year || '2nd Year', section: section || 'Sec A' });
       res.json({ success: true, message: 'Student added successfully.' });
     } 
     else {
@@ -1877,16 +1891,25 @@ app.post('/api/admin/users/bulk-add-students', async (req, res) => {
         skippedCount++;
         continue;
       }
-      const existing = await User.findOne({ enrollment: st.enrollment.toString().trim().toLowerCase() });
+      const enrollmentClean = st.enrollment.toString().trim().toLowerCase();
+      const existing = await User.findOne({ enrollment: enrollmentClean });
       if (existing) {
-        skippedCount++;
+        // Update existing student with year and section from the bulk upload selection
+        existing.year = year || existing.year || '2nd Year';
+        existing.section = section || existing.section || 'Sec A';
+        existing.name = st.name.toString().trim();
+        existing.roll = st.roll.toString().trim();
+        await existing.save();
+        skippedCount++; // Incrementing skippedCount to maintain API response compatibility, though it acts as an update
       } else {
         await User.create({
           name: st.name.toString().trim(),
           roll: st.roll.toString().trim(),
           enrollment: st.enrollment.toString().trim(),
-          email: `${st.enrollment.toString().trim().toLowerCase()}@student.local`,
-          role: 'Student'
+          email: `${enrollmentClean}@student.local`,
+          role: 'Student',
+          year: year || '2nd Year',
+          section: section || 'Sec A'
         });
         addedCount++;
       }
@@ -1926,22 +1949,85 @@ app.post('/api/admin/users/delete', async (req, res) => {
 });
 
 app.post('/api/admin/users/delete-bulk-class', async (req, res) => {
+  const { year, section, includeLegacy } = req.body;
+  if (!year || !section) {
+    return res.status(400).json({ success: false, message: 'Year and section are required.' });
+  }
+
+  try {
+    // Always delete students that have exact year+section match
+    let filter = { role: 'Student', year: year, section: section };
+    
+    // If includeLegacy is set, also delete students with no year/section (untagged legacy imports)
+    if (includeLegacy) {
+      filter = {
+        role: 'Student',
+        $or: [
+          { year: year, section: section },
+          { year: { $exists: false }, section: { $exists: false } },
+          { year: null, section: null },
+          { year: '', section: '' },
+          { year: { $exists: false } },
+          { year: null },
+          { year: '' }
+        ]
+      };
+    }
+
+    const result = await User.deleteMany(filter);
+    res.json({ success: true, message: `Successfully deleted ${result.deletedCount} student(s) from ${year} - ${section}.` });
+  } catch (err) {
+    console.error('Error in bulk student deletion:', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Endpoint: Pre-check before bulk delete - returns counts so frontend can show an informed confirm dialog
+app.post('/api/admin/users/delete-bulk-class-check', async (req, res) => {
   const { year, section } = req.body;
   if (!year || !section) {
     return res.status(400).json({ success: false, message: 'Year and section are required.' });
   }
 
   try {
-    // Note: since our current model doesn't store year/section, bulk deleting by class may require tracking those fields in User model.
-    // For now we will delete by parsing the year/section logic if needed, but since it's not strictly stored, we can either store it or fail safely.
-    // Let's assume we added year and section to schema implicitly (Schema allows mixed or strict:false, but we defined them).
-    // Wait, the User schema doesn't have year/section explicitly for students? I'll update User schema to include year/section if needed, but for now:
-    res.status(400).json({ success: false, message: 'Bulk delete by class relies on year/section which needs to be added to the Student schema.' });
+    // Count students with exact year+section match
+    const exactCount = await User.countDocuments({ role: 'Student', year: year, section: section });
+    
+    // Count students with no year/section at all (legacy records imported without these fields)
+    const legacyCount = await User.countDocuments({
+      role: 'Student',
+      $or: [
+        { year: { $exists: false } },
+        { year: null },
+        { year: '' }
+      ]
+    });
+
+    res.json({ success: true, exactCount, legacyCount });
   } catch (err) {
-    console.error('Error in bulk student deletion:', err.message);
+    console.error('Error in bulk delete check:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// Endpoint: Migrate existing students to set their year and section (for legacy records without these fields)
+app.post('/api/admin/users/migrate-year-section', async (req, res) => {
+  const { year, section } = req.body;
+  if (!year || !section) {
+    return res.status(400).json({ success: false, message: 'Year and section are required.' });
+  }
+
+  try {
+    const result = await User.updateMany(
+      { role: 'Student', $or: [{ year: { $exists: false } }, { year: null }, { year: '' }, { section: { $exists: false } }, { section: null }, { section: '' }] },
+      { $set: { year: year, section: section } }
+    );
+    res.json({ success: true, message: `Migrated ${result.modifiedCount} student record(s) to ${year} - ${section}.`, modifiedCount: result.modifiedCount });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 
 app.get('/api/admin/subjects', async (req, res) => {
   try {
