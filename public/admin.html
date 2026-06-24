@@ -904,6 +904,17 @@
             </div>
           </div>
         </div>
+
+        <!-- Subject-wise Results -->
+        <div class="report-results-subview" id="res-subject" style="display: none;">
+          <div id="rpt-subj-results">
+            <div class="report-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 40px; height: 40px; margin-bottom: 8px; opacity: 0.3;"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              <h3>Select a Subject</h3>
+              <p>Choose a subject to view detailed attendance analysis.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -3219,6 +3230,7 @@ let lastDateRangeData = null;
 let lastStudentData = null;
 let lastTeacherData = null;
 let lastSectionData = null;
+let lastSubjectData = null;
 
 function pctClass(pct) {
   if (pct >= 75) return 'green';
@@ -3260,6 +3272,17 @@ function initReportsTab() {
       sel.appendChild(opt);
     });
   });
+
+  // Populate subject-wise report dropdown
+  const subjSel = document.getElementById('rpt-subj-subject');
+  if (subjSel) {
+    subjSel.innerHTML = '<option value="">Select Subject</option>';
+    subjects.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      subjSel.appendChild(opt);
+    });
+  }
 
   // Populate teacher dropdown from allTeachers and records
   const teachersMap = {};
@@ -3932,6 +3955,199 @@ function exportSectionExcel() {
   showToast('Excel downloaded!', 'success');
 }
 
+// ═══════════════════════════════════════
+// 5. SUBJECT-WISE REPORT
+// ═══════════════════════════════════════
+function generateSubjectReport() {
+  const subject = document.getElementById('rpt-subj-subject').value;
+  const year = document.getElementById('rpt-subj-year').value;
+  const section = document.getElementById('rpt-subj-section').value;
+  const semester = document.getElementById('rpt-subj-semester').value;
+  const from = document.getElementById('rpt-subj-from').value;
+  const to = document.getElementById('rpt-subj-to').value;
+
+  if (!subject) {
+    showToast('Please select a subject.', 'warning');
+    return;
+  }
+
+  const filtered = filterRecords({ from, to, year, section, semester, subject });
+
+  if (filtered.length === 0) {
+    document.getElementById('rpt-subj-results').innerHTML = `
+      <div class="report-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <h3>No Records Found</h3>
+        <p>No attendance records found for "${subject}" with the selected filters.</p>
+      </div>`;
+    document.getElementById('btn-dl-subject').disabled = true;
+    return;
+  }
+
+  // Collect all students across filtered records
+  const studentMap = {};
+  filtered.forEach(r => {
+    r.students.forEach(s => {
+      if (!studentMap[s.enrollment]) {
+        studentMap[s.enrollment] = { name: s.name, roll: s.roll, enrollment: s.enrollment, total: 0, present: 0 };
+      }
+      studentMap[s.enrollment].total++;
+      if (s.present) studentMap[s.enrollment].present++;
+    });
+  });
+
+  const studentStats = Object.values(studentMap).map(s => ({
+    ...s,
+    absent: s.total - s.present,
+    pct: s.total > 0 ? Math.round((s.present / s.total) * 100) : 0
+  })).sort((a, b) => {
+    const ra = parseInt(a.roll) || 9999;
+    const rb = parseInt(b.roll) || 9999;
+    return ra - rb;
+  });
+
+  const totalClasses = filtered.length;
+  let totalPresent = 0, totalEntries = 0;
+  filtered.forEach(r => {
+    r.students.forEach(s => { totalEntries++; if (s.present) totalPresent++; });
+  });
+  const avgPct = totalEntries > 0 ? Math.round((totalPresent / totalEntries) * 100) : 0;
+  const pc = pctClass(avgPct);
+  const atRisk = studentStats.filter(s => s.pct < 75).length;
+  const safe = studentStats.filter(s => s.pct >= 75).length;
+
+  // Teacher breakdown for this subject
+  const teacherMap = {};
+  filtered.forEach(r => {
+    const key = r.teacherEmail || r.teacherName;
+    if (!teacherMap[key]) teacherMap[key] = { name: r.teacherName, classes: 0 };
+    teacherMap[key].classes++;
+  });
+  let teacherRows = '';
+  Object.values(teacherMap).sort((a, b) => b.classes - a.classes).forEach(t => {
+    teacherRows += `<tr><td>${t.name}</td><td>${t.classes}</td></tr>`;
+  });
+
+  // Student table
+  let studentRows = '';
+  studentStats.forEach(s => {
+    const spc = pctClass(s.pct);
+    studentRows += `<tr class="${s.pct < 75 ? 'at-risk' : ''}">
+      <td>${s.roll}</td><td>${s.name}</td><td>${s.enrollment}</td>
+      <td>${s.total}</td><td>${s.present}</td><td>${s.absent}</td>
+      <td><span class="report-pct ${spc}">${s.pct}%</span>
+        <div class="report-progress-bar"><div class="report-progress-fill ${spc}" style="width:${s.pct}%"></div></div>
+      </td>
+    </tr>`;
+  });
+
+  // Class-by-class detail
+  let classRows = '';
+  [...filtered].sort((a, b) => b.date.localeCompare(a.date)).forEach(r => {
+    const present = r.students.filter(s => s.present).length;
+    const total = r.students.length;
+    const rpct = total > 0 ? Math.round((present / total) * 100) : 0;
+    const rpc = pctClass(rpct);
+    classRows += `<tr>
+      <td>${fmtDate(r.date)}</td>
+      <td>${r.teacherName || '\u2014'}</td>
+      <td>${r.year || '\u2014'}, ${r.section || '\u2014'}</td>
+      <td>${present} / ${total}</td>
+      <td><span class="report-pct ${rpc}">${rpct}%</span></td>
+    </tr>`;
+  });
+
+  document.getElementById('rpt-subj-results').innerHTML = `
+    <div class="report-profile-card">
+      <div class="report-profile-avatar" style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); font-size: 20px;">\ud83d\udcda</div>
+      <div class="report-profile-info">
+        <h3>${subject}</h3>
+        <p>${totalClasses} class(es) conducted${year ? ' | ' + year : ''}${section ? ', ' + section : ''}${semester ? ' | ' + semester : ''}</p>
+      </div>
+    </div>
+
+    <div class="report-stats-bar">
+      <div class="report-stat-card accent-purple"><div class="stat-value">${totalClasses}</div><div class="stat-label">Classes</div></div>
+      <div class="report-stat-card accent-cyan"><div class="stat-value">${studentStats.length}</div><div class="stat-label">Students</div></div>
+      <div class="report-stat-card accent-green"><div class="stat-value">${safe}</div><div class="stat-label">Safe (\u226575%)</div></div>
+      <div class="report-stat-card accent-red"><div class="stat-value">${atRisk}</div><div class="stat-label">At Risk (<75%)</div></div>
+      <div class="report-stat-card"><div class="stat-value report-pct ${pc}">${avgPct}%</div><div class="stat-label">Avg Attendance</div>
+        <div class="report-progress-bar"><div class="report-progress-fill ${pc}" style="width:${avgPct}%"></div></div>
+      </div>
+    </div>
+
+    <div class="report-section-title">Teachers who conducted this subject</div>
+    <div class="report-table-wrapper">
+      <table class="report-table">
+        <thead><tr><th>Teacher</th><th>Classes Taken</th></tr></thead>
+        <tbody>${teacherRows}</tbody>
+      </table>
+    </div>
+
+    <div class="report-section-title">Student-wise Attendance</div>
+    <div class="report-table-wrapper">
+      <table class="report-table">
+        <thead><tr>
+          <th>Roll</th><th>Name</th><th>Enrollment</th><th>Classes</th><th>Present</th><th>Absent</th><th>Attendance %</th>
+        </tr></thead>
+        <tbody>${studentRows}</tbody>
+      </table>
+    </div>
+
+    <div class="report-section-title">Class-by-Class Detail</div>
+    <div class="report-table-wrapper">
+      <table class="report-table">
+        <thead><tr><th>Date</th><th>Teacher</th><th>Year / Sec</th><th>Present / Total</th><th>%</th></tr></thead>
+        <tbody>${classRows}</tbody>
+      </table>
+    </div>
+
+    <div class="report-legend">
+      <span><span class="report-legend-dot" style="background:#69f0ae"></span> \u226575% Safe</span>
+      <span><span class="report-legend-dot" style="background:#ffc947"></span> 60-74% Warning</span>
+      <span><span class="report-legend-dot" style="background:#ff7961"></span> <60% At Risk</span>
+    </div>`;
+
+  lastSubjectData = { subject, year, section, semester, filtered, studentStats, totalClasses, teacherMap };
+  document.getElementById('btn-dl-subject').disabled = false;
+  showToast(`Subject report for ${subject}: ${totalClasses} classes, ${avgPct}% avg attendance.`, 'success');
+}
+
+function exportSubjectExcel() {
+  if (!lastSubjectData) return;
+  const { subject, year, section, semester, studentStats, totalClasses, teacherMap } = lastSubjectData;
+
+  const summary = [
+    ['Subject-wise Attendance Report'],
+    [],
+    ['Subject', subject],
+    ['Year', year || 'All'],
+    ['Section', section || 'All'],
+    ['Semester', semester || 'All'],
+    ['Total Classes', totalClasses],
+    [],
+    ['Roll', 'Name', 'Enrollment', 'Total Classes', 'Present', 'Absent', 'Attendance %']
+  ];
+  studentStats.forEach(s => {
+    summary.push([s.roll, s.name, s.enrollment, s.total, s.present, s.absent, s.pct + '%']);
+  });
+
+  const atRiskSheet = [['At-Risk Students (< 75% Attendance)'], [], ['Roll', 'Name', 'Enrollment', 'Attendance %']];
+  studentStats.filter(s => s.pct < 75).forEach(s => atRiskSheet.push([s.roll, s.name, s.enrollment, s.pct + '%']));
+
+  const teacherSheet = [['Teachers Summary'], [], ['Teacher', 'Classes Taken']];
+  Object.values(teacherMap).sort((a, b) => b.classes - a.classes).forEach(t => {
+    teacherSheet.push([t.name, t.classes]);
+  });
+
+  exportToExcel([
+    { name: 'Attendance Report', data: summary },
+    { name: 'At-Risk Students', data: atRiskSheet },
+    { name: 'Teachers', data: teacherSheet }
+  ], `Attendance_Subject_${subject.replace(/\s+/g, '_')}.xlsx`);
+  showToast('Excel downloaded!', 'success');
+}
+
 // ===== Restructuring JS Controllers =====
 
 function toggleLeftDrawer(isOpen) {
@@ -4077,6 +4293,8 @@ function syncMainDownloadButtonState() {
     subBtnId = 'btn-dl-teacher';
   } else if (id === 'res-section') {
     subBtnId = 'btn-dl-section';
+  } else if (id === 'res-subject') {
+    subBtnId = 'btn-dl-subject';
   }
   
   const subBtn = document.getElementById(subBtnId);
@@ -4117,6 +4335,8 @@ function downloadActiveReportExcel() {
     exportTeacherExcel();
   } else if (id === 'res-section') {
     exportSectionExcel();
+  } else if (id === 'res-subject') {
+    exportSubjectExcel();
   }
 }
 
@@ -4150,6 +4370,14 @@ generateSectionReport = function() {
   document.getElementById('reports-results-section').style.display = 'block';
   closeReportsWindow();
   originalGenerateSectionReport();
+  if (typeof syncMainDownloadButtonState === 'function') syncMainDownloadButtonState();
+};
+
+const originalGenerateSubjectReport = generateSubjectReport;
+generateSubjectReport = function() {
+  document.getElementById('reports-results-section').style.display = 'block';
+  closeReportsWindow();
+  originalGenerateSubjectReport();
   if (typeof syncMainDownloadButtonState === 'function') syncMainDownloadButtonState();
 };
 
@@ -4351,6 +4579,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="report-mini-tab" data-report="report-student">Student-wise</button>
           <button class="report-mini-tab" data-report="report-teacher">Teacher-wise</button>
           <button class="report-mini-tab" data-report="report-section">Section &amp; Year</button>
+          <button class="report-mini-tab" data-report="report-subject">Subject Wise</button>
         </div>
 
         <!-- Subview 1: Date Range -->
@@ -4523,6 +4752,54 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="report-btn-row">
             <button class="report-btn report-btn-generate" onclick="generateSectionReport()">Generate Report</button>
             <button class="report-btn report-btn-download" id="btn-dl-section" disabled onclick="exportSectionExcel()">Download Excel</button>
+          </div>
+        </div>
+
+        <!-- Subview 5: Subject-wise -->
+        <div class="report-subview" id="report-subject">
+          <div class="report-filters">
+            <div class="report-filter-group" style="grid-column: span 2;">
+              <label>Subject</label>
+              <select id="rpt-subj-subject"><option value="">Select Subject</option></select>
+            </div>
+            <div class="report-filter-group">
+              <label>Year</label>
+              <select id="rpt-subj-year">
+                <option value="">All Years</option>
+                <option>1st Year</option><option>2nd Year</option>
+                <option>3rd Year</option><option>4th Year</option>
+              </select>
+            </div>
+            <div class="report-filter-group">
+              <label>Section</label>
+              <select id="rpt-subj-section">
+                <option value="">All Sections</option>
+                <option>Sec A</option><option>Sec B</option>
+                <option>Sec C</option><option>Sec D</option>
+              </select>
+            </div>
+            <div class="report-filter-group">
+              <label>Semester</label>
+              <select id="rpt-subj-semester">
+                <option value="">All Semesters</option>
+                <option>1st Sem</option><option>2nd Sem</option>
+                <option>3rd Sem</option><option>4th Sem</option>
+                <option>5th Sem</option><option>6th Sem</option>
+                <option>7th Sem</option><option>8th Sem</option>
+              </select>
+            </div>
+            <div class="report-filter-group">
+              <label>From Date</label>
+              <input type="date" id="rpt-subj-from">
+            </div>
+            <div class="report-filter-group">
+              <label>To Date</label>
+              <input type="date" id="rpt-subj-to">
+            </div>
+          </div>
+          <div class="report-btn-row">
+            <button class="report-btn report-btn-generate" onclick="generateSubjectReport()">Generate Report</button>
+            <button class="report-btn report-btn-download" id="btn-dl-subject" disabled onclick="exportSubjectExcel()">Download Excel</button>
           </div>
         </div>
       </div>
