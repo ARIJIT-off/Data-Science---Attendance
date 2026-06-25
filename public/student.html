@@ -579,6 +579,109 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(6,182,212,0.4); }
       50% { box-shadow: 0 0 0 10px rgba(6,182,212,0); }
     }
+
+    .live-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4,6,15,0.92);
+      backdrop-filter: blur(14px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    .live-modal-box {
+      background: rgba(8,12,28,0.95);
+      border: 1px solid rgba(0,240,255,0.2);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 480px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 40px rgba(0,240,255,0.08);
+      animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .live-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    .live-modal-close:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .live-method-choice {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .live-method-btn {
+      flex: 1;
+      padding: 14px 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.25s;
+    }
+    .live-method-btn:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+    }
+    .live-method-btn.active {
+      background: rgba(0,240,255,0.08);
+      border-color: rgba(0,240,255,0.35);
+      color: #00f0ff;
+    }
+    .live-session-info-card {
+      background: linear-gradient(135deg, rgba(6,182,212,0.06), rgba(139,92,246,0.06));
+      border: 1px solid rgba(6,182,212,0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .live-session-info-row {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 6px;
+      align-items: flex-start;
+    }
+    .live-session-info-label {
+      color: var(--text-secondary);
+      min-width: 70px;
+      flex-shrink: 0;
+    }
+    .live-session-info-value {
+      color: #fff;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
