@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
   mobile: { type: String },
   designation: { type: String },
 
+  // Password for Admin/Teacher sign-in (hashed 4-digit PIN)
+  password: { type: String },
+
   // Student specific fields
   enrollment: { type: String },
   roll: { type: String },

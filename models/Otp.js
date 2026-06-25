@@ -7,7 +7,7 @@ const otpSchema = new mongoose.Schema({
   profile: { type: mongoose.Schema.Types.Mixed }, // Stores user profile for login
   
   // Fields for Email Change feature
-  type: { type: String, default: 'login', enum: ['login', 'email_change'] },
+  type: { type: String, default: 'login', enum: ['login', 'email_change', 'signup', 'setup_password'] },
   currentEmail: { type: String, lowercase: true },
   newEmail: { type: String, lowercase: true },
   

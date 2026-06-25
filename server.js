@@ -5,6 +5,7 @@ const xlsx = require('xlsx');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 // Globally disable Mongoose buffering so it fails fast on Vercel if DB is down
 mongoose.set('bufferCommands', false);
@@ -513,6 +514,286 @@ async function findStudentEmailByName(name) {
   }
   return null;
 }
+
+// =============================================================
+// SIGN UP / SIGN IN AUTHENTICATION SYSTEM (Admin & Teacher)
+// =============================================================
+
+// Helper: Hash a 4-digit password using SHA-256
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password.toString()).digest('hex');
+}
+
+// Endpoint: Sign Up - Send OTP to verify email ownership
+app.post('/api/signup/send-otp', async (req, res) => {
+  const { email, role } = req.body;
+
+  if (MONGODB_URI && !cached.conn) {
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Database connection failed. Please try again later.' 
+    });
+  }
+
+  if (!role || !['Admin', 'Teacher'].includes(role)) {
+    return res.status(400).json({ success: false, message: 'Sign up is only available for Admin and Teacher roles.' });
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+  }
+
+  // Verify the email is registered for this role
+  const userProfile = await findUserByRole(email, role);
+  if (!userProfile) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'This email is not registered as ' + role + '. Please check your email or role selection.' 
+    });
+  }
+
+  // Generate 4-digit OTP
+  const otp = Math.floor(1000 + Math.random() * 9000).toString();
+  
+  // Save OTP to MongoDB with type 'signup'
+  await Otp.findOneAndUpdate(
+    { email: email.toLowerCase() },
+    { 
+      otp, 
+      role, 
+      profile: userProfile,
+      type: 'signup',
+      createdAt: new Date()
+    },
+    { upsert: true, new: true }
+  );
+
+  // Dynamic greeting
+  const greetingName = userProfile.name || 'User';
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #060913; color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .card { background-color: #0d1221; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6); }
+        .logo { font-size: 24px; font-weight: 700; color: #8b5cf6; margin-bottom: 24px; letter-spacing: 1px; }
+        .title { font-size: 22px; font-weight: 600; color: #ffffff; margin-bottom: 16px; }
+        .message { font-size: 16px; color: #9ca3af; line-height: 1.6; margin-bottom: 30px; }
+        .otp-container { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 20px; margin: 24px 0; display: inline-block; }
+        .otp-code { font-size: 38px; font-weight: 800; letter-spacing: 8px; color: #06b6d4; margin: 0; }
+        .expiry { font-size: 14px; color: #f43f5e; margin-top: 20px; font-weight: 500; }
+        .footer { margin-top: 40px; font-size: 12px; color: #4b5563; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="card">
+          <div class="logo">UEMK Attendance System</div>
+          <div class="title">Hello, ${greetingName}</div>
+          <div class="message">
+            You requested to set up your <strong>${role}</strong> account password. Use the code below to verify your email.
+          </div>
+          <div class="otp-container">
+            <p class="otp-code">${otp}</p>
+          </div>
+          <p class="expiry">This verification code is only valid for 5 minutes.</p>
+          <div class="footer">
+            If you did not request this, please ignore this email.
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const mailOptions = {
+    from: `"UEMK Attendance System" <${credentials.email}>`,
+    replyTo: credentials.email,
+    to: email,
+    subject: `${otp} - Your Account Setup Verification Code`,
+    html: htmlContent,
+    text: `Hello ${greetingName}, your verification code to set up your ${role} account password is: ${otp}. It will expire in 5 minutes.`,
+    headers: {
+      'X-Priority': '1',
+      'X-Mailer': 'UEMK Attendance System',
+      'List-Unsubscribe': `<mailto:${credentials.email}?subject=Unsubscribe>`
+    }
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Sign-up OTP (${otp}) sent to ${email} for role ${role}`);
+    res.status(200).json({ success: true, message: 'Verification code sent to your email.', email: email });
+  } catch (error) {
+    console.error(`Error sending sign-up email to ${email}:`, error);
+    res.status(500).json({ success: false, message: 'Failed to send verification email. Please try again later.' });
+  }
+});
+
+// Endpoint: Sign Up - Verify OTP
+app.post('/api/signup/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
+  }
+
+  try {
+    const cachedData = await Otp.findOne({ email: email.toLowerCase(), type: 'signup' });
+
+    if (!cachedData) {
+      return res.status(400).json({ success: false, message: 'Verification code not found or expired. Please request a new one.' });
+    }
+
+    if (cachedData.otp !== otp.trim()) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code. Please check and try again.' });
+    }
+
+    // Don't delete the OTP yet — we need the role info for set-password step
+    // Generate a temporary setup token (random hex) to authorize the set-password call
+    const setupToken = crypto.randomBytes(16).toString('hex');
+    cachedData.otp = setupToken; // Replace OTP with token
+    cachedData.type = 'setup_password'; // Change type so OTP can't be reused
+    await cachedData.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified. Please set your password.',
+      setupToken: setupToken,
+      role: cachedData.role
+    });
+  } catch (err) {
+    console.error('Error verifying sign-up OTP:', err);
+    res.status(500).json({ success: false, message: 'Server error during verification.' });
+  }
+});
+
+// Endpoint: Sign Up - Set Password (4-digit PIN)
+app.post('/api/signup/set-password', async (req, res) => {
+  const { email, password, setupToken } = req.body;
+
+  if (!email || !password || !setupToken) {
+    return res.status(400).json({ success: false, message: 'Email, password, and setup token are required.' });
+  }
+
+  // Validate password is exactly 4 digits
+  if (!/^\d{4}$/.test(password)) {
+    return res.status(400).json({ success: false, message: 'Password must be exactly 4 digits.' });
+  }
+
+  try {
+    // Verify the setup token
+    const cachedData = await Otp.findOne({ email: email.toLowerCase(), type: 'setup_password', otp: setupToken });
+
+    if (!cachedData) {
+      return res.status(400).json({ success: false, message: 'Session expired. Please sign up again.' });
+    }
+
+    const role = cachedData.role;
+
+    // Hash the password and save to User document
+    const hashedPassword = hashPassword(password);
+    const updateResult = await User.updateOne(
+      { email: { $regex: new RegExp(`^${email.trim()}$`, 'i') }, role: role },
+      { $set: { password: hashedPassword } }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(400).json({ success: false, message: 'User account not found. Please contact administrator.' });
+    }
+
+    // Clean up the setup token
+    await Otp.deleteOne({ _id: cachedData._id });
+
+    console.log(`Password set successfully for ${email} (${role})`);
+    res.status(200).json({ success: true, message: 'Password set successfully! You can now sign in.' });
+  } catch (err) {
+    console.error('Error setting password:', err);
+    res.status(500).json({ success: false, message: 'Server error while setting password.' });
+  }
+});
+
+// Endpoint: Sign In (Email + Password for Admin/Teacher)
+app.post('/api/signin', async (req, res) => {
+  const { email, password, role } = req.body;
+
+  if (MONGODB_URI && !cached.conn) {
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Database connection failed. Please try again later.' 
+    });
+  }
+
+  if (!email || !password || !role) {
+    return res.status(400).json({ success: false, message: 'Email, password, and role are required.' });
+  }
+
+  if (!['Admin', 'Teacher'].includes(role)) {
+    return res.status(400).json({ success: false, message: 'Sign in with password is only available for Admin and Teacher roles.' });
+  }
+
+  if (!/^\d{4}$/.test(password)) {
+    return res.status(400).json({ success: false, message: 'Password must be exactly 4 digits.' });
+  }
+
+  try {
+    // Find user by email and role
+    const user = await User.findOne({ 
+      email: { $regex: new RegExp(`^${email.trim()}$`, 'i') }, 
+      role: role 
+    }).lean();
+
+    if (!user) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Either you selected the wrong role, or wrong email address.' 
+      });
+    }
+
+    // Check if user has set a password
+    if (!user.password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You haven\'t set up a password yet. Please sign up first.' 
+      });
+    }
+
+    // Verify password
+    const hashedInput = hashPassword(password);
+    if (user.password !== hashedInput) {
+      return res.status(400).json({ success: false, message: 'Incorrect password. Please try again.' });
+    }
+
+    // Build profile object (same format as OTP login)
+    const userProfile = {
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      mobile: user.mobile || 'N/A',
+      department: user.department || 'CSE Data Science',
+      designation: user.designation || (role === 'Admin' ? 'Administrator' : 'Faculty Member')
+    };
+
+    console.log(`Successful sign-in: ${email} as ${role}`);
+    res.status(200).json({
+      success: true,
+      message: 'Authentication successful.',
+      user: {
+        email: user.email,
+        role: role,
+        profile: userProfile
+      }
+    });
+  } catch (err) {
+    console.error('Error during sign-in:', err);
+    res.status(500).json({ success: false, message: 'Server error during sign-in.' });
+  }
+});
 
 // Endpoint: Send OTP with Role-based Authorization
 app.post('/api/send-otp', async (req, res) => {

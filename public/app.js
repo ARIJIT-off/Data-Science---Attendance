@@ -1,41 +1,63 @@
 // ==========================================================================
 // DOM Elements
 // ==========================================================================
-const viewEmail = document.getElementById('view-email');
-const viewOtp = document.getElementById('view-otp');
-const viewDashboard = document.getElementById('view-dashboard');
+const viewSignin = document.getElementById('view-signin');
+const viewSignupEmail = document.getElementById('view-signup-email');
+const viewSignupOtp = document.getElementById('view-signup-otp');
+const viewSetPassword = document.getElementById('view-set-password');
+const viewSignupSuccess = document.getElementById('view-signup-success');
 
-const formEmail = document.getElementById('form-email');
-const formOtp = document.getElementById('form-otp');
+const formSignin = document.getElementById('form-signin');
+const formSignupEmail = document.getElementById('form-signup-email');
+const formSignupOtp = document.getElementById('form-signup-otp');
+const formSetPassword = document.getElementById('form-set-password');
 
-const inputEmail = document.getElementById('input-email');
+// Sign In elements
 const inputRole = document.getElementById('input-role');
 const studentCredentials = document.getElementById('student-credentials');
-const emailCredentials = document.getElementById('email-credentials');
+const signinCredentials = document.getElementById('signin-credentials');
 const inputEnrollment = document.getElementById('input-enrollment');
 const inputRoll = document.getElementById('input-roll');
+const inputSigninEmail = document.getElementById('input-signin-email');
+const inputSigninPassword = document.getElementById('input-signin-password');
 const rolePills = Array.from(document.querySelectorAll('.role-pill'));
-const otpDigits = Array.from(document.querySelectorAll('.otp-digit'));
+const signupToggle = document.getElementById('signup-toggle');
 
-const btnSendOtp = document.getElementById('btn-send-otp');
-const btnVerifyOtp = document.getElementById('btn-verify-otp');
-const btnResendOtp = document.getElementById('btn-resend-otp');
-const btnBackToEmail = document.getElementById('btn-back-to-email');
-const btnLogout = document.getElementById('btn-logout');
+// Sign Up elements
+const inputSignupEmail = document.getElementById('input-signup-email');
+const signupRoleLabel = document.getElementById('signup-role-label');
+const displaySignupEmail = document.getElementById('display-signup-email');
+const signupOtpDigits = Array.from(document.querySelectorAll('.signup-otp-digit'));
+const inputNewPassword = document.getElementById('input-new-password');
+const inputConfirmPassword = document.getElementById('input-confirm-password');
 
-const displayUserEmail = document.getElementById('display-user-email');
-const dashboardName = document.getElementById('dashboard-name');
-const dashboardRoleBadge = document.getElementById('dashboard-role-badge');
-const profileDetailsList = document.getElementById('profile-details-list');
-const resendTimer = document.getElementById('resend-timer');
+// Buttons
+const btnSignin = document.getElementById('btn-signin');
+const btnSignupSendOtp = document.getElementById('btn-signup-send-otp');
+const btnSignupVerifyOtp = document.getElementById('btn-signup-verify-otp');
+const btnSetPassword = document.getElementById('btn-set-password');
+
+// Navigation Buttons
+const btnGotoSignup = document.getElementById('btn-goto-signup');
+const btnGotoSignupFromForgot = document.getElementById('btn-goto-signup-from-forgot');
+const btnBackToSignin = document.getElementById('btn-back-to-signin');
+const btnGotoSigninFromSignup = document.getElementById('btn-goto-signin-from-signup');
+const btnBackToSignupEmail = document.getElementById('btn-back-to-signup-email');
+const btnGotoSigninAfterSetup = document.getElementById('btn-goto-signin-after-setup');
+const btnSignupResendOtp = document.getElementById('btn-signup-resend-otp');
+
+// Utilities
+const signupResendTimer = document.getElementById('signup-resend-timer');
 const toastContainer = document.getElementById('toast-container');
+const passwordToggleBtns = document.querySelectorAll('.password-toggle-btn');
 
 // ==========================================================================
 // Application State
 // ==========================================================================
 let state = {
-  email: '',
-  role: 'Student', // Default selected role
+  role: 'Student', // Default
+  signupEmail: '',
+  setupToken: '',
   timerInterval: null,
   cooldownSeconds: 30
 };
@@ -46,95 +68,42 @@ let state = {
 function showToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  
   toast.innerHTML = `
     <span class="toast-message">${message}</span>
     <button class="toast-close">&times;</button>
   `;
-  
   toastContainer.appendChild(toast);
-  
-  // Close handler
-  toast.querySelector('.toast-close').addEventListener('click', () => {
-    removeToast(toast);
-  });
-  
-  // Auto remove
-  setTimeout(() => {
-    removeToast(toast);
-  }, 5000);
+  toast.querySelector('.toast-close').addEventListener('click', () => removeToast(toast));
+  setTimeout(() => removeToast(toast), 5000);
 }
 
 function removeToast(toast) {
   toast.classList.add('toast-fade-out');
   setTimeout(() => {
-    if (toast.parentNode) {
-      toast.parentNode.removeChild(toast);
-    }
+    if (toast.parentNode) toast.parentNode.removeChild(toast);
   }, 300);
 }
 
-// ==========================================================================
-// Card Shake Animation Utility (for errors)
-// ==========================================================================
 function shakeCard(cardElement) {
   cardElement.classList.add('shake');
-  setTimeout(() => {
-    cardElement.classList.remove('shake');
-  }, 400);
+  setTimeout(() => cardElement.classList.remove('shake'), 400);
 }
 
 // ==========================================================================
-// View Management (Transitions)
+// View Management
 // ==========================================================================
 function switchView(currentView, nextView) {
   currentView.classList.remove('active');
   currentView.classList.add('hidden');
-  
-  // Delay slightly to allow transition animations
   setTimeout(() => {
     nextView.classList.remove('hidden');
     nextView.classList.add('active');
   }, 150);
 }
 
-// ==========================================================================
-// Resend Timer Logic
-// ==========================================================================
-function startResendTimer() {
-  clearInterval(state.timerInterval);
-  let timeLeft = state.cooldownSeconds;
-  
-  btnResendOtp.disabled = true;
-  resendTimer.textContent = timeLeft;
-  
-  state.timerInterval = setInterval(() => {
-    timeLeft--;
-    resendTimer.textContent = timeLeft;
-    
-    if (timeLeft <= 0) {
-      clearInterval(state.timerInterval);
-      btnResendOtp.disabled = false;
-      btnResendOtp.innerHTML = 'Resend OTP';
-    } else {
-      btnResendOtp.innerHTML = `Resend in <span id="resend-timer">${timeLeft}</span>s`;
-    }
-  }, 1000);
-}
-
-function stopResendTimer() {
-  clearInterval(state.timerInterval);
-  btnResendOtp.disabled = true;
-  btnResendOtp.innerHTML = 'Resend in <span id="resend-timer">30</span>s';
-}
-
-// ==========================================================================
-// Spinner Helpers
-// ==========================================================================
 function setBtnLoading(button, isLoading) {
   const text = button.querySelector('.btn-text');
   const spinner = button.querySelector('.spinner');
-  
   if (isLoading) {
     button.disabled = true;
     if (text) text.classList.add('hidden');
@@ -147,7 +116,29 @@ function setBtnLoading(button, isLoading) {
 }
 
 // ==========================================================================
-// Role Selection Setup
+// Password Visibility Toggle
+// ==========================================================================
+passwordToggleBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetId = btn.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    const eyeOpen = btn.querySelector('.eye-open');
+    const eyeClosed = btn.querySelector('.eye-closed');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      eyeOpen.classList.add('hidden');
+      eyeClosed.classList.remove('hidden');
+    } else {
+      input.type = 'password';
+      eyeOpen.classList.remove('hidden');
+      eyeClosed.classList.add('hidden');
+    }
+  });
+});
+
+// ==========================================================================
+// Role Selection Setup (Sign In View)
 // ==========================================================================
 function setupRoleSelector() {
   rolePills.forEach(pill => {
@@ -157,398 +148,372 @@ function setupRoleSelector() {
       const selectedRole = pill.getAttribute('data-role');
       state.role = selectedRole;
       inputRole.value = selectedRole;
-      
-      // Update body class for dynamic font changes
       document.body.className = 'role-' + selectedRole;
-      
-      // Update collage view
+
       document.querySelectorAll('.collage-view').forEach(c => c.classList.remove('active'));
       const activeCollage = document.getElementById('collage-' + selectedRole.toLowerCase());
-      if (activeCollage) {
-        activeCollage.classList.add('active');
-      }
-      
-      // Toggle inputs visibility based on role selection
+      if (activeCollage) activeCollage.classList.add('active');
+
       if (selectedRole === 'Student') {
         studentCredentials.classList.remove('hidden');
-        emailCredentials.classList.add('hidden');
+        signinCredentials.classList.add('hidden');
+        signupToggle.classList.add('hidden');
         inputEnrollment.required = true;
         inputRoll.required = true;
-        inputEmail.required = false;
+        inputSigninEmail.required = false;
+        inputSigninPassword.required = false;
       } else {
         studentCredentials.classList.add('hidden');
-        emailCredentials.classList.remove('hidden');
+        signinCredentials.classList.remove('hidden');
+        signupToggle.classList.remove('hidden');
         inputEnrollment.required = false;
         inputRoll.required = false;
-        inputEmail.required = true;
+        inputSigninEmail.required = true;
+        inputSigninPassword.required = true;
       }
     });
   });
 }
 
 // ==========================================================================
-// OTP Digit Focus & Flow
+// Resend Timer Logic (Sign Up)
 // ==========================================================================
-function setupOtpInputs() {
-  otpDigits.forEach((input, index) => {
-    // Only allow numeric input
+function startSignupResendTimer() {
+  clearInterval(state.timerInterval);
+  let timeLeft = state.cooldownSeconds;
+  btnSignupResendOtp.disabled = true;
+  signupResendTimer.textContent = timeLeft;
+
+  state.timerInterval = setInterval(() => {
+    timeLeft--;
+    signupResendTimer.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      btnSignupResendOtp.disabled = false;
+      btnSignupResendOtp.innerHTML = 'Resend OTP';
+    } else {
+      btnSignupResendOtp.innerHTML = `Resend in <span id="signup-resend-timer">${timeLeft}</span>s`;
+    }
+  }, 1000);
+}
+
+function stopSignupResendTimer() {
+  clearInterval(state.timerInterval);
+  btnSignupResendOtp.disabled = true;
+  btnSignupResendOtp.innerHTML = 'Resend in <span id="signup-resend-timer">30</span>s';
+}
+
+// ==========================================================================
+// OTP Digit Focus & Flow (Sign Up)
+// ==========================================================================
+function setupSignupOtpInputs() {
+  signupOtpDigits.forEach((input, index) => {
     input.addEventListener('input', (e) => {
       const val = e.target.value;
       if (!/^\d*$/.test(val)) {
         e.target.value = '';
-        updateVerifyButtonState();
+        updateSignupVerifyButtonState();
         return;
       }
-      
-      if (val !== '') {
-        // Go to next input field
-        if (index < otpDigits.length - 1) {
-          otpDigits[index + 1].focus();
-        }
+      if (val !== '' && index < signupOtpDigits.length - 1) {
+        signupOtpDigits[index + 1].focus();
       }
-      updateVerifyButtonState();
+      updateSignupVerifyButtonState();
     });
 
-    // Handle backspaces
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Backspace') {
-        if (input.value === '') {
-          // Move focus to previous input field and clear it
-          if (index > 0) {
-            otpDigits[index - 1].focus();
-            otpDigits[index - 1].value = '';
-          }
+        if (input.value === '' && index > 0) {
+          signupOtpDigits[index - 1].focus();
+          signupOtpDigits[index - 1].value = '';
         } else {
-          // Clear current field
           input.value = '';
         }
-        updateVerifyButtonState();
+        updateSignupVerifyButtonState();
         e.preventDefault();
       }
     });
 
-    // Handle paste event
     input.addEventListener('paste', (e) => {
       e.preventDefault();
       const pasteData = (e.clipboardData || window.clipboardData).getData('text');
       const numericString = pasteData.replace(/\D/g, '').substring(0, 4);
-      
       if (numericString.length > 0) {
-        for (let i = 0; i < otpDigits.length; i++) {
-          if (i < numericString.length) {
-            otpDigits[i].value = numericString[i];
-          } else {
-            otpDigits[i].value = '';
-          }
+        for (let i = 0; i < signupOtpDigits.length; i++) {
+          signupOtpDigits[i].value = i < numericString.length ? numericString[i] : '';
         }
-        
-        // Focus on the last filled box or last box
-        const targetIndex = Math.min(numericString.length, otpDigits.length - 1);
-        otpDigits[targetIndex].focus();
-        updateVerifyButtonState();
+        const targetIndex = Math.min(numericString.length, signupOtpDigits.length - 1);
+        signupOtpDigits[targetIndex].focus();
+        updateSignupVerifyButtonState();
       }
     });
   });
 }
 
-function updateVerifyButtonState() {
-  const isFilled = otpDigits.every(input => input.value !== '');
-  btnVerifyOtp.disabled = !isFilled;
+function updateSignupVerifyButtonState() {
+  const isFilled = signupOtpDigits.every(input => input.value !== '');
+  btnSignupVerifyOtp.disabled = !isFilled;
 }
 
-function clearOtpInputs() {
-  otpDigits.forEach(input => input.value = '');
-  updateVerifyButtonState();
-}
-
-// ==========================================================================
-// Profile Rendering Logic
-// ==========================================================================
-function renderProfileDetails(user) {
-  const profile = user.profile;
-  const role = user.role;
-  
-  // Update badge and name
-  dashboardName.textContent = profile.name || 'Anonymous User';
-  dashboardRoleBadge.textContent = role;
-  
-  // Reset badge classes and add current role class
-  dashboardRoleBadge.className = 'user-role-badge';
-  dashboardRoleBadge.classList.add(`badge-${role}`);
-  
-  let html = '';
-  
-  // Basic attributes shared by all
-  html += `
-    <div class="profile-row">
-      <span class="profile-label">Email Address</span>
-      <span class="profile-value">${profile.email || user.email}</span>
-    </div>
-  `;
-  
-  if (profile.mobile) {
-    html += `
-      <div class="profile-row">
-        <span class="profile-label">Mobile Number</span>
-        <span class="profile-value">${profile.mobile}</span>
-      </div>
-    `;
-  }
-
-  // Role specific details
-  if (role === 'Admin') {
-    html += `
-      <div class="profile-row">
-        <span class="profile-label">Designation</span>
-        <span class="profile-value">${profile.role || 'Administrator'}</span>
-      </div>
-    `;
-    if (profile.department) {
-      html += `
-        <div class="profile-row">
-          <span class="profile-label">Department</span>
-          <span class="profile-value">${profile.department}</span>
-        </div>
-      `;
-    }
-  } else if (role === 'Teacher') {
-    // Show designated status
-    html += `
-      <div class="profile-row">
-        <span class="profile-label">Designation</span>
-        <span class="profile-value">Faculty Member of Data Science</span>
-      </div>
-    `;
-  } else if (role === 'Student') {
-    if (profile.department) {
-      html += `
-        <div class="profile-row">
-          <span class="profile-label">Department</span>
-          <span class="profile-value">${profile.department}</span>
-        </div>
-      `;
-    }
-    
-    // Check if they have a Supervisor (Supervisor Name)
-    if (profile.supervisorName) {
-      html += `
-        <div class="profile-subsection">
-          <div class="subsection-title">Academic Supervisor Details</div>
-          <div class="subsection-row">
-            <span class="subsection-label">Supervisor Name</span>
-            <span class="subsection-value">${profile.supervisorName}</span>
-          </div>
-          <div class="subsection-row">
-            <span class="subsection-label">Supervisor Email</span>
-            <span class="subsection-value">${profile.supervisorEmail || 'N/A'}</span>
-          </div>
-          <div class="subsection-row">
-            <span class="subsection-label">Supervisor Mobile</span>
-            <span class="subsection-value">${profile.supervisorMobile || 'N/A'}</span>
-          </div>
-        </div>
-      `;
-    }
-  }
-  
-  profileDetailsList.innerHTML = html;
-}
-
-// ==========================================================================
-// API Operations
-// ==========================================================================
-async function sendOtpRequest(email, role, enrollmentNo = null, rollNo = null) {
-  try {
-    const response = await fetch('/api/send-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, role, enrollmentNo, rollNo })
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('API Error:', error);
-    return { success: false, message: 'Server unreachable. Check your connection.' };
-  }
-}
-
-async function verifyOtpRequest(email, otp) {
-  try {
-    const response = await fetch('/api/verify-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, otp })
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('API Error:', error);
-    return { success: false, message: 'Server unreachable. Check your connection.' };
-  }
+function clearSignupOtpInputs() {
+  signupOtpDigits.forEach(input => input.value = '');
+  updateSignupVerifyButtonState();
 }
 
 // ==========================================================================
 // Form Event Handlers
 // ==========================================================================
-formEmail.addEventListener('submit', async (e) => {
+
+// 1. SIGN IN (Student or Admin/Teacher)
+formSignin.addEventListener('submit', async (e) => {
   e.preventDefault();
   const role = state.role;
-  
+
   if (role === 'Student') {
     const enrollmentNo = inputEnrollment.value.trim();
     const rollNo = inputRoll.value.trim();
-    
     if (!enrollmentNo || !rollNo) {
       showToast('Enrollment number and Class Roll number are required.', 'error');
-      shakeCard(viewEmail);
+      shakeCard(viewSignin);
       return;
     }
-    
-    setBtnLoading(btnSendOtp, true);
-    
-    // Direct Login API for Student
+    setBtnLoading(btnSignin, true);
     try {
-      const response = await fetch('/api/student-login', {
+      const res = await fetch('/api/student-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enrollmentNo, rollNo })
       });
-      const result = await response.json();
-      
-      setBtnLoading(btnSendOtp, false);
-      
+      const result = await res.json();
+      setBtnLoading(btnSignin, false);
       if (result.success) {
-        // Store user data in sessionStorage and redirect to student dashboard
         sessionStorage.setItem('user', JSON.stringify(result.user));
         window.location.href = 'student.html';
       } else {
         showToast(result.message, 'error');
-        shakeCard(viewEmail);
+        shakeCard(viewSignin);
       }
     } catch (err) {
-      setBtnLoading(btnSendOtp, false);
+      setBtnLoading(btnSignin, false);
       showToast('Server error. Please try again.', 'error');
-      shakeCard(viewEmail);
+      shakeCard(viewSignin);
     }
   } else {
-    // Admin or Teacher login (via OTP)
-    const email = inputEmail.value.trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToast('Please enter a valid email address.', 'error');
-      shakeCard(viewEmail);
+    // Admin / Teacher Password Sign In
+    const email = inputSigninEmail.value.trim();
+    const password = inputSigninPassword.value.trim();
+    
+    if (!email || !password) {
+      showToast('Email and password are required.', 'error');
+      shakeCard(viewSignin);
       return;
     }
-    
-    setBtnLoading(btnSendOtp, true);
-    const result = await sendOtpRequest(email, role);
-    setBtnLoading(btnSendOtp, false);
-    
-    if (result.success) {
-      if (result.bypassed) {
-        showToast('Admin bypass activated', 'success');
-        sessionStorage.setItem('user', JSON.stringify(result.profile));
-        window.location.href = result.profile.role.toLowerCase() + '.html';
-        return;
-      }
 
-      state.email = result.email || email;
-      displayUserEmail.textContent = state.email;
-      clearOtpInputs();
-      
-      switchView(viewEmail, viewOtp);
-      setTimeout(() => {
-        otpDigits[0].focus();
-      }, 300);
-      
-      startResendTimer();
-      showToast(result.message, 'success');
-    } else {
-      showToast(result.message, 'error');
-      shakeCard(viewEmail);
+    setBtnLoading(btnSignin, true);
+    try {
+      const res = await fetch('/api/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role })
+      });
+      const result = await res.json();
+      setBtnLoading(btnSignin, false);
+      if (result.success) {
+        sessionStorage.setItem('user', JSON.stringify(result.user));
+        window.location.href = role.toLowerCase() + '.html';
+      } else {
+        showToast(result.message, 'error');
+        shakeCard(viewSignin);
+        if (result.message.includes("sign up first")) {
+          // Highlight sign up link
+          signupToggle.classList.add('shake');
+          setTimeout(() => signupToggle.classList.remove('shake'), 400);
+        }
+      }
+    } catch (err) {
+      setBtnLoading(btnSignin, false);
+      showToast('Server error. Please try again.', 'error');
+      shakeCard(viewSignin);
     }
   }
 });
 
-formOtp.addEventListener('submit', async (e) => {
+// 2. SIGN UP - Send OTP
+formSignupEmail.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
-  const otp = otpDigits.map(input => input.value).join('');
+  const email = inputSignupEmail.value.trim();
+  if (!email) return;
+
+  setBtnLoading(btnSignupSendOtp, true);
+  try {
+    const res = await fetch('/api/signup/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, role: state.role })
+    });
+    const result = await res.json();
+    setBtnLoading(btnSignupSendOtp, false);
+
+    if (result.success) {
+      state.signupEmail = result.email || email;
+      displaySignupEmail.textContent = state.signupEmail;
+      clearSignupOtpInputs();
+      switchView(viewSignupEmail, viewSignupOtp);
+      setTimeout(() => signupOtpDigits[0].focus(), 300);
+      startSignupResendTimer();
+      showToast(result.message, 'success');
+    } else {
+      showToast(result.message, 'error');
+      shakeCard(viewSignupEmail);
+    }
+  } catch (err) {
+    setBtnLoading(btnSignupSendOtp, false);
+    showToast('Server error. Please try again.', 'error');
+    shakeCard(viewSignupEmail);
+  }
+});
+
+// 3. SIGN UP - Verify OTP
+formSignupOtp.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const otp = signupOtpDigits.map(i => i.value).join('');
   if (otp.length !== 4) {
     showToast('Please enter the 4-digit code.', 'error');
-    shakeCard(viewOtp);
+    shakeCard(viewSignupOtp);
     return;
   }
-  
-  setBtnLoading(btnVerifyOtp, true);
-  
-  const result = await verifyOtpRequest(state.email, otp);
-  
-  setBtnLoading(btnVerifyOtp, false);
-  
-  if (result.success) {
-    // Store user data in sessionStorage and redirect to role-specific page
-    sessionStorage.setItem('user', JSON.stringify(result.user));
-    const role = result.user.role;
-    if (role === 'Student') {
-      window.location.href = 'student.html';
-    } else if (role === 'Teacher') {
-      window.location.href = 'teacher.html';
-    } else if (role === 'Admin') {
-      window.location.href = 'admin.html';
-    } else {
-      renderProfileDetails(result.user);
-      switchView(viewOtp, viewDashboard);
+
+  setBtnLoading(btnSignupVerifyOtp, true);
+  try {
+    const res = await fetch('/api/signup/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.signupEmail, otp })
+    });
+    const result = await res.json();
+    setBtnLoading(btnSignupVerifyOtp, false);
+
+    if (result.success) {
+      state.setupToken = result.setupToken;
+      inputNewPassword.value = '';
+      inputConfirmPassword.value = '';
+      switchView(viewSignupOtp, viewSetPassword);
+      setTimeout(() => inputNewPassword.focus(), 300);
+      stopSignupResendTimer();
       showToast(result.message, 'success');
+    } else {
+      showToast(result.message, 'error');
+      shakeCard(viewSignupOtp);
+      clearSignupOtpInputs();
+      signupOtpDigits[0].focus();
     }
-    stopResendTimer();
-  } else {
-    showToast(result.message, 'error');
-    shakeCard(viewOtp);
-    clearOtpInputs();
-    otpDigits[0].focus();
+  } catch (err) {
+    setBtnLoading(btnSignupVerifyOtp, false);
+    showToast('Server error. Please try again.', 'error');
+    shakeCard(viewSignupOtp);
+  }
+});
+
+// 4. SIGN UP - Set Password
+formSetPassword.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const password = inputNewPassword.value;
+  const confirm = inputConfirmPassword.value;
+
+  if (password.length !== 4 || !/^\d{4}$/.test(password)) {
+    showToast('Password must be exactly 4 digits.', 'error');
+    shakeCard(viewSetPassword);
+    return;
+  }
+
+  if (password !== confirm) {
+    showToast('Passwords do not match.', 'error');
+    shakeCard(viewSetPassword);
+    return;
+  }
+
+  setBtnLoading(btnSetPassword, true);
+  try {
+    const res = await fetch('/api/signup/set-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.signupEmail, password, setupToken: state.setupToken })
+    });
+    const result = await res.json();
+    setBtnLoading(btnSetPassword, false);
+
+    if (result.success) {
+      switchView(viewSetPassword, viewSignupSuccess);
+    } else {
+      showToast(result.message, 'error');
+      shakeCard(viewSetPassword);
+    }
+  } catch (err) {
+    setBtnLoading(btnSetPassword, false);
+    showToast('Server error. Please try again.', 'error');
+    shakeCard(viewSetPassword);
   }
 });
 
 // ==========================================================================
 // Navigation Event Handlers
 // ==========================================================================
-btnBackToEmail.addEventListener('click', () => {
-  stopResendTimer();
-  switchView(viewOtp, viewEmail);
+function goToSignup() {
+  if (state.role === 'Student') return;
+  signupRoleLabel.textContent = state.role;
+  inputSignupEmail.value = inputSigninEmail.value; // Carry over email if typed
+  switchView(viewSignin, viewSignupEmail);
+}
+
+btnGotoSignup.addEventListener('click', goToSignup);
+btnGotoSignupFromForgot.addEventListener('click', goToSignup);
+
+btnBackToSignin.addEventListener('click', () => {
+  switchView(viewSignupEmail, viewSignin);
 });
 
-btnResendOtp.addEventListener('click', async () => {
-  if (btnResendOtp.disabled) return;
+btnGotoSigninFromSignup.addEventListener('click', () => {
+  switchView(viewSignupEmail, viewSignin);
+});
+
+btnBackToSignupEmail.addEventListener('click', () => {
+  stopSignupResendTimer();
+  switchView(viewSignupOtp, viewSignupEmail);
+});
+
+btnGotoSigninAfterSetup.addEventListener('click', () => {
+  inputSigninEmail.value = state.signupEmail;
+  inputSigninPassword.value = '';
+  switchView(viewSignupSuccess, viewSignin);
+});
+
+btnSignupResendOtp.addEventListener('click', async () => {
+  if (btnSignupResendOtp.disabled) return;
+  btnSignupResendOtp.disabled = true;
+  btnSignupResendOtp.textContent = 'Sending...';
   
-  btnResendOtp.disabled = true;
-  btnResendOtp.textContent = 'Sending...';
-  
-  const result = await sendOtpRequest(state.email, state.role);
-  
-  if (result.success) {
-    startResendTimer();
-    clearOtpInputs();
-    otpDigits[0].focus();
-    showToast('A new code has been sent to your email.', 'success');
-  } else {
-    btnResendOtp.disabled = false;
-    btnResendOtp.innerHTML = 'Resend OTP';
-    showToast(result.message, 'error');
+  try {
+    const res = await fetch('/api/signup/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.signupEmail, role: state.role })
+    });
+    const result = await res.json();
+    if (result.success) {
+      startSignupResendTimer();
+      clearSignupOtpInputs();
+      signupOtpDigits[0].focus();
+      showToast('A new code has been sent to your email.', 'success');
+    } else {
+      btnSignupResendOtp.disabled = false;
+      btnSignupResendOtp.innerHTML = 'Resend OTP';
+      showToast(result.message, 'error');
+    }
+  } catch (err) {
+    btnSignupResendOtp.disabled = false;
+    btnSignupResendOtp.innerHTML = 'Resend OTP';
+    showToast('Server error.', 'error');
   }
-});
-
-btnLogout.addEventListener('click', () => {
-  state.email = '';
-  inputEmail.value = '';
-  clearOtpInputs();
-  switchView(viewDashboard, viewEmail);
-  showToast('You have successfully signed out.', 'info');
 });
 
 // ==========================================================================
@@ -556,7 +521,7 @@ btnLogout.addEventListener('click', () => {
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', async () => {
   setupRoleSelector();
-  setupOtpInputs();
+  setupSignupOtpInputs();
   await checkStudentCount();
 });
 
@@ -573,8 +538,6 @@ async function checkStudentCount() {
         studentPill.style.opacity = '0.5';
         studentPill.style.cursor = 'not-allowed';
       }
-      
-      // If student was selected by default, switch to Teacher
       if (state.role === 'Student') {
         const teacherPill = document.querySelector('.role-pill[data-role="Teacher"]');
         if (teacherPill) teacherPill.click();

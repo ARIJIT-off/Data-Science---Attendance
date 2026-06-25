@@ -46,14 +46,14 @@
         </header>
 
         <div class="card-slider">
-          <!-- VIEW 1: Email Request & Role Selection Panel -->
-          <section id="view-email" class="auth-card active">
+          <!-- VIEW 1: Sign In Panel (Default) -->
+          <section id="view-signin" class="auth-card active">
             <div class="card-header">
-              <h2>Secure Sign In</h2>
-              <p class="subtitle">Select your login role and enter your details to verify.</p>
+              <h2>Sign In</h2>
+              <p class="subtitle">Select your role and enter your credentials.</p>
             </div>
 
-            <form id="form-email" class="auth-form" novalidate>
+            <form id="form-signin" class="auth-form" novalidate>
               <!-- Segmented Role Selector -->
               <div class="role-selector-group">
                 <label class="section-label">Select Role</label>
@@ -76,12 +76,7 @@
                       <line x1="16" y1="13" x2="8" y2="13"/>
                       <line x1="16" y1="17" x2="8" y2="17"/>
                     </svg>
-                    <input 
-                      type="text" 
-                      id="input-enrollment" 
-                      required
-                      autocomplete="off"
-                    >
+                    <input type="text" id="input-enrollment" required autocomplete="off">
                   </div>
                 </div>
                 
@@ -93,78 +88,198 @@
                       <line x1="12" y1="16" x2="12" y2="12"/>
                       <line x1="12" y1="8" x2="12.01" y2="8"/>
                     </svg>
-                    <input 
-                      type="text" 
-                      id="input-roll" 
-                      required
-                      autocomplete="off"
-                    >
+                    <input type="text" id="input-roll" required autocomplete="off">
                   </div>
                 </div>
               </div>
 
-              <!-- Email Credentials (Hidden by Default) -->
-              <div id="email-credentials" class="input-group-container hidden">
-                <div class="input-group">
-                  <label for="input-email">Email Address</label>
+              <!-- Email + Password Credentials (Hidden by Default, for Admin/Teacher) -->
+              <div id="signin-credentials" class="input-group-container hidden">
+                <div class="input-group" style="margin-bottom: 16px;">
+                  <label for="input-signin-email">Email Address</label>
                   <div class="input-wrapper">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                       <polyline points="22,6 12,13 2,6"/>
                     </svg>
-                    <input 
-                      type="email" 
-                      id="input-email" 
-                      placeholder="name@domain.com" 
-                      autocomplete="email"
-                    >
+                    <input type="email" id="input-signin-email" placeholder="name@domain.com" autocomplete="email">
                   </div>
+                </div>
+
+                <div class="input-group">
+                  <label for="input-signin-password">4-Digit Password</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input type="password" id="input-signin-password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="current-password">
+                    <button type="button" class="password-toggle-btn" data-target="input-signin-password" aria-label="Toggle password visibility">
+                      <svg class="eye-icon eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      <svg class="eye-icon eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="auth-helper-links">
+                  <span class="forgot-note">Forgot password? <button type="button" id="btn-goto-signup-from-forgot" class="btn-link-inline">Sign up again</button> to reset it.</span>
                 </div>
               </div>
 
-              <button type="submit" id="btn-send-otp" class="btn btn-primary">
+              <button type="submit" id="btn-signin" class="btn btn-primary">
                 <span class="btn-text">Sign In</span>
                 <div class="spinner hidden"></div>
               </button>
+
+              <!-- Sign Up toggle (only visible for Admin/Teacher) -->
+              <div id="signup-toggle" class="auth-mode-toggle hidden">
+                <span>Don't have a password?</span>
+                <button type="button" id="btn-goto-signup" class="btn-link-inline">Sign Up</button>
+              </div>
             </form>
           </section>
 
-          <!-- VIEW 2: OTP Verification Panel -->
-          <section id="view-otp" class="auth-card hidden">
+          <!-- VIEW 2: Sign Up - Email Entry -->
+          <section id="view-signup-email" class="auth-card hidden">
             <div class="card-header">
-              <button id="btn-back-to-email" class="btn-back" aria-label="Go back to email entry">
+              <button id="btn-back-to-signin" class="btn-back" aria-label="Go back to sign in">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <h2>Sign Up</h2>
+              <p class="subtitle">Enter your registered email to set up your <span id="signup-role-label" class="highlight">Teacher</span> account password.</p>
+            </div>
+
+            <form id="form-signup-email" class="auth-form" novalidate>
+              <div class="input-group">
+                <label for="input-signup-email">Registered Email Address</label>
+                <div class="input-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                  <input type="email" id="input-signup-email" placeholder="name@domain.com" required autocomplete="email">
+                </div>
+              </div>
+
+              <button type="submit" id="btn-signup-send-otp" class="btn btn-primary">
+                <span class="btn-text">Send Verification Code</span>
+                <div class="spinner hidden"></div>
+              </button>
+
+              <div class="auth-mode-toggle">
+                <span>Already have a password?</span>
+                <button type="button" id="btn-goto-signin-from-signup" class="btn-link-inline">Sign In</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- VIEW 3: Sign Up - OTP Verification -->
+          <section id="view-signup-otp" class="auth-card hidden">
+            <div class="card-header">
+              <button id="btn-back-to-signup-email" class="btn-back" aria-label="Go back to email entry">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="19" y1="12" x2="5" y2="12"></line>
                   <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
               </button>
               <h2>Verify Your Email</h2>
-              <p class="subtitle">We have sent a 4-digit verification code to <span id="display-user-email" class="highlight">user@email.com</span>.</p>
+              <p class="subtitle">We have sent a 4-digit verification code to <span id="display-signup-email" class="highlight">user@email.com</span>.</p>
             </div>
 
-            <form id="form-otp" class="auth-form" novalidate>
+            <form id="form-signup-otp" class="auth-form" novalidate>
               <div class="otp-input-container">
-                <input type="text" class="otp-digit" id="otp-1" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                <input type="text" class="otp-digit" id="otp-2" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                <input type="text" class="otp-digit" id="otp-3" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                <input type="text" class="otp-digit" id="otp-4" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                <input type="text" class="otp-digit signup-otp-digit" id="signup-otp-1" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                <input type="text" class="otp-digit signup-otp-digit" id="signup-otp-2" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                <input type="text" class="otp-digit signup-otp-digit" id="signup-otp-3" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                <input type="text" class="otp-digit signup-otp-digit" id="signup-otp-4" maxlength="1" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
               </div>
 
-              <button type="submit" id="btn-verify-otp" class="btn btn-primary" disabled>
+              <button type="submit" id="btn-signup-verify-otp" class="btn btn-primary" disabled>
                 <span class="btn-text">Verify & Proceed</span>
                 <div class="spinner hidden"></div>
               </button>
 
               <div class="resend-container">
                 <span class="resend-text">Didn't receive the code?</span>
-                <button type="button" id="btn-resend-otp" class="btn-link" disabled>Resend in <span id="resend-timer">30</span>s</button>
+                <button type="button" id="btn-signup-resend-otp" class="btn-link" disabled>Resend in <span id="signup-resend-timer">30</span>s</button>
               </div>
             </form>
           </section>
 
-          <!-- VIEW 3: Dashboard Welcome Panel -->
-          <section id="view-dashboard" class="auth-card dashboard-card hidden">
-            <div class="dashboard-header">
+          <!-- VIEW 4: Sign Up - Set Password -->
+          <section id="view-set-password" class="auth-card hidden">
+            <div class="card-header">
+              <h2>Set Your Password</h2>
+              <p class="subtitle">Create a 4-digit numeric password for your account.</p>
+            </div>
+
+            <form id="form-set-password" class="auth-form" novalidate>
+              <div class="input-group" style="margin-bottom: 16px;">
+                <label for="input-new-password">New 4-Digit Password</label>
+                <div class="input-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <input type="password" id="input-new-password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" data-target="input-new-password" aria-label="Toggle password visibility">
+                    <svg class="eye-icon eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="eye-icon eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label for="input-confirm-password">Confirm Password</label>
+                <div class="input-wrapper">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <input type="password" id="input-confirm-password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" data-target="input-confirm-password" aria-label="Toggle password visibility">
+                    <svg class="eye-icon eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="eye-icon eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="password-rules">
+                <span class="rule-icon">ℹ️</span>
+                <span>Password must be exactly 4 digits (0-9)</span>
+              </div>
+
+              <button type="submit" id="btn-set-password" class="btn btn-primary">
+                <span class="btn-text">Set Password</span>
+                <div class="spinner hidden"></div>
+              </button>
+            </form>
+          </section>
+
+          <!-- VIEW 5: Password Set Success -->
+          <section id="view-signup-success" class="auth-card hidden">
+            <div class="card-header">
               <div class="success-checkmark">
                 <div class="check-icon">
                   <span class="icon-line line-tip"></span>
@@ -173,41 +288,13 @@
                   <div class="icon-fix"></div>
                 </div>
               </div>
-              <h2>Authentication Successful</h2>
-              <p class="subtitle">Welcome back! Access has been granted to your account.</p>
+              <h2>Password Set Successfully!</h2>
+              <p class="subtitle">Your account is ready. You can now sign in with your email and password.</p>
             </div>
 
-            <div class="dashboard-body">
-              <div class="user-profile-badge">
-                <div class="avatar">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <div class="user-details">
-                  <span id="dashboard-role-badge" class="user-role-badge">Student</span>
-                  <span id="dashboard-name" class="user-name">Loading...</span>
-                </div>
-              </div>
-
-              <!-- Profile Details Section -->
-              <div class="profile-details-container">
-                <label class="section-label">Account Details</label>
-                <div id="profile-details-list" class="profile-details-list">
-                  <!-- Loaded Dynamically from Server -->
-                </div>
-              </div>
-
-              <button id="btn-logout" class="btn btn-secondary">
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-                <span>Sign Out</span>
-              </button>
-            </div>
+            <button type="button" id="btn-goto-signin-after-setup" class="btn btn-primary">
+              <span class="btn-text">Go to Sign In</span>
+            </button>
           </section>
         </div>
       </div>
