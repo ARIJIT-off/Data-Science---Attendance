@@ -21,53 +21,10 @@
       --neon-pink: #ff0055;
     }
 
-    /* Background styling */
-    .cyberpunk-bg-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -2;
-      overflow: hidden;
+    body {
       background-color: #060913;
-      perspective: 1200px;
-    }
-
-    .cyberpunk-bg-video {
-      position: absolute;
-      top: -5%;
-      left: -5%;
-      width: 110%;
-      height: 110%;
-      object-fit: cover;
-      object-position: 15% center;
-      transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
-      opacity: 0.65;
-      filter: contrast(1.05) brightness(0.68) saturate(0.85);
-    }
-
-    /* Vignette mask that fades background elements from left to right on desktop */
-    .cyberpunk-vignette {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to right, rgba(6, 9, 19, 0.15) 0%, rgba(6, 9, 19, 0.5) 40%, rgba(6, 9, 19, 0.9) 70%, #060913 100%);
-      pointer-events: none;
-    }
-
-    /* Adjust video framing for mobile screen crop so the highlighted student is fully visible */
-    @media (max-width: 768px) {
-      .cyberpunk-bg-video {
-        object-position: 12% center;
-        width: 130%;
-        left: -15%;
-      }
-      .cyberpunk-vignette {
-        background: radial-gradient(circle at center, rgba(6, 9, 19, 0.3) 0%, rgba(6, 9, 19, 0.92) 80%);
-      }
+      background-image: radial-gradient(circle at center, rgba(6, 9, 19, 0.3) 0%, rgba(6, 9, 19, 0.92) 80%);
+      background-attachment: fixed;
     }
 
     /* Top Grid & Bottom Grid structures */
@@ -417,13 +374,6 @@
   </style>
 </head>
 <body>
-  <!-- Futuristic Cyberpunk Background Video -->
-  <div class="cyberpunk-bg-container" id="cyberpunk-bg-container">
-    <video autoplay muted loop playsinline class="cyberpunk-bg-video" id="cyberpunk-bg-video">
-      <source src="A_seamless_looping_cyberpunk_c.mp4" type="video/mp4">
-    </video>
-    <div class="cyberpunk-vignette"></div>
-  </div>
 
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>
