@@ -478,22 +478,21 @@ async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
       };
     }
 
-    // Second pass: fallback to suffix matches if no exact match found
-    const allStudents = await User.find({ role: 'Student' });
-    for (const st of allStudents) {
-      if (st.enrollment && st.roll) {
-        const rowEnroll = st.enrollment.toString().trim().toLowerCase();
-        const rowRoll = st.roll.toString().trim();
-        if (rowRoll === enteredRollClean && rowEnroll.endsWith(enteredEnrollClean)) {
-          return {
-            name: st.name,
-            roll: st.roll,
-            enrollment: st.enrollment,
-            year: '2nd Year',
-            section: 'Sec A'
-          };
-        }
-      }
+    // Second pass: suffix match using DB query (much faster than loading all students)
+    const suffixRegex = new RegExp(enteredEnrollClean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+    const st = await User.findOne({
+      role: 'Student',
+      enrollment: suffixRegex,
+      roll: enteredRollClean
+    }).lean();
+    if (st) {
+      return {
+        name: st.name,
+        roll: st.roll,
+        enrollment: st.enrollment,
+        year: '2nd Year',
+        section: 'Sec A'
+      };
     }
   } catch (e) {
     console.error("Error searching student details in MongoDB:", e.message);
@@ -528,11 +527,9 @@ function hashPassword(password) {
 app.post('/api/signup/send-otp', async (req, res) => {
   const { email, role } = req.body;
 
-  if (MONGODB_URI && !cached.conn) {
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Database connection failed. Please try again later.' 
-    });
+  // Ensure DB is connected first (critical on Vercel cold starts)
+  try { await connectDB(); } catch (e) {
+    return res.status(500).json({ success: false, message: 'Database connection failed. Please try again later.' });
   }
 
   if (!role || !['Admin', 'Teacher'].includes(role)) {
@@ -543,30 +540,31 @@ app.post('/api/signup/send-otp', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
   }
 
-  // Verify the email is registered for this role
-  const userProfile = await findUserByRole(email, role);
-  if (!userProfile) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'This email is not registered as ' + role + '. Please check your email or role selection.' 
-    });
-  }
+  try {
+    // Verify the email is registered for this role
+    const userProfile = await findUserByRole(email, role);
+    if (!userProfile) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'This email is not registered as ' + role + '. Please check your email or role selection.' 
+      });
+    }
 
-  // Generate 4-digit OTP
-  const otp = Math.floor(1000 + Math.random() * 9000).toString();
-  
-  // Save OTP to MongoDB with type 'signup'
-  await Otp.findOneAndUpdate(
-    { email: email.toLowerCase() },
-    { 
-      otp, 
-      role, 
-      profile: userProfile,
-      type: 'signup',
-      createdAt: new Date()
-    },
-    { upsert: true, new: true }
-  );
+    // Generate 4-digit OTP
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    
+    // Save OTP to MongoDB with type 'signup'
+    await Otp.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { 
+        otp, 
+        role, 
+        profile: userProfile,
+        type: 'signup',
+        createdAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
 
   // Dynamic greeting
   const greetingName = userProfile.name || 'User';
@@ -625,13 +623,14 @@ app.post('/api/signup/send-otp', async (req, res) => {
     }
   };
 
-  try {
     await transporter.sendMail(mailOptions);
     console.log(`Sign-up OTP (${otp}) sent to ${email} for role ${role}`);
     res.status(200).json({ success: true, message: 'Verification code sent to your email.', email: email });
   } catch (error) {
-    console.error(`Error sending sign-up email to ${email}:`, error);
-    res.status(500).json({ success: false, message: 'Failed to send verification email. Please try again later.' });
+    console.error(`Error in signup/send-otp for ${email}:`, error.message);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Failed to send verification email. Please try again later.' });
+    }
   }
 });
 
@@ -641,6 +640,10 @@ app.post('/api/signup/verify-otp', async (req, res) => {
 
   if (!email || !otp) {
     return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
+  }
+
+  try { await connectDB(); } catch (e) {
+    return res.status(500).json({ success: false, message: 'Database connection failed. Please try again later.' });
   }
 
   try {
@@ -654,12 +657,13 @@ app.post('/api/signup/verify-otp', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid verification code. Please check and try again.' });
     }
 
-    // Don't delete the OTP yet — we need the role info for set-password step
-    // Generate a temporary setup token (random hex) to authorize the set-password call
+    // Generate a temporary setup token to authorize the set-password call
     const setupToken = crypto.randomBytes(16).toString('hex');
-    cachedData.otp = setupToken; // Replace OTP with token
-    cachedData.type = 'setup_password'; // Change type so OTP can't be reused
-    await cachedData.save();
+    // Use atomic update instead of save() to avoid version conflicts
+    await Otp.updateOne(
+      { _id: cachedData._id },
+      { $set: { otp: setupToken, type: 'setup_password', createdAt: new Date() } }
+    );
 
     res.status(200).json({
       success: true,
@@ -668,7 +672,7 @@ app.post('/api/signup/verify-otp', async (req, res) => {
       role: cachedData.role
     });
   } catch (err) {
-    console.error('Error verifying sign-up OTP:', err);
+    console.error('Error verifying sign-up OTP:', err.message);
     res.status(500).json({ success: false, message: 'Server error during verification.' });
   }
 });
@@ -686,20 +690,25 @@ app.post('/api/signup/set-password', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Password must be exactly 4 digits.' });
   }
 
+  try { await connectDB(); } catch (e) {
+    return res.status(500).json({ success: false, message: 'Database connection failed. Please try again later.' });
+  }
+
   try {
     // Verify the setup token
     const cachedData = await Otp.findOne({ email: email.toLowerCase(), type: 'setup_password', otp: setupToken });
 
     if (!cachedData) {
-      return res.status(400).json({ success: false, message: 'Session expired. Please sign up again.' });
+      return res.status(400).json({ success: false, message: 'Session expired. Please sign up again to get a new code.' });
     }
 
     const role = cachedData.role;
 
-    // Hash the password and save to User document
+    // Hash the password and save to User document atomically
     const hashedPassword = hashPassword(password);
+    const emailRegex = new RegExp(`^${email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
     const updateResult = await User.updateOne(
-      { email: { $regex: new RegExp(`^${email.trim()}$`, 'i') }, role: role },
+      { email: { $regex: emailRegex }, role: role },
       { $set: { password: hashedPassword } }
     );
 
@@ -713,7 +722,7 @@ app.post('/api/signup/set-password', async (req, res) => {
     console.log(`Password set successfully for ${email} (${role})`);
     res.status(200).json({ success: true, message: 'Password set successfully! You can now sign in.' });
   } catch (err) {
-    console.error('Error setting password:', err);
+    console.error('Error setting password:', err.message);
     res.status(500).json({ success: false, message: 'Server error while setting password.' });
   }
 });
@@ -721,13 +730,6 @@ app.post('/api/signup/set-password', async (req, res) => {
 // Endpoint: Sign In (Email + Password for Admin/Teacher)
 app.post('/api/signin', async (req, res) => {
   const { email, password, role } = req.body;
-
-  if (MONGODB_URI && !cached.conn) {
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Database connection failed. Please try again later.' 
-    });
-  }
 
   if (!email || !password || !role) {
     return res.status(400).json({ success: false, message: 'Email, password, and role are required.' });
@@ -741,56 +743,65 @@ app.post('/api/signin', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Password must be exactly 4 digits.' });
   }
 
-  try {
-    // Find user by email and role
-    const user = await User.findOne({ 
-      email: { $regex: new RegExp(`^${email.trim()}$`, 'i') }, 
-      role: role 
-    }).lean();
+  try { await connectDB(); } catch (e) {
+    return res.status(500).json({ success: false, message: 'Database connection failed. Please try again later.' });
+  }
 
-    if (!user) {
+  try {
+    // Use case-insensitive email match via lowercased index
+    const emailLower = email.trim().toLowerCase();
+    const user = await User.findOne({ email: emailLower, role: role }).lean();
+
+    // Fallback: allow Admin to login as Teacher too
+    const effectiveUser = user || (
+      role === 'Teacher'
+        ? await User.findOne({ email: emailLower, role: 'Admin' }).lean()
+        : null
+    );
+
+    if (!effectiveUser) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Either you selected the wrong role, or wrong email address.' 
+        message: 'Wrong role or wrong email address. Please check and try again.' 
       });
     }
 
     // Check if user has set a password
-    if (!user.password) {
+    if (!effectiveUser.password) {
       return res.status(400).json({ 
         success: false, 
-        message: 'You haven\'t set up a password yet. Please sign up first.' 
+        message: "You haven't set up a password yet. Please sign up first to create one."
       });
     }
 
     // Verify password
     const hashedInput = hashPassword(password);
-    if (user.password !== hashedInput) {
+    if (effectiveUser.password !== hashedInput) {
       return res.status(400).json({ success: false, message: 'Incorrect password. Please try again.' });
     }
 
-    // Build profile object (same format as OTP login)
+    // Build profile object
     const userProfile = {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      mobile: user.mobile || 'N/A',
-      department: user.department || 'CSE Data Science',
-      designation: user.designation || (role === 'Admin' ? 'Administrator' : 'Faculty Member')
+      name: effectiveUser.name,
+      email: effectiveUser.email,
+      role: effectiveUser.role,
+      mobile: effectiveUser.mobile || 'N/A',
+      department: effectiveUser.department || 'CSE Data Science',
+      designation: effectiveUser.designation || (role === 'Admin' ? 'Administrator' : 'Faculty Member')
     };
 
-    console.log(`Successful sign-in: ${email} as ${role}`);
+    console.log(`Successful sign-in: ${emailLower} as ${role}`);
     res.status(200).json({
       success: true,
       message: 'Authentication successful.',
       user: {
-        email: user.email,
+        email: effectiveUser.email,
         role: role,
         profile: userProfile
       }
     });
   } catch (err) {
-    console.error('Error during sign-in:', err);
+    console.error('Error during sign-in:', err.message);
     res.status(500).json({ success: false, message: 'Server error during sign-in.' });
   }
 });
