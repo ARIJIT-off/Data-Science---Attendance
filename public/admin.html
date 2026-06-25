@@ -1116,6 +1116,21 @@ function formatDateString(dateStr) {
   return dateStr;
 }
 
+// Convert UTC ISO string → IST formatted time (HH:MM AM/PM IST)
+function formatTimeIST(isoString) {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).toUpperCase() + ' IST';
+  } catch (e) { return null; }
+}
+
 if (!userData || userData.role !== 'Admin') {
   window.location.href = 'index.html';
 }
@@ -1511,6 +1526,7 @@ function renderAllRecords() {
     const presentCount = record.students.filter(s => s.present).length;
     const totalCount = record.students.length;
     const dateStr = formatDateString(record.date);
+    const timeStr = formatTimeIST(record.createdAt);
 
     let studentsHtml = '<div style="padding:8px 0;">';
     record.students.forEach(s => {
@@ -1531,7 +1547,7 @@ function renderAllRecords() {
       <div class="record-card" id="record-${record.id}">
         <div class="record-header" onclick="toggleRecord('${record.id}')">
           <div class="record-info">
-            <span class="record-date">${dateStr}</span>
+            <span class="record-date">${dateStr}${timeStr ? `<span style="font-size:10px; font-weight:400; opacity:0.7; margin-left:6px;">🕐 ${timeStr}</span>` : ''}</span>
             <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? record.period + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
             <span class="record-teacher">${record.teacherName}</span>
             <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>

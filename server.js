@@ -1210,43 +1210,88 @@ app.post('/api/attendance/mark', async (req, res) => {
 // Endpoint: Get student's attendance records by enrollment number
 app.get('/api/attendance/student/:enrollment', async (req, res) => {
   const enrollment = decodeURIComponent(req.params.enrollment).trim();
-  const allRecords = await readAttendanceData();
 
-  // Filter records that include this student
-  const studentRecords = allRecords.filter(record =>
-    record.students.some(s => s.enrollment === enrollment)
-  ).map(record => {
-    const studentEntry = record.students.find(s => s.enrollment === enrollment);
-    return {
-      id: record.id,
-      date: record.date,
-      subject: record.subject,
-      year: record.year || '',
-      section: record.section || '',
-      teacherName: record.teacherName,
-      present: studentEntry ? studentEntry.present : false
-    };
-  });
-
-  res.json({ success: true, records: studentRecords });
+  try {
+    let studentRecords;
+    if (useMongoDb) {
+      // Direct DB query — only fetch records containing this student
+      const docs = await AttendanceModel.find(
+        { 'students.enrollment': enrollment },
+        { id:1, date:1, subject:1, year:1, section:1, semester:1, period:1, teacherName:1, 'students.$':1, createdAt:1 }
+      ).lean();
+      studentRecords = docs.map(record => {
+        const studentEntry = (record.students || []).find(s => s.enrollment === enrollment);
+        return {
+          id: record.id,
+          date: record.date,
+          subject: record.subject,
+          year: record.year || '',
+          semester: record.semester || '',
+          section: record.section || '',
+          period: record.period || '',
+          teacherName: record.teacherName,
+          createdAt: record.createdAt,
+          present: studentEntry ? studentEntry.present : false
+        };
+      });
+    } else {
+      const allRecords = _jsonRead(ATTENDANCE_FILE);
+      studentRecords = allRecords.filter(record =>
+        record.students.some(s => s.enrollment === enrollment)
+      ).map(record => {
+        const studentEntry = record.students.find(s => s.enrollment === enrollment);
+        return {
+          id: record.id, date: record.date, subject: record.subject,
+          year: record.year || '', semester: record.semester || '',
+          section: record.section || '', period: record.period || '',
+          teacherName: record.teacherName, createdAt: record.createdAt,
+          present: studentEntry ? studentEntry.present : false
+        };
+      });
+    }
+    res.json({ success: true, records: studentRecords });
+  } catch (err) {
+    console.error('Error fetching student attendance:', err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
 });
 
 // Endpoint: Get teacher's attendance records by email
 app.get('/api/attendance/teacher/:email', async (req, res) => {
   const email = decodeURIComponent(req.params.email).trim().toLowerCase();
-  const allRecords = await readAttendanceData();
 
-  const teacherRecords = allRecords.filter(record =>
-    record.teacherEmail === email
-  );
-
-  res.json({ success: true, records: teacherRecords });
+  try {
+    let teacherRecords;
+    if (useMongoDb) {
+      // Direct DB query — only fetch this teacher's records, sorted at DB level
+      teacherRecords = await AttendanceModel.find({ teacherEmail: email })
+        .sort({ date: -1 }).lean();
+    } else {
+      const allRecords = _jsonRead(ATTENDANCE_FILE);
+      teacherRecords = allRecords.filter(r => r.teacherEmail === email);
+    }
+    res.json({ success: true, records: teacherRecords });
+  } catch (err) {
+    console.error('Error fetching teacher attendance:', err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
 });
 
 // Endpoint: Get all attendance records (for admin)
 app.get('/api/attendance/all', async (req, res) => {
-  const allRecords = await readAttendanceData();
-  res.json({ success: true, records: allRecords });
+  try {
+    let allRecords;
+    if (useMongoDb) {
+      // Fetch sorted at DB level — no post-processing needed
+      allRecords = await AttendanceModel.find({}).sort({ date: -1 }).lean();
+    } else {
+      allRecords = _jsonRead(ATTENDANCE_FILE);
+    }
+    res.json({ success: true, records: allRecords });
+  } catch (err) {
+    console.error('Error fetching all attendance:', err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
 });
 
 // Endpoint: Get attendance statistics (for admin)
