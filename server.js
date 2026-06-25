@@ -703,14 +703,26 @@ app.post('/api/signup/set-password', async (req, res) => {
     }
 
     const role = cachedData.role;
+    // Use the actual DB role from the stored profile (avoids Admin-signed-up-as-Teacher mismatch)
+    const actualRole = (cachedData.profile && cachedData.profile.role) ? cachedData.profile.role : role;
 
     // Hash the password and save to User document atomically
     const hashedPassword = hashPassword(password);
-    const emailRegex = new RegExp(`^${email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
-    const updateResult = await User.updateOne(
-      { email: { $regex: emailRegex }, role: role },
+    const emailLower = email.trim().toLowerCase();
+
+    // First try: match by lowercased email + actual DB role
+    let updateResult = await User.updateOne(
+      { email: emailLower, role: actualRole },
       { $set: { password: hashedPassword } }
     );
+
+    // Fallback: email-only match (handles edge cases like role case mismatches)
+    if (updateResult.matchedCount === 0) {
+      updateResult = await User.updateOne(
+        { email: emailLower },
+        { $set: { password: hashedPassword } }
+      );
+    }
 
     if (updateResult.matchedCount === 0) {
       return res.status(400).json({ success: false, message: 'User account not found. Please contact administrator.' });
