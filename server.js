@@ -392,8 +392,18 @@ const transporter = nodemailer.createTransport({
     user: credentials.email,
     pass: credentials.password
   },
-  // Force IPv4 because Railway sometimes fails to route IPv6 to Gmail
-  family: 4
+  // Force IPv4 because Railway/Vercel sometimes fails to route IPv6 to Gmail
+  family: 4,
+  // Connection pooling and rate limiting to avoid Gmail throttling
+  pool: true,
+  maxConnections: 3,
+  maxMessages: 10,
+  rateDelta: 1000,
+  rateLimit: 5,
+  // Proper timeouts
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000
 });
 
 // Verify connection configuration
@@ -655,7 +665,6 @@ app.post('/api/send-otp', async (req, res) => {
           letter-spacing: 8px;
           color: #06b6d4;
           margin: 0;
-          text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
         }
         .expiry {
           font-size: 14px;
@@ -692,11 +701,17 @@ app.post('/api/send-otp', async (req, res) => {
   `;
 
   const mailOptions = {
-    from: `"Attendance - CSE(Data Science)" <${credentials.email}>`,
+    from: `"UEMK Attendance System" <${credentials.email}>`,
+    replyTo: credentials.email,
     to: userEmail,
-    subject: `🔐 ${otp} is your Attendance - CSE(Data Science) ${role} verification code`,
+    subject: `${otp} - Your Attendance Verification Code`,
     html: htmlContent,
-    text: `Hello ${greetingName}, your verification code for signing in as ${role} is: ${otp}. It will expire in 5 minutes.`
+    text: `Hello ${greetingName}, your verification code for signing in as ${role} is: ${otp}. It will expire in 5 minutes.`,
+    headers: {
+      'X-Priority': '1',
+      'X-Mailer': 'UEMK Attendance System',
+      'List-Unsubscribe': `<mailto:${credentials.email}?subject=Unsubscribe>`
+    }
   };
 
   try {
@@ -1125,11 +1140,17 @@ app.post('/api/email-change/send-otp', async (req, res) => {
   `;
 
   const mailOptions = {
-    from: `"Attendance - CSE(Data Science)" <${credentials.email}>`,
+    from: `"UEMK Attendance System" <${credentials.email}>`,
+    replyTo: credentials.email,
     to: newEmail.trim(),
-    subject: `🔐 ${otp} is your Email Change verification code`,
+    subject: `${otp} - Email Change Verification Code`,
     html: htmlContent,
-    text: `Your verification code to change your account email address to this one is: ${otp}. It will expire in 5 minutes.`
+    text: `Your verification code to change your account email address to this one is: ${otp}. It will expire in 5 minutes.`,
+    headers: {
+      'X-Priority': '1',
+      'X-Mailer': 'UEMK Attendance System',
+      'List-Unsubscribe': `<mailto:${credentials.email}?subject=Unsubscribe>`
+    }
   };
 
   try {
