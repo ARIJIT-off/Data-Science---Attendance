@@ -1481,17 +1481,11 @@ function downloadSelectedTeachersExcel() {
 
 // ===== Sort Helper: Sort by Date (desc) and Period (asc) =====
 function compareRecordsByDateAndPeriod(a, b) {
-  const dateDiff = new Date(b.date) - new Date(a.date);
+  let dateDiff = 0;
+  if (a.date && b.date) dateDiff = b.date.localeCompare(a.date);
   if (dateDiff !== 0) return dateDiff;
-  
-  const periodWeight = (p) => {
-    if (!p) return 99;
-    if (p === 'EAA') return 8;
-    const num = parseInt(p);
-    return isNaN(num) ? 99 : num;
-  };
-  
-  return periodWeight(a.period) - periodWeight(b.period);
+  const weight = p => p==='EAA'?8:(parseInt(p)||99);
+  return weight(a.period||'') - weight(b.period||'');
 }
 
 // ===== Render All Records =====
