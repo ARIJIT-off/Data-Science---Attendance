@@ -9,17 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="dashboard.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard — Attendance - CSE(Data Science)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="dashboard.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     /* ── Font Styling ── */
     :root {
@@ -29,33 +18,11 @@
       font-family: 'Times New Roman', Times, 'Georgia', serif !important;
     }
 
-    /* ── Background ── */
-    .admin-video-bg {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      overflow: hidden;
-      background-color: #050810;
-      background-image: radial-gradient(circle at center, rgba(5, 8, 16, 0.3) 0%, rgba(5, 8, 16, 0.92) 80%);
-      perspective: 1200px;
-    }
-    /* Dark overlay gradient so content is readable */
-    .admin-video-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        160deg,
-        rgba(5,8,16,0.55) 0%,
-        rgba(5,8,16,0.30) 40%,
-        rgba(5,8,16,0.55) 100%
-      );
-      pointer-events: none;
-    }
-
     /* ── Reset body ── */
     body {
-      background: transparent !important;
+      background: #050810 !important;
+      background-image: radial-gradient(circle at 50% 0%, #151a2a 0%, #050810 60%);
+      min-height: 100vh;
     }
 
     /* ── Remove old solid glow orbs ── */
@@ -381,11 +348,33 @@
 
     /* Responsive: stack stats on small screens */
     @media (max-width: 700px) {
+      .dashboard-page {
+        padding: 0 12px 40px !important;
+      }
+      .profile-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+      }
       .stats-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: 1fr !important;
       }
       .tabs-container {
-        flex-wrap: wrap !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+      .tab-btn {
+        width: 100% !important;
+        text-align: center !important;
+      }
+      .record-info {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+      }
+      .record-subject, .record-teacher, .record-stats {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        border-left: none !important;
       }
     }
 
@@ -775,8 +764,6 @@
     </div>
   </div>
 
-  <div class="admin-video-bg">
-  </div>
 
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>
@@ -1499,6 +1486,549 @@ function compareRecordsByDateAndPeriod(a, b) {
   return weight(a.period||'') - weight(b.period||'');
 }
 
+// ===== Render All Records =====
+function renderAllRecords() {
+  const container = document.getElementById('all-records-container');
+  const expandedIds = Array.from(container.querySelectorAll('.record-card.expanded')).map(card => card.id);
+
+  if (allRecords.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <h3>No Records Yet</h3>
+        <p>Attendance records will appear here once teachers start marking.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const sorted = [...allRecords].sort(compareRecordsByDateAndPeriod);
+  let html = '';
+
+  sorted.forEach(record => {
+    const presentCount = record.students.filter(s => s.present).length;
+    const totalCount = record.students.length;
+    const dateStr = formatDateString(record.date);
+    const timeStr = formatTimeIST(record.createdAt);
+
+    let studentsHtml = '<div style="padding:8px 0;">';
+    record.students.forEach(s => {
+      const badge = s.present
+        ? `<span class="badge-present interactive" onclick="toggleStudentAttendance('${record.id}', '${s.enrollment}', false)" title="Click to mark Absent">P</span>`
+        : `<span class="badge-absent interactive" onclick="toggleStudentAttendance('${record.id}', '${s.enrollment}', true)" title="Click to mark Present">A</span>`;
+      studentsHtml += `
+        <div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:13px;">
+          <span style="font-weight:700; color:var(--color-cyan); min-width:28px;">${s.roll}</span>
+          <span style="flex:1;">${s.name}</span>
+          ${badge}
+        </div>
+      `;
+    });
+    studentsHtml += '</div>';
+
+    html += `
+      <div class="record-card" id="record-${record.id}">
+        <div class="record-header" onclick="toggleRecord('${record.id}')">
+          <div class="record-info">
+            <span class="record-date">${dateStr}${timeStr ? `<span style="font-size:10px; font-weight:400; opacity:0.7; margin-left:6px;">🕐 ${timeStr}</span>` : ''}</span>
+            <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? record.period + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
+            <span class="record-teacher">${record.teacherName}</span>
+            <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
+          </div>
+          <svg class="record-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="record-body">
+          <div style="margin-bottom:12px; display:flex; justify-content:flex-end; gap: 8px;">
+            <button class="btn btn-sm btn-secondary" onclick="downloadSingleRecordExcel('${record.id}')" style="color:var(--color-cyan); border-color:rgba(0,240,255,0.2);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Excel
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="deleteRecord('${record.id}')" style="color:var(--color-error); border-color:rgba(244,63,94,0.2);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Delete
+            </button>
+          </div>
+          ${studentsHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  expandedIds.forEach(id => {
+    const card = document.getElementById(id);
+    if (card) card.classList.add('expanded');
+  });
+}
+
+function downloadSingleRecordExcel(recordId) {
+  const record = allRecords.find(r => r.id === recordId);
+  if (!record) return;
+  
+  const data = record.students.map(s => ({
+    'Roll No': s.roll,
+    'Name': s.name,
+    'Enrollment': s.enrollment,
+    'Attendance': s.present ? 'Present' : 'Absent'
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+  
+  const safeDate = record.date.replace(/[\/\\:]/g, '-');
+  const safeSubject = record.subject.replace(/[^a-zA-Z0-9 -]/g, '').trim() || 'Class';
+  XLSX.writeFile(wb, `Attendance_${safeSubject}_${safeDate}.xlsx`);
+}
+
+function toggleRecord(id) {
+  const card = document.getElementById('record-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
+async function toggleStudentAttendance(recordId, enrollment, newPresentStatus) {
+  try {
+    const res = await fetch(`/api/attendance/${recordId}/student/${enrollment}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ present: newPresentStatus })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Student status updated successfully.', 'success');
+
+      // Update in-memory records list
+      const recordIndex = allRecords.findIndex(r => r.id === recordId);
+      if (recordIndex !== -1) {
+        allRecords[recordIndex] = result.record;
+      }
+
+      // Recompute and re-render everything
+      computeStudentAttendance();
+      renderStudentTable();
+      renderTeacherSummary();
+      renderAllRecords();
+      loadStats();
+
+      // Maintain expanded state of the card
+      const card = document.getElementById('record-' + recordId);
+      if (card) card.classList.add('expanded');
+    } else {
+      showToast(result.message || 'Failed to update status.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
+}
+
+async function deleteRecord(id) {
+  if (!confirm('Are you sure you want to delete this attendance record?')) return;
+
+  try {
+    const res = await fetch('/api/attendance/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Record deleted.', 'success');
+      // Refresh data
+      allRecords = allRecords.filter(r => r.id !== id);
+      computeStudentAttendance();
+      renderStudentTable();
+      renderTeacherSummary();
+      renderAllRecords();
+      loadStats();
+    } else {
+      showToast(data.message || 'Failed to delete.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
+}
+
+// ===== Student Grievances =====
+let allGrievances = [];
+
+function updateGrievanceBadgeCount() {
+  let seenIds = [];
+  try {
+    const stored = localStorage.getItem('seenGrievances');
+    if (stored) seenIds = JSON.parse(stored);
+  } catch(e) {
+    console.error(e);
+  }
+
+  // Filter seenIds to keep only those that still exist in allGrievances
+  const currentIds = allGrievances.map(g => g.id);
+  seenIds = seenIds.filter(id => currentIds.includes(id));
+  
+  // Calculate unseen count
+  const unseenCount = allGrievances.filter(g => !seenIds.includes(g.id)).length;
+
+  const badge = document.getElementById('grievance-badge');
+  if (badge) {
+    if (unseenCount > 0) {
+      badge.textContent = unseenCount;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+async function loadGrievances(isPageLoad = false) {
+  const container = document.getElementById('grievances-container');
+  if (!container) return;
+  
+  // Only show loading if we are NOT on initial page load
+  if (!isPageLoad) {
+    container.innerHTML = `
+      <div class="loading-overlay" id="grievances-loading">
+        <div class="spinner"></div>
+        <span>Loading grievances...</span>
+      </div>
+    `;
+  }
+
+  try {
+    const res = await fetch('/api/grievances');
+    const data = await res.json();
+    if (data.success) {
+      allGrievances = data.grievances;
+      renderGrievances();
+      updateGrievanceBadgeCount();
+    } else {
+      if (!isPageLoad) {
+        showToast(data.message || 'Failed to load grievances.', 'error');
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    if (!isPageLoad) {
+      showToast('Failed to connect to server.', 'error');
+    }
+  }
+}
+
+function renderGrievances() {
+  const container = document.getElementById('grievances-container');
+  if (!container) return;
+
+  if (!allGrievances || allGrievances.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px;">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <h3>No Student Grievances</h3>
+        <p>Student complaints or attendance adjustment requests will appear here.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const sorted = [...allGrievances].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  let html = '<div style="display: flex; flex-direction: column; gap: 16px;">';
+  sorted.forEach(g => {
+    const dateFormatted = new Date(g.createdAt).toLocaleString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const isTeacher = g.senderRole === 'Teacher';
+    const badgesHtml = isTeacher
+      ? `<span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(139, 92, 246, 0.12); color: var(--color-violet); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 4px; font-weight: 600;">Teacher</span>
+         <span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; font-family: monospace;">Email: ${g.senderEmail || 'N/A'}</span>`
+      : `<span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(6, 182, 212, 0.12); color: var(--color-cyan); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 4px;">Roll: ${g.studentRoll || 'N/A'}</span>
+         <span style="font-size: 11px; margin-left: 6px; padding: 2px 8px; background: rgba(139, 92, 246, 0.12); color: var(--color-violet); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 4px;">Enrollment: ${g.studentEnrollment || 'N/A'}</span>`;
+
+    html += `
+      <div class="record-card" style="padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <strong style="color: #fff; font-size: 15px;">${g.studentName}</strong>
+            ${badgesHtml}
+          </div>
+          <span style="font-size: 12px; color: var(--text-secondary); font-family: monospace;">${dateFormatted}</span>
+        </div>
+        <div style="background: rgba(4, 6, 15, 0.4); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; padding: 12px; font-size: 13px; color: var(--text-primary); line-height: 1.5; white-space: pre-wrap;">${g.message}</div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+          <button class="btn btn-sm btn-secondary" onclick="deleteGrievance('${g.id}')" style="color: var(--color-error); border-color: rgba(244, 63, 94, 0.2);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Remove
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function deleteGrievance(id) {
+  if (!confirm('Are you sure you want to remove this grievance message?')) return;
+  
+  try {
+    const res = await fetch(`/api/grievance/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Grievance message removed successfully.', 'success');
+      allGrievances = allGrievances.filter(g => g.id !== id);
+      renderGrievances();
+      updateGrievanceBadgeCount();
+    } else {
+      showToast(data.message || 'Failed to remove grievance.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+}
+
+// ===== Init =====
+loadStats();
+loadAllData();
+loadGrievances(true);
+
+// ===== Email Change Modal Logic =====
+const emailModal = document.getElementById('email-modal');
+const btnChangeEmail = document.getElementById('btn-change-email');
+const btnCloseModal = document.getElementById('btn-close-modal');
+const newEmailInput = document.getElementById('new-email-input');
+const btnSubmitNewEmail = document.getElementById('btn-submit-new-email');
+const btnVerifyNewEmail = document.getElementById('btn-verify-new-email');
+const btnResendNewEmailOtp = document.getElementById('btn-resend-new-email-otp');
+const newEmailDisplay = document.getElementById('new-email-display');
+const emailViewInput = document.getElementById('email-view-input');
+const emailViewOtp = document.getElementById('email-view-otp');
+const modalOtpDigits = Array.from(document.querySelectorAll('.modal-otp-digit'));
+
+let newEmailValue = '';
+
+if (btnChangeEmail) {
+  btnChangeEmail.addEventListener('click', () => {
+    emailModal.style.display = 'flex';
+    emailViewInput.style.display = 'block';
+    emailViewOtp.style.display = 'none';
+    newEmailInput.value = '';
+    btnSubmitNewEmail.disabled = true;
+    newEmailInput.focus();
+  });
+}
+
+if (btnCloseModal) {
+  btnCloseModal.addEventListener('click', () => {
+    emailModal.style.display = 'none';
+  });
+}
+
+emailModal.addEventListener('click', (e) => {
+  if (e.target === emailModal) {
+    emailModal.style.display = 'none';
+  }
+});
+
+newEmailInput.addEventListener('input', () => {
+  const email = newEmailInput.value.trim();
+  btnSubmitNewEmail.disabled = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+});
+
+btnSubmitNewEmail.addEventListener('click', async () => {
+  newEmailValue = newEmailInput.value.trim();
+  if (!newEmailValue) return;
+
+  btnSubmitNewEmail.disabled = true;
+  const btnText = btnSubmitNewEmail.querySelector('span');
+  const spinner = btnSubmitNewEmail.querySelector('.spinner');
+  btnText.classList.add('hidden');
+  spinner.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/api/email-change/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentEmail: profile.email,
+        newEmail: newEmailValue,
+        role: userData.role
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      newEmailDisplay.textContent = newEmailValue;
+      emailViewInput.style.display = 'none';
+      emailViewOtp.style.display = 'block';
+      modalOtpDigits.forEach(input => input.value = '');
+      btnVerifyNewEmail.disabled = true;
+      setTimeout(() => modalOtpDigits[0].focus(), 100);
+      showToast('OTP sent to your new email!', 'success');
+    } else {
+      showToast(result.message || 'Failed to send OTP.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+
+  btnSubmitNewEmail.disabled = false;
+  btnText.classList.remove('hidden');
+  spinner.classList.add('hidden');
+});
+
+modalOtpDigits.forEach((input, index) => {
+  input.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (!/^\d*$/.test(val)) {
+      e.target.value = '';
+      updateModalVerifyButtonState();
+      return;
+    }
+    if (val !== '' && index < modalOtpDigits.length - 1) {
+      modalOtpDigits[index + 1].focus();
+    }
+    updateModalVerifyButtonState();
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace') {
+      if (input.value === '') {
+        if (index > 0) {
+          modalOtpDigits[index - 1].focus();
+          modalOtpDigits[index - 1].value = '';
+        }
+      } else {
+        input.value = '';
+      }
+      updateModalVerifyButtonState();
+      e.preventDefault();
+    }
+  });
+});
+
+function updateModalVerifyButtonState() {
+  const isFilled = modalOtpDigits.every(input => input.value !== '');
+  btnVerifyNewEmail.disabled = !isFilled;
+}
+
+btnVerifyNewEmail.addEventListener('click', async () => {
+  const otp = modalOtpDigits.map(input => input.value).join('');
+  if (otp.length !== 4) return;
+
+  btnVerifyNewEmail.disabled = true;
+  const btnText = btnVerifyNewEmail.querySelector('span');
+  const spinner = btnVerifyNewEmail.querySelector('.spinner');
+  btnText.classList.add('hidden');
+  spinner.classList.remove('hidden');
+
+  try {
+    const res = await fetch('/api/email-change/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        newEmail: newEmailValue,
+        otp
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Email address changed successfully! Reloading...', 'success');
+      sessionStorage.setItem('user', JSON.stringify(result.user));
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      showToast(result.message || 'Incorrect OTP code.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to connect to server.', 'error');
+  }
+
+  btnVerifyNewEmail.disabled = false;
+  btnText.classList.remove('hidden');
+  spinner.classList.add('hidden');
+});
+
+btnResendNewEmailOtp.addEventListener('click', async () => {
+  btnResendNewEmailOtp.disabled = true;
+  btnResendNewEmailOtp.textContent = 'Sending...';
+
+  try {
+    const res = await fetch('/api/email-change/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentEmail: profile.email,
+        newEmail: newEmailValue,
+        role: userData.role
+      })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('Verification code resent!', 'success');
+    } else {
+      showToast(result.message || 'Failed to resend.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
+  btnResendNewEmailOtp.disabled = false;
+  btnResendNewEmailOtp.textContent = 'Resend OTP';
+});
+
+
+
+// ===== Background Video Parallax =====
+const bgVideo = document.querySelector('.admin-video-bg video');
+let mouse = { x: null, y: null };
+
+function handleParallaxMove(clientX, clientY) {
+  mouse.x = clientX;
+  mouse.y = clientY;
+  
+  const xOffset = (clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+  const yOffset = (clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+  
+  const xRotate = xOffset * 2.5;
+  const yRotate = yOffset * -2.5;
+  
+  if (bgVideo) {
+    // 3D tilt and translate the background video on hover
+    bgVideo.style.transform = `translate(${xOffset * -15}px, ${yOffset * -15}px) rotateX(${yRotate}deg) rotateY(${xRotate}deg) scale(1.04)`;
+  }
+}
+
+function resetParallax() {
+  mouse.x = null;
+  mouse.y = null;
+  if (bgVideo) {
+    bgVideo.style.transform = 'translate(0, 0) rotateX(0deg) rotateY(0deg) scale(1.02)';
+  }
+}
+
+window.addEventListener('mousemove', (e) => {
+  handleParallaxMove(e.clientX, e.clientY);
+});
+
+window.addEventListener('touchmove', (e) => {
+  if (e.touches.length > 0) {
+    handleParallaxMove(e.touches[0].clientX, e.touches[0].clientY);
+  }
+}, { passive: true });
+
+window.addEventListener('mouseleave', resetParallax);
+window.addEventListener('touchend', resetParallax);
+
+// Vertical Parallax scroll
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  if (bgVideo) {
+    bgVideo.style.top = `calc(-5% + ${scrolled * 0.08}px)`;
+  }
 });
 
 // ===== GRIEVANCE FAB PANEL =====

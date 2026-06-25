@@ -21,10 +21,34 @@
       --neon-pink: #ff0055;
     }
 
+    /* Background styling */
     body {
-      background-color: #060913;
-      background-image: radial-gradient(circle at center, rgba(6, 9, 19, 0.3) 0%, rgba(6, 9, 19, 0.92) 80%);
-      background-attachment: fixed;
+      background: #060913 !important;
+      background-image: radial-gradient(circle at top right, #1a0b2e 0%, #060913 60%);
+      min-height: 100vh;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .dashboard-page {
+        padding: 0 12px 40px !important;
+      }
+      .profile-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .quick-stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .stat-card {
+        margin-bottom: 8px;
+      }
+      .dashboard-top-grid {
+        grid-template-columns: 1fr;
+      }
+      .dashboard-bottom-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* Top Grid & Bottom Grid structures */
