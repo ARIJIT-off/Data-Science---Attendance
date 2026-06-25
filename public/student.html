@@ -14,247 +14,392 @@
   <!-- html5-qrcode for camera scanning -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
-    /* Neon Theme Colors */
+    /* CSS Variables */
     :root {
-      --neon-cyan: #00f0ff;
-      --neon-purple: #bd00ff;
-      --neon-pink: #ff0055;
+      --bg: #0A0C10;
+      --surface: #111318;
+      --border: #1E2129;
+      --accent: #00E5A0;
+      --muted: #4A5568;
+      --text: #E8EAF0;
     }
 
-    /* Background styling */
+    /* Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+
     body {
-      background: #060913 !important;
-      background-image: radial-gradient(circle at top right, #1a0b2e 0%, #060913 60%);
+      background: var(--bg) !important;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
       min-height: 100vh;
     }
 
-    /* Mobile adjustments */
-    @media (max-width: 768px) {
-      .dashboard-page {
-        padding: 0 12px 40px !important;
-      }
-      .profile-card {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .quick-stats-grid {
-        grid-template-columns: 1fr;
-      }
-      .stat-card {
-        margin-bottom: 8px;
-      }
-      .dashboard-top-grid {
-        grid-template-columns: 1fr;
-      }
-      .dashboard-bottom-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Top Grid & Bottom Grid structures */
-    .dashboard-top-grid, .dashboard-bottom-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .dashboard-top-right, .history-section-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    /* Double-column grid positioning on Desktop */
-    @media (min-width: 1025px) {
-      .dashboard-page {
-        max-width: 1280px !important;
-        padding: 24px 60px 80px !important;
-      }
-
-      .dashboard-top-grid {
-        display: grid;
-        grid-template-columns: 1fr 1.15fr; /* 1fr empty left, 1.15fr right content */
-        gap: 40px;
-        align-items: start;
-      }
-      
-      .dashboard-top-right {
-        grid-column: 2;
-      }
-
-      .dashboard-bottom-grid {
-        display: grid;
-        grid-template-columns: 1fr 1.15fr; /* 1fr left grievance, 1.15fr right history */
-        gap: 40px;
-        align-items: start;
-        margin-top: 24px;
-      }
-
-      /* Place Grievance Card exactly aligned with History row */
-      .inform-admin-card-wrapper {
-        grid-column: 1;
-        grid-row: 1;
-        position: sticky;
-        top: 90px;
-      }
-
-      .history-section-wrapper {
-        grid-column: 2;
-        grid-row: 1;
-      }
-    }
-
-    /* Inform to Admin Styles */
-    .inform-admin-card {
-      border-left: 3px solid var(--neon-cyan) !important;
-    }
-
-    .grievance-textarea {
-      width: 100%;
-      padding: 12px;
-      background: rgba(4, 6, 15, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      color: #fff;
-      font-family: inherit;
-      font-size: 13px;
-      resize: none;
-      transition: all 0.3s ease;
-    }
-
-    .grievance-textarea:focus {
-      outline: none;
-      border-color: var(--neon-cyan) !important;
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
-    }
-
-    /* Cyberpunk Card Enhancements */
-    .glass-card, .profile-card {
-      background: rgba(8, 12, 28, 0.75) !important;
-      backdrop-filter: blur(28px) !important;
-      -webkit-backdrop-filter: blur(28px) !important;
-      border: 1px solid rgba(0, 240, 255, 0.15) !important;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5),
-                  inset 0 0 15px rgba(189, 0, 255, 0.05) !important;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-
-    /* Tech corner decorations */
-    .glass-card::before, .profile-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 8px;
-      height: 8px;
-      border-top: 2px solid var(--neon-cyan);
-      border-left: 2px solid var(--neon-cyan);
-      pointer-events: none;
-    }
-
-    .glass-card::after, .profile-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 8px;
-      height: 8px;
-      border-bottom: 2px solid var(--neon-purple);
-      border-right: 2px solid var(--neon-purple);
-      pointer-events: none;
-    }
-
-    /* Hover effects */
-    .glass-card:hover, .profile-card:hover {
-      border-color: rgba(0, 240, 255, 0.35) !important;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6),
-                  0 0 15px rgba(0, 240, 255, 0.15),
-                  inset 0 0 20px rgba(189, 0, 255, 0.1) !important;
-      transform: translateY(-3px);
-    }
-
-    /* Avatar glowing border */
-    .profile-avatar {
-      border: 2px solid rgba(0, 240, 255, 0.3) !important;
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
-      transition: all 0.3s ease !important;
+    /* Typography */
+    h1, h2, h3, .section-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
     
-    .profile-avatar:hover {
-      border-color: var(--neon-cyan) !important;
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+    .mono-data {
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Table styling tweaks */
-    .data-table-wrapper {
-      background: rgba(4, 6, 15, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .data-table thead th {
-      background: rgba(255, 255, 255, 0.02) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-      color: var(--text-secondary) !important;
-    }
-
-    /* Progress Ring neon enhancements */
-    .progress-ring-fill {
-      filter: drop-shadow(0 0 6px var(--color-success));
-    }
-    .progress-ring-text {
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
-    }
-
-    /* Date Picker Input styling */
-    .date-input-wrapper:focus-within {
-      border-color: var(--neon-cyan) !important;
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
-    }
-    
-    .history-date-picker::-webkit-calendar-picker-indicator {
-      filter: invert(1);
-      cursor: pointer;
-    }
-
-    /* ---- Live Attendance Modal Styles ---- */
-    .live-attend-trigger-card {
-      background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(139,92,246,0.08));
-      border: 1px solid rgba(6,182,212,0.3);
-      cursor: pointer;
-      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+    /* Layout */
+    .dashboard-page {
+      max-width: 860px !important;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 16px;
     }
-    .live-attend-trigger-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(6,182,212,0.6) !important;
-      box-shadow: 0 12px 32px rgba(6,182,212,0.2) !important;
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
     }
-    .live-attend-icon-ring {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(139,92,246,0.2));
-      border: 2px solid rgba(6,182,212,0.4);
+
+    /* Student Profile Strip */
+    .profile-strip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-right: 8px;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Attendance Ring & Stats */
+    .overview-card {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    @media (max-width: 600px) {
+      .overview-card { flex-direction: column; align-items: flex-start; gap: 24px; }
+    }
+    .ring-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
+    }
+    .progress-ring {
+      transform: rotate(-90deg);
+    }
+    .progress-ring-bg {
+      stroke: var(--border);
+      stroke-width: 8;
+      fill: none;
+    }
+    .progress-ring-fill {
+      stroke: var(--accent);
+      stroke-width: 8;
+      fill: none;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 12px rgba(0, 229, 160, 0.4));
+      transition: stroke-dashoffset 1.2s ease-out;
+    }
+    .ring-text {
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
-      animation: iconPulse 2.5s ease-in-out infinite;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--text);
     }
-    @keyframes iconPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(6,182,212,0.4); }
-      50% { box-shadow: 0 0 0 10px rgba(6,182,212,0); }
+    .stat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-    /* Full-screen overlay modal */
-    .live-modal-overlay {
+    .stat-row {
+      display: flex;
+      flex-direction: column;
+      padding-left: 12px;
+    }
+    .stat-row.total { border-left: 2px solid #3B82F6; }
+    .stat-row.present { border-left: 2px solid var(--accent); }
+    .stat-row.absent { border-left: 2px solid #F43F5E; }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* Subject Breakdown */
+    .subject-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .subject-pill-row {
+      display: flex;
+      align-items: center;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      gap: 16px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .subject-pill-row:hover {
+      background: #1A1D26;
+      border-color: var(--accent);
+    }
+    @media (max-width: 600px) {
+      .subject-pill-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .sub-chips { width: 100%; justify-content: space-between; }
+      .sub-progress-wrap { width: 100%; }
+    }
+    .sub-name {
+      flex: 1;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .sub-chips {
+      display: flex;
+      gap: 8px;
+    }
+    .sub-chip {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .sub-chip span { color: var(--text); }
+    .sub-progress-wrap {
+      width: 100px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sub-progress-track {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .sub-progress-fill {
+      height: 100%;
+      background: var(--accent);
+    }
+    .sub-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      width: 40px;
+      text-align: right;
+      color: var(--text);
+    }
+
+    /* Inform Admin */
+    .admin-textarea {
+      width: 100%;
+      min-height: 72px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      resize: vertical;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    .admin-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .btn-accent {
+      width: 100%;
+      background: var(--accent);
+      color: #0A0C10;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* History Controls */
+    .history-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+    }
+    .history-input {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color-scheme: dark;
+    }
+    .history-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .history-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 24px;
+    }
+
+    /* Bottom Sticky Bar */
+    .sticky-bar {
       position: fixed;
-      inset: 0;
-      background: rgba(4,6,15,0.92);
-      backdrop-filter: blur(14px);
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 56px;
+      background: #111318;
+      border-top: 1px solid var(--border);
+      padding: 0 24px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    .sticky-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 229, 160, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(0, 229, 160, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 229, 160, 0); }
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Footer */
+    .student-footer {
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .logo-badge { display: flex; gap: 4px; }
+    .brand-logo { height: 28px; }
+    .nav-brand-text {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .btn-signout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Table override for History */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .history-table th, .history-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .history-table th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .history-table td.date-col {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text);
+    }
+    .badge-present { color: var(--accent); font-weight: 600; }
+    .badge-absent { color: #F43F5E; font-weight: 600; }
+
+    /* Modal override */
+    .live-modal-overlay {
       z-index: 9999;
       display: flex;
       align-items: center;
@@ -422,172 +567,101 @@
       </button>
     </nav>
 
-    <!-- Top Grid Section (Profile, Stats, Breakdown) -->
-    <div class="dashboard-top-grid">
-      <div class="dashboard-top-right">
-        <!-- Profile Card -->
-        <div class="profile-card" id="profile-card">
+    <!-- Student Profile Strip -->
+    <div class="card profile-strip">
+      <div class="profile-name" id="student-name">Loading...</div>
+      <div class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
+        <span class="mono-data" id="student-roll">N/A</span>
+      </div>
+      <div class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/><path d="M9 16V8h6v8M9 12h6"/></svg>
+        <span>CSE Data Science</span>
+      </div>
+      <div class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span id="student-year-section">2nd Year (Sec A)</span>
+      </div>
+    </div>
 
-          <div class="profile-info">
-            <span class="role-badge badge-student">Student</span>
-            <div class="profile-name" id="student-name">Loading...</div>
-            <div class="profile-meta">
-              <span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-                <span id="student-roll">—</span>
-              </span>
-              <span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span id="student-enrollment">—</span>
-              </span>
-              <span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/><path d="M9 16V8h6v8M9 12h6"/></svg>
-                <span>CSE Data Science</span>
-              </span>
-              <span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span id="student-year-section">—</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Attendance Summary -->
-        <div class="glass-card">
-          <div class="section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-            Attendance Overview
-          </div>
-          <div class="attendance-summary" id="attendance-summary">
-            <div class="loading-overlay" id="summary-loading">
-              <div class="spinner"></div>
-              <span>Loading attendance data...</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Subject-wise Breakdown -->
-        <div class="glass-card" id="subject-section" style="display:none;">
-          <div class="section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            Subject-wise Breakdown
-          </div>
-          <div class="data-table-wrapper">
-            <table class="data-table" id="subject-table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>Classes</th>
-                  <th>Present</th>
-                  <th>Absent</th>
-                  <th>Percentage</th>
-                </tr>
-              </thead>
-              <tbody id="subject-tbody"></tbody>
-            </table>
-          </div>
+    <!-- Attendance Summary -->
+    <div class="card">
+      <div class="section-title" style="margin-bottom: 24px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;vertical-align:middle;color:var(--accent);"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Attendance Overview
+      </div>
+      <div class="attendance-summary overview-card" id="attendance-summary">
+        <div class="loading-overlay" id="summary-loading">
+          <span>Loading attendance data...</span>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Grid Section (History & Grievance Box) -->
-    <div class="dashboard-bottom-grid">
+    <!-- Subject-wise Breakdown -->
+    <div class="card" id="subject-section" style="display:none;">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;vertical-align:middle;color:#bd00ff;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Subject-wise Breakdown
+      </div>
+      <div class="subject-list" id="subject-list-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
       
       <!-- Right side bottom content (shows first on mobile) -->
-      <div class="history-section-wrapper">
-        <!-- Attendance History -->
-        <div class="glass-card" id="history-section" style="display:none;">
-          <div class="section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            Attendance History
-          </div>
-          
-          <!-- Controls row: Date Picker and Search Input -->
-          <div class="history-controls-row" style="display: flex; gap: 16px; margin-bottom: 18px; flex-wrap: wrap;">
-            <!-- Date Picker -->
-            <div class="date-input-wrapper" style="flex: 1.2; min-width: 200px; position: relative; display: flex; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0 16px; height: 46px; transition: var(--transition-smooth);">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; color: var(--text-secondary); margin-right: 12px; pointer-events: none;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <input type="date" id="history-date" class="history-date-picker" style="background: none; border: none; color: #fff; font-family: inherit; font-size: 14px; width: 100%; outline: none; cursor: pointer;">
-            </div>
-
-            <!-- Search input -->
-            <div class="search-input-wrapper" style="flex: 1.5; min-width: 200px; margin-bottom: 0;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" class="search-input" id="history-search" placeholder="Search by subject or teacher...">
-            </div>
-          </div>
-
-          <div class="data-table-wrapper">
-            <table class="data-table" id="history-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Subject</th>
-                  <th>Teacher</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="history-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Empty State (shown when no records) -->
-        <div class="glass-card" id="empty-state" style="display:none;">
-          <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <h3>No Attendance Records</h3>
-            <p>Your attendance records will appear here once your teachers start marking attendance.</p>
-          </div>
-        </div>
+    <!-- Inform Admin -->
+    <div class="card">
+      <div class="section-title" style="margin-bottom: 8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;vertical-align:middle;color:var(--accent);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Inform to Admin
       </div>
-
-      <!-- Left side bottom content (shows second on mobile, bottom-left on desktop) -->
-      <div class="inform-admin-card-wrapper">
-        <div class="glass-card inform-admin-card">
-          <div class="section-title" style="margin-bottom: 8px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--neon-cyan); width: 20px; height: 20px;">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Inform to Admin
-          </div>
-          <p class="card-subtitle" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
-            Submit any attendance adjustment requests or grievances directly to the admin board.
-          </p>
-          <div class="form-group" style="margin-bottom: 12px;">
-            <textarea id="grievance-message" class="grievance-textarea" rows="5" placeholder="Type your grievance here (e.g. 'Sir marked me absent in Machine Learning on 7th Jun, please mark me present')...." maxlength="500"></textarea>
-          </div>
-          <button id="btn-submit-grievance" class="btn btn-primary btn-sm" style="width: 100%;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Send Message
-          </button>
-        </div>
-      </div>
-      
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; margin-top: 0;">Submit any attendance adjustment requests directly to the admin board.</p>
+      <textarea id="grievance-message" class="admin-textarea" placeholder="Type your grievance here..."></textarea>
+      <button id="btn-submit-grievance" class="btn-accent">Send Message</button>
     </div>
 
-    <footer class="dashboard-footer">
-      Developed by Arijit Pal ( CSE - Data Science ) , 2028 Passout
+    <!-- Attendance History -->
+    <div class="card" id="history-section" style="display:none;">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;vertical-align:middle;color:#3B82F6;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Attendance History
+      </div>
+      <div class="history-controls">
+        <input type="date" id="history-date" class="history-input">
+        <input type="text" id="history-search" class="history-input" placeholder="Search subject/teacher...">
+      </div>
+      <div class="history-table-container">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Subject</th>
+              <th>Teacher</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="card" id="empty-state" style="display:none;">
+      <div class="history-empty">Pick a date to load records.</div>
+    </div>
+
+    <footer class="student-footer">
+      Developed by Arijit Pal (CSE - Data Science), 2028 Passout
     </footer>
   </div>
 
-  <!-- ===== Live Attendance Card (trigger) ===== -->
-  <div style="max-width: 1280px; margin: 0 auto; padding: 0 20px 24px;" id="live-attend-trigger-wrapper">
-    <div class="glass-card live-attend-trigger-card" id="btn-open-live-modal" role="button" tabindex="0">
-      <div class="live-attend-icon-ring">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" style="width:24px;height:24px;">
-          <circle cx="12" cy="12" r="2"/>
-          <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
-        </svg>
-      </div>
-      <div>
-        <div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px;">Mark Attendance via Link / QR</div>
-        <div style="font-size: 12px; color: var(--text-secondary);">Received a session link or QR from your teacher? Mark your attendance here.</div>
-      </div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(0,240,255,0.5)" stroke-width="2" style="width:20px;height:20px;margin-left:auto;flex-shrink:0;">
-        <path d="M9 18l6-6-6-6"/>
-      </svg>
+  <!-- Sticky Bottom Bar -->
+  <div class="sticky-bar">
+    <div class="sticky-left">
+      <div class="pulse-dot"></div>
+      Mark Attendance via QR
     </div>
+    <button class="btn-ghost" id="btn-open-live-modal">→ Open Scanner</button>
   </div>
 
   <!-- ===== Live Attendance Modal ===== -->
@@ -800,32 +874,25 @@ async function loadAttendance() {
 function renderEmptySummary() {
   const summaryEl = document.getElementById('attendance-summary');
   summaryEl.innerHTML = `
-    <div class="progress-ring-container">
+    <div class="ring-container">
       <svg width="140" height="140" class="progress-ring">
-        <circle class="progress-ring-bg" cx="70" cy="70" r="58" stroke-width="10"/>
-        <circle class="progress-ring-fill" cx="70" cy="70" r="58" stroke-width="10"
-          stroke="var(--color-cyan)"
-          stroke-dasharray="364.42"
-          stroke-dashoffset="364.42"/>
-        <text x="70" y="66" text-anchor="middle" class="progress-ring-text" transform="rotate(90, 70, 70)">0%</text>
-        <text x="70" y="84" text-anchor="middle" class="progress-ring-label" transform="rotate(90, 70, 70)">ATTENDANCE</text>
+        <circle class="progress-ring-bg" cx="70" cy="70" r="66"/>
+        <circle class="progress-ring-fill" cx="70" cy="70" r="66" stroke-dasharray="414.69" stroke-dashoffset="414.69" style="stroke: #4A5568; filter: none;" />
       </svg>
+      <div class="ring-text">0%</div>
     </div>
-    <div class="summary-stats">
-      <div class="summary-stat-row">
-        <span class="summary-stat-dot blue"></span>
-        <span class="summary-stat-label">Total Classes</span>
-        <span class="summary-stat-value">0</span>
+    <div class="stat-list">
+      <div class="stat-row total">
+        <div class="stat-label">Total Classes</div>
+        <div class="stat-val">0</div>
       </div>
-      <div class="summary-stat-row">
-        <span class="summary-stat-dot green"></span>
-        <span class="summary-stat-label">Present</span>
-        <span class="summary-stat-value">0</span>
+      <div class="stat-row present">
+        <div class="stat-label">Present</div>
+        <div class="stat-val">0</div>
       </div>
-      <div class="summary-stat-row">
-        <span class="summary-stat-dot red"></span>
-        <span class="summary-stat-label">Absent</span>
-        <span class="summary-stat-value">0</span>
+      <div class="stat-row absent">
+        <div class="stat-label">Absent</div>
+        <div class="stat-val">0</div>
       </div>
     </div>
   `;
@@ -837,42 +904,33 @@ function renderSummary(records) {
   const absent = total - present;
   const pct = total > 0 ? Math.round((present / total) * 100) : 0;
 
-  const circumference = 2 * Math.PI * 58; // r=58
+  const circumference = 2 * Math.PI * 66; // r=66
   const offset = circumference - (pct / 100) * circumference;
-
-  let strokeColor = 'var(--color-success)';
-  if (pct < 60) strokeColor = 'var(--color-error)';
-  else if (pct < 75) strokeColor = 'var(--color-warning)';
 
   const summaryEl = document.getElementById('attendance-summary');
   summaryEl.innerHTML = `
-    <div class="progress-ring-container">
-      <svg width="160" height="160" class="progress-ring">
-        <circle class="progress-ring-bg" cx="80" cy="80" r="58" stroke-width="12"/>
-        <circle class="progress-ring-fill" cx="80" cy="80" r="58" stroke-width="12"
-          stroke="${strokeColor}"
-          stroke-dasharray="${circumference}"
-          stroke-dashoffset="${circumference}"
+    <div class="ring-container">
+      <svg width="140" height="140" class="progress-ring">
+        <circle class="progress-ring-bg" cx="70" cy="70" r="66"/>
+        <circle class="progress-ring-fill" cx="70" cy="70" r="66" 
+          stroke-dasharray="${circumference}" 
+          stroke-dashoffset="${circumference}" 
           id="progress-circle"/>
-        <text x="80" y="74" text-anchor="middle" class="progress-ring-text" transform="rotate(90, 80, 80)">${pct}%</text>
-        <text x="80" y="94" text-anchor="middle" class="progress-ring-label" transform="rotate(90, 80, 80)">ATTENDANCE</text>
       </svg>
+      <div class="ring-text">${pct}%</div>
     </div>
-    <div class="summary-stats">
-      <div class="summary-stat-row">
-        <span class="summary-stat-dot blue"></span>
-        <span class="summary-stat-label">Total Classes</span>
-        <span class="summary-stat-value">${total}</span>
+    <div class="stat-list">
+      <div class="stat-row total">
+        <div class="stat-label">Total Classes</div>
+        <div class="stat-val">${total}</div>
       </div>
-      <div class="summary-stat-row">
-        <span class="summary-stat-dot green"></span>
-        <span class="summary-stat-label">Present</span>
-        <span class="summary-stat-value">${present}</span>
+      <div class="stat-row present">
+        <div class="stat-label">Present</div>
+        <div class="stat-val">${present}</div>
       </div>
-      <div class="summary-stat-row">
-        <span class="summary-stat-dot red"></span>
-        <span class="summary-stat-label">Absent</span>
-        <span class="summary-stat-value">${absent}</span>
+      <div class="stat-row absent">
+        <div class="stat-label">Absent</div>
+        <div class="stat-val">${absent}</div>
       </div>
     </div>
   `;
@@ -895,24 +953,28 @@ function renderSubjectBreakdown(records) {
     if (r.present) subjects[sub].present++;
   });
 
-  const tbody = document.getElementById('subject-tbody');
-  tbody.innerHTML = '';
+  const container = document.getElementById('subject-list-container');
+  container.innerHTML = '';
   Object.keys(subjects).sort().forEach(sub => {
     const s = subjects[sub];
     const absent = s.total - s.present;
     const pct = Math.round((s.present / s.total) * 100);
-    let pctClass = 'pct-good';
-    if (pct < 60) pctClass = 'pct-danger';
-    else if (pct < 75) pctClass = 'pct-warn';
 
-    tbody.innerHTML += `
-      <tr>
-        <td style="font-weight:600;">${sub}</td>
-        <td>${s.total}</td>
-        <td>${s.present}</td>
-        <td>${absent}</td>
-        <td class="${pctClass}" style="font-weight:700;">${pct}%</td>
-      </tr>
+    container.innerHTML += `
+      <div class="subject-pill-row">
+        <div class="sub-name">${sub}</div>
+        <div class="sub-chips">
+          <div class="sub-chip">P <span>${s.present}</span></div>
+          <div class="sub-chip">A <span>${absent}</span></div>
+          <div class="sub-chip">T <span>${s.total}</span></div>
+        </div>
+        <div class="sub-progress-wrap">
+          <div class="sub-progress-track">
+            <div class="sub-progress-fill" style="width: ${pct}%;"></div>
+          </div>
+          <div class="sub-pct">${pct}%</div>
+        </div>
+      </div>
     `;
   });
 
@@ -930,7 +992,7 @@ function renderHistory(records) {
     const query = searchInput.value.toLowerCase().trim();
 
     if (!selectedDate) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:24px; font-weight:500; font-size:13px; opacity:0.8;">Please select a date to view attendance records.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--muted); padding:24px; font-weight:500; font-size:13px; opacity:0.8;">Please select a date to view attendance records.</td></tr>';
       return;
     }
 
@@ -958,9 +1020,9 @@ function renderHistory(records) {
 
       tbody.innerHTML += `
         <tr>
-          <td style="font-weight:600; color: var(--color-cyan);">${dateFormatted}</td>
+          <td class="date-col">${dateFormatted}</td>
           <td>${r.subject || 'N/A'}${yearSecHtml}</td>
-          <td style="color: var(--text-secondary);">${r.teacherName || 'N/A'}</td>
+          <td style="color: var(--muted);">${r.teacherName || 'N/A'}</td>
           <td>${statusBadge}</td>
         </tr>
       `;
@@ -968,9 +1030,9 @@ function renderHistory(records) {
 
     if (list.length === 0) {
       if (sorted.filter(r => r.date === selectedDate).length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No attendance records found for this date.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--muted); padding:24px;">No attendance records found for this date.</td></tr>';
       } else {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No matching records.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--muted); padding:24px;">No matching records.</td></tr>';
       }
     }
   }
@@ -979,7 +1041,7 @@ function renderHistory(records) {
   datePicker.addEventListener('change', updateFilteredView);
   searchInput.addEventListener('input', updateFilteredView);
 
-  // Initialize view (shows "Please select a date" by default)
+  // Initialize view
   updateFilteredView();
   
   document.getElementById('history-section').style.display = 'block';
@@ -987,54 +1049,7 @@ function renderHistory(records) {
 
 
 
-// ===== Cyberpunk Background Video Parallax =====
-const bgVideo = document.getElementById('cyberpunk-bg-video');
-let mouse = { x: null, y: null };
-
-function handleParallaxMove(clientX, clientY) {
-  mouse.x = clientX;
-  mouse.y = clientY;
-  
-  const xOffset = (clientX - window.innerWidth / 2) / (window.innerWidth / 2);
-  const yOffset = (clientY - window.innerHeight / 2) / (window.innerHeight / 2);
-  
-  const xRotate = xOffset * 2.5;
-  const yRotate = yOffset * -2.5;
-  
-  if (bgVideo) {
-    // 3D tilt and translate the background video on hover
-    bgVideo.style.transform = `translate(${xOffset * -15}px, ${yOffset * -15}px) rotateX(${yRotate}deg) rotateY(${xRotate}deg) scale(1.04)`;
-  }
-}
-
-function resetParallax() {
-  mouse.x = null;
-  mouse.y = null;
-  if (bgVideo) {
-    bgVideo.style.transform = 'translate(0, 0) rotateX(0deg) rotateY(0deg) scale(1.02)';
-  }
-}
-
-window.addEventListener('mousemove', (e) => {
-  handleParallaxMove(e.clientX, e.clientY);
-});
-
-window.addEventListener('touchmove', (e) => {
-  if (e.touches.length > 0) {
-    handleParallaxMove(e.touches[0].clientX, e.touches[0].clientY);
-  }
-}, { passive: true });
-
-window.addEventListener('mouseleave', resetParallax);
-window.addEventListener('touchend', resetParallax);
-
-// Vertical Parallax scroll
-window.addEventListener('scroll', () => {
-  const scrolled = window.pageYOffset;
-  if (bgVideo) {
-    bgVideo.style.top = `calc(-5% + ${scrolled * 0.08}px)`;
-  }
-});
+// Parallax code removed
 
 // ===== Submit Grievance =====
 const btnSubmitGrievance = document.getElementById('btn-submit-grievance');
