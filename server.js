@@ -73,6 +73,7 @@ const studentEntrySchema = new mongoose.Schema({
 const attendanceSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   date: String,
+  period: String,
   subject: String,
   year: String,
   semester: String,
@@ -98,6 +99,7 @@ const sessionSchema = new mongoose.Schema({
   semester: String,
   section: String,
   date: String,
+  period: String,
   status: { type: String, default: 'active' },
   markedStudents: [markedStudentSchema],
   createdAt: String,
@@ -1170,10 +1172,10 @@ app.get('/api/teacher-list', async (req, res) => {
 
 // Endpoint: Mark Attendance
 app.post('/api/attendance/mark', async (req, res) => {
-  const { date, subject, year, semester, section, teacherEmail, teacherName, students } = req.body;
+  const { date, period, subject, year, semester, section, teacherEmail, teacherName, students } = req.body;
 
-  if (!date || !subject || !year || !section || !teacherEmail || !teacherName || !students || !Array.isArray(students)) {
-    return res.status(400).json({ success: false, message: 'Missing required fields: date, subject, year, section, teacherEmail, teacherName, students.' });
+  if (!date || !period || !subject || !year || !section || !teacherEmail || !teacherName || !students || !Array.isArray(students)) {
+    return res.status(400).json({ success: false, message: 'Missing required fields: date, period, subject, year, section, teacherEmail, teacherName, students.' });
   }
 
   if (students.length === 0) {
@@ -1183,6 +1185,7 @@ app.post('/api/attendance/mark', async (req, res) => {
   const record = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     date,
+    period: period.trim(),
     subject: subject.trim(),
     year: year.trim(),
     semester: (semester || '').toString().trim(),
@@ -1527,8 +1530,8 @@ app.post('/api/email-change/verify-otp', async (req, res) => {
 
 // Endpoint: Teacher creates a live session
 app.post('/api/session/create', async (req, res) => {
-  const { teacherEmail, teacherName, subject, year, semester, section, date } = req.body;
-  if (!teacherEmail || !teacherName || !subject || !year || !section || !date) {
+  const { teacherEmail, teacherName, subject, year, semester, section, date, period } = req.body;
+  if (!teacherEmail || !teacherName || !subject || !year || !section || !date || !period) {
     return res.status(400).json({ success: false, message: 'Missing required fields.' });
   }
 
@@ -1542,6 +1545,7 @@ app.post('/api/session/create', async (req, res) => {
     semester: (semester || '').toString().trim(),
     section: section.trim(),
     date,
+    period: period.trim(),
     status: 'active',           // 'active' | 'closed'
     markedStudents: [],          // [{ name, roll, enrollment, markedAt }]
     createdAt: new Date().toISOString(),
@@ -1731,6 +1735,7 @@ app.post('/api/session/:token/close', async (req, res) => {
   const record = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     date: session.date,
+    period: session.period || '',
     subject: session.subject,
     year: session.year,
     semester: session.semester || '',

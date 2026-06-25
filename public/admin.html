@@ -1478,6 +1478,22 @@ function downloadSelectedTeachersExcel() {
 }
 
 
+
+// ===== Sort Helper: Sort by Date (desc) and Period (asc) =====
+function compareRecordsByDateAndPeriod(a, b) {
+  const dateDiff = new Date(b.date) - new Date(a.date);
+  if (dateDiff !== 0) return dateDiff;
+  
+  const periodWeight = (p) => {
+    if (!p) return 99;
+    if (p === 'EAA') return 8;
+    const num = parseInt(p);
+    return isNaN(num) ? 99 : num;
+  };
+  
+  return periodWeight(a.period) - periodWeight(b.period);
+}
+
 // ===== Render All Records =====
 function renderAllRecords() {
   const container = document.getElementById('all-records-container');
@@ -1494,7 +1510,7 @@ function renderAllRecords() {
     return;
   }
 
-  const sorted = [...allRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sorted = [...allRecords].sort(compareRecordsByDateAndPeriod);
   let html = '';
 
   sorted.forEach(record => {
@@ -1522,7 +1538,7 @@ function renderAllRecords() {
         <div class="record-header" onclick="toggleRecord('${record.id}')">
           <div class="record-info">
             <span class="record-date">${dateStr}</span>
-            <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
+            <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? record.period + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
             <span class="record-teacher">${record.teacherName}</span>
             <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
           </div>
@@ -3439,7 +3455,7 @@ function generateDateRangeReport() {
 
   // Build table
   let rows = '';
-  [...filtered].sort((a, b) => b.date.localeCompare(a.date)).forEach(r => {
+  [...filtered].sort(compareRecordsByDateAndPeriod).forEach(r => {
     const present = r.students.filter(s => s.present).length;
     const total = r.students.length;
     const rpct = total > 0 ? Math.round((present / total) * 100) : 0;
@@ -3475,7 +3491,7 @@ function exportDateRangeExcel() {
   if (!lastDateRangeData) return;
   const header = ['Date', 'Subject', 'Teacher', 'Year', 'Section', 'Semester', 'Present', 'Total', 'Attendance %'];
   const data = [header];
-  lastDateRangeData.sort((a, b) => b.date.localeCompare(a.date)).forEach(r => {
+  lastDateRangeData.sort(compareRecordsByDateAndPeriod).forEach(r => {
     const present = r.students.filter(s => s.present).length;
     const total = r.students.length;
     data.push([r.date, r.subject, r.teacherName, r.year, r.section, r.semester || '', present, total, total > 0 ? Math.round((present/total)*100) + '%' : '0%']);
@@ -3483,7 +3499,7 @@ function exportDateRangeExcel() {
   // Detail sheet with individual student data
   const detailHeader = ['Date', 'Subject', 'Teacher', 'Year', 'Section', 'Student Name', 'Roll', 'Enrollment', 'Status'];
   const detail = [detailHeader];
-  lastDateRangeData.sort((a, b) => b.date.localeCompare(a.date)).forEach(r => {
+  lastDateRangeData.sort(compareRecordsByDateAndPeriod).forEach(r => {
     r.students.forEach(s => {
       detail.push([r.date, r.subject, r.teacherName, r.year, r.section, s.name, s.roll, s.enrollment, s.present ? 'Present' : 'Absent']);
     });
@@ -3538,7 +3554,7 @@ function generateStudentReport() {
   const entries = records.map(r => {
     const st = r.students.find(s => s.enrollment === student.enrollment);
     return { date: r.date, subject: r.subject, teacher: r.teacherName, present: st ? st.present : false, year: r.year, section: r.section, semester: r.semester };
-  }).sort((a, b) => b.date.localeCompare(a.date));
+  }).sort(compareRecordsByDateAndPeriod);
 
   const totalClasses = entries.length;
   const presentCount = entries.filter(e => e.present).length;
@@ -3721,7 +3737,7 @@ function generateTeacherReport() {
 
   // Per-class detail
   let classRows = '';
-  [...filtered].sort((a, b) => b.date.localeCompare(a.date)).forEach(r => {
+  [...filtered].sort(compareRecordsByDateAndPeriod).forEach(r => {
     const present = r.students.filter(s => s.present).length;
     const total = r.students.length;
     const rpct = total > 0 ? Math.round((present / total) * 100) : 0;
@@ -3792,7 +3808,7 @@ function exportTeacherExcel() {
   });
 
   const detail = [['Date', 'Subject', 'Year', 'Section', 'Present', 'Total', 'Attendance %']];
-  [...filtered].sort((a, b) => b.date.localeCompare(a.date)).forEach(r => {
+  [...filtered].sort(compareRecordsByDateAndPeriod).forEach(r => {
     const present = r.students.filter(s => s.present).length;
     const total = r.students.length;
     detail.push([r.date, r.subject, r.year, r.section, present, total, total > 0 ? Math.round((present/total)*100) + '%' : '0%']);
@@ -4043,7 +4059,7 @@ function generateSubjectReport() {
 
   // Class-by-class detail
   let classRows = '';
-  [...filtered].sort((a, b) => b.date.localeCompare(a.date)).forEach(r => {
+  [...filtered].sort(compareRecordsByDateAndPeriod).forEach(r => {
     const present = r.students.filter(s => s.present).length;
     const total = r.students.length;
     const rpct = total > 0 ? Math.round((present / total) * 100) : 0;

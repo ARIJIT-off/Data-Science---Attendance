@@ -286,6 +286,20 @@
                   <label class="form-label">Date</label>
                 </div>
                 <div class="form-group" style="flex: 1.2;">
+                  <select class="form-input" id="attendance-period">
+                    <option value="">Period</option>
+                    <option value="1st Period">1st Period</option>
+                    <option value="2nd Period">2nd Period</option>
+                    <option value="3rd Period">3rd Period</option>
+                    <option value="4th Period">4th Period</option>
+                    <option value="5th Period">5th Period</option>
+                    <option value="6th Period">6th Period</option>
+                    <option value="7th Period">7th Period</option>
+                    <option value="EAA">EAA</option>
+                  </select>
+                  <label class="form-label">Period</label>
+                </div>
+                <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="attendance-year">
                     <option value="1st Year">1st Year</option>
                     <option value="2nd Year">2nd Year</option>
@@ -359,6 +373,20 @@
                   <label class="form-label">Date</label>
                 </div>
                 <div class="form-group" style="flex: 1.2;">
+                  <select class="form-input" id="upload-period">
+                    <option value="">Period</option>
+                    <option value="1st Period">1st Period</option>
+                    <option value="2nd Period">2nd Period</option>
+                    <option value="3rd Period">3rd Period</option>
+                    <option value="4th Period">4th Period</option>
+                    <option value="5th Period">5th Period</option>
+                    <option value="6th Period">6th Period</option>
+                    <option value="7th Period">7th Period</option>
+                    <option value="EAA">EAA</option>
+                  </select>
+                  <label class="form-label">Period</label>
+                </div>
+                <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="upload-year">
                     <option value="1st Year">1st Year</option>
                     <option value="2nd Year">2nd Year</option>
@@ -424,6 +452,20 @@
                   <div class="form-group" style="flex: 1.2;">
                   <input placeholder=" " type="date" class="form-input" id="live-date">
                   <label class="form-label">Date</label>
+                  </div>
+                  <div class="form-group" style="flex: 1.2;">
+                    <select class="form-input" id="live-period">
+                      <option value="">Period</option>
+                      <option value="1st Period">1st Period</option>
+                      <option value="2nd Period">2nd Period</option>
+                      <option value="3rd Period">3rd Period</option>
+                      <option value="4th Period">4th Period</option>
+                      <option value="5th Period">5th Period</option>
+                      <option value="6th Period">6th Period</option>
+                      <option value="7th Period">7th Period</option>
+                      <option value="EAA">EAA</option>
+                    </select>
+                    <label class="form-label">Period</label>
                   </div>
                   <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="live-year">
@@ -854,12 +896,14 @@ document.getElementById('attendance-section').addEventListener('change', () => {
 // ===== Submit Attendance =====
 document.getElementById('btn-submit-attendance').addEventListener('click', async () => {
   const date = document.getElementById('attendance-date').value;
+  const period = document.getElementById('attendance-period').value;
   const subject = document.getElementById('attendance-subject').value.trim();
   const year = document.getElementById('attendance-year').value;
   const semester = document.getElementById('attendance-semester').value;
   const section = document.getElementById('attendance-section').value;
 
   if (!date) { showToast('Please select a date.', 'error'); return; }
+  if (!period) { showToast('Please select a period.', 'error'); return; }
   if (!year) { showToast('Please select a year.', 'error'); return; }
   if (!semester) { showToast('Please select a semester.', 'error'); return; }
   if (!section) { showToast('Please select a section.', 'error'); return; }
@@ -890,6 +934,7 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         date,
+        period,
         subject,
         year,
         semester,
@@ -905,6 +950,8 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
     if (result.success) {
       showToast('Attendance recorded successfully!', 'success');
       // Reset form and all card states
+      document.getElementById('attendance-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('attendance-period').value = '';
       document.getElementById('attendance-subject').value = '';
       document.querySelectorAll('.checkbox-row[data-state]').forEach(row => {
         const cb = row.querySelector('.student-checkbox');
@@ -952,7 +999,21 @@ async function loadRecords() {
 
 
     teacherRecords = data.records;
-    const records = [...teacherRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Period sort helper
+    const periodWeight = (p) => {
+      if (!p) return 99;
+      if (p === 'EAA') return 8;
+      const num = parseInt(p);
+      return isNaN(num) ? 99 : num;
+    };
+
+    // Sort primarily by Date (Newest to Oldest), secondarily by Period (1st..7th, EAA)
+    const records = [...teacherRecords].sort((a, b) => {
+      const dateDiff = new Date(b.date) - new Date(a.date);
+      if (dateDiff !== 0) return dateDiff;
+      return periodWeight(a.period) - periodWeight(b.period);
+    });
+    
     let html = '';
     records.forEach(record => {
       const presentCount = record.students.filter(s => s.present).length;
@@ -979,7 +1040,7 @@ async function loadRecords() {
           <div class="record-header" onclick="toggleRecord('${record.id}')">
             <div class="record-info">
               <span class="record-date">${dateStr}</span>
-              <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
+              <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? record.period + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
               <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
             </div>
             <svg class="record-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1574,12 +1635,14 @@ const btnSubmitUpload = document.getElementById('btn-submit-upload-attendance');
 if (btnSubmitUpload) {
   btnSubmitUpload.addEventListener('click', async () => {
     const date = document.getElementById('upload-date').value;
+    const period = document.getElementById('upload-period').value;
     const subject = document.getElementById('upload-subject').value.trim();
     const year = document.getElementById('upload-year').value;
     const semester = document.getElementById('upload-semester').value;
     const section = document.getElementById('upload-section').value;
 
     if (!date) { showToast('Please select a date.', 'error'); return; }
+    if (!period) { showToast('Please select a period.', 'error'); return; }
     if (!year) { showToast('Please select a year.', 'error'); return; }
     if (!semester) { showToast('Please select a semester.', 'error'); return; }
     if (!section) { showToast('Please select a section.', 'error'); return; }
@@ -1636,6 +1699,7 @@ if (btnSubmitUpload) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date,
+          period,
           subject,
           year,
           semester,
@@ -1650,6 +1714,8 @@ if (btnSubmitUpload) {
 
       if (result.success) {
         showToast('Attendance recorded from Excel successfully!', 'success');
+        document.getElementById('upload-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('upload-period').value = '';
         document.getElementById('upload-subject').value = '';
         resetUploadFile();
         loadRecords();
@@ -1686,6 +1752,7 @@ async function exportRecord(recordId, type) {
       const rows = [
         ["ATTENDANCE REPORT", ""],
         ["Date", dateStr],
+        ["Period", record.period || 'N/A'],
         ["Subject", subjectStr],
         ["Year & Section", yearSec],
         ["Teacher Name", record.teacherName],
@@ -1791,46 +1858,19 @@ let liveSessionPollInterval = null;
 let liveSessionLink = '';
 let qrInstance = null;
 
-// Set today's date on live date input
-(function initLiveDate() {
-  const el = document.getElementById('live-date');
-  if (el) {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    el.value = `${yyyy}-${mm}-${dd}`;
-  }
-})();
-
 // Generate session when teacher clicks Generate Link & QR
 const btnGenerate = document.getElementById('btn-generate-session');
 if (btnGenerate) {
   btnGenerate.addEventListener('click', async () => {
     const date = document.getElementById('live-date').value;
+    const period = document.getElementById('live-period').value;
     const subject = document.getElementById('live-subject').value.trim();
     const year = document.getElementById('live-year').value;
     const semester = document.getElementById('live-semester').value;
     const section = document.getElementById('live-section').value;
 
-    if (!date) {
-      showToast('Please select a date.', 'error');
-      return;
-    }
-    if (!year) {
-      showToast('Please select a year.', 'error');
-      return;
-    }
-    if (!semester) {
-      showToast('Please select a semester.', 'error');
-      return;
-    }
-    if (!section) {
-      showToast('Please select a section.', 'error');
-      return;
-    }
-    if (!subject) {
-      showToast('Please select a subject.', 'error');
+    if (!date || !period || !year || !semester || !section || !subject) {
+      showToast('Please fill in date, period, year, semester, section and subject.', 'error');
       return;
     }
 
@@ -1844,7 +1884,12 @@ if (btnGenerate) {
         body: JSON.stringify({
           teacherEmail: profile.email,
           teacherName: profile.name,
-          subject, year, semester, section, date
+          date,
+          period,
+          subject, 
+          year, 
+          semester, 
+          section
         })
       });
       const result = await res.json();
