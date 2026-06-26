@@ -1745,22 +1745,22 @@ function downloadAllFilteredRecordsExcel() {
   
   sortedClasses.forEach((c) => {
     const classAOA = [];
-    const teacherName = c.record.teacherName || 'Unknown Teacher';
-    const period = c.record.period || 'N/A';
+    const teacherName = c.teacherName || 'Unknown Teacher';
+    const period = c.period || 'N/A';
     
     let timeStr = 'N/A';
-    if (c.record.createdAt) {
+    if (c.createdAt) {
        // Just grab the time portion if possible, or use the exact string given if it's already a time string.
        // The server saves ISO string or a timestamp.
-       timeStr = new Date(c.record.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+       timeStr = new Date(c.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     }
-    const dateStr = c.record.date;
+    const dateStr = c.date;
     
     classAOA.push([`${teacherName} has taken this class at period ${period} at ${timeStr} on ${dateStr}`]);
     classAOA.push([]); 
     classAOA.push(['Roll No', 'Name', 'Enrollment', 'Attendance']);
     
-    const sortedStudents = [...c.record.students].sort((a,b) => (parseInt(a.roll, 10)||0) - (parseInt(b.roll, 10)||0));
+    const sortedStudents = [...c.students].sort((a,b) => (parseInt(a.roll, 10)||0) - (parseInt(b.roll, 10)||0));
     sortedStudents.forEach(s => {
       classAOA.push([s.roll, s.name, s.enrollment, s.present ? 'Present' : 'Absent']);
     });
