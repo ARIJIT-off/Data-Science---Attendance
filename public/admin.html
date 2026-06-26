@@ -1755,8 +1755,10 @@ function downloadAllFilteredRecordsExcel() {
        timeStr = new Date(c.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     }
     const dateStr = c.date;
+    const subjectName = c.subject || 'Unknown Subject';
     
     classAOA.push([`${teacherName} has taken this class at period ${period} at ${timeStr} on ${dateStr}`]);
+    classAOA.push([`Subject = ${subjectName}`]);
     classAOA.push([]); 
     classAOA.push(['Roll No', 'Name', 'Enrollment', 'Attendance']);
     
