@@ -3282,16 +3282,36 @@ function initReportsTab() {
     });
   });
 
-  // Populate subject-wise report dropdown
-  const subjSel = document.getElementById('rpt-subj-subject');
-  if (subjSel) {
-    subjSel.innerHTML = '<option value="">Select Subject</option>';
-    subjects.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      subjSel.appendChild(opt);
-    });
-  }
+  // Populate subject-wise report dropdown (dynamic)
+  const updateSubjectWiseDropdown = () => {
+    const yr = document.getElementById('rpt-subj-year')?.value;
+    const sec = document.getElementById('rpt-subj-section')?.value;
+    const sem = document.getElementById('rpt-subj-semester')?.value;
+    
+    let filtered = allRecords;
+    if (yr) filtered = filtered.filter(r => r.year === yr);
+    if (sec) filtered = filtered.filter(r => r.section === sec);
+    if (sem) filtered = filtered.filter(r => r.semester === sem);
+    
+    const validSubjects = [...new Set(filtered.map(r => r.subject).filter(Boolean))].sort();
+    const subjSel = document.getElementById('rpt-subj-subject');
+    if (subjSel) {
+      const currentVal = subjSel.value;
+      subjSel.innerHTML = '<option value="">Select Subject</option>';
+      validSubjects.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        subjSel.appendChild(opt);
+      });
+      if (validSubjects.includes(currentVal)) subjSel.value = currentVal;
+    }
+  };
+  
+  ['rpt-subj-year', 'rpt-subj-section', 'rpt-subj-semester'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateSubjectWiseDropdown);
+  });
+  updateSubjectWiseDropdown();
 
   // Populate teacher dropdown from allTeachers and records
   const teachersMap = {};
