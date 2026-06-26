@@ -2220,6 +2220,9 @@ app.post('/api/admin/users/add', async (req, res) => {
       if (!name || !email || !adminRole) {
         return res.status(400).json({ success: false, message: 'Name, email, and specific role are required.' });
       }
+      const existing = await User.findOne({ email: email.toLowerCase() });
+      if (existing) return res.status(400).json({ success: false, message: 'A user with this email already exists.' });
+
       await User.create({ name, mobile: mobile || 'N/A', email: email.toLowerCase(), role: 'Admin', department: department || 'CSE Data Science' });
       res.json({ success: true, message: 'Admin user added successfully.' });
     } 
@@ -2228,6 +2231,9 @@ app.post('/api/admin/users/add', async (req, res) => {
       if (!name || !email) {
         return res.status(400).json({ success: false, message: 'Name and email are required.' });
       }
+      const existing = await User.findOne({ email: email.toLowerCase() });
+      if (existing) return res.status(400).json({ success: false, message: 'A user with this email already exists.' });
+
       await User.create({ name, mobile: mobile || 'N/A', email: email.toLowerCase(), role: 'Teacher' });
       res.json({ success: true, message: 'Teacher added successfully.' });
     } 
@@ -2236,8 +2242,26 @@ app.post('/api/admin/users/add', async (req, res) => {
       if (!name || !roll || !enrollment) {
         return res.status(400).json({ success: false, message: 'Name, Class Roll, and Enrollment Number are required.' });
       }
+      const studentYear = year || '2nd Year';
+      const studentSection = section || 'Sec A';
+      
+      const existing = await User.findOne({ 
+        role: 'Student', 
+        $or: [
+          { enrollment },
+          { roll: String(roll), year: studentYear, section: studentSection }
+        ] 
+      });
+      if (existing) {
+        if (existing.enrollment === enrollment) {
+          return res.status(400).json({ success: false, message: 'A student with this enrollment number already exists.' });
+        } else {
+          return res.status(400).json({ success: false, message: 'A student with this roll number already exists in this class.' });
+        }
+      }
+
       const email = `${enrollment.toLowerCase()}@student.local`;
-      await User.create({ name, roll, enrollment, email, role: 'Student', year: year || '2nd Year', section: section || 'Sec A' });
+      await User.create({ name, roll: String(roll), enrollment, email, role: 'Student', year: studentYear, section: studentSection });
       res.json({ success: true, message: 'Student added successfully.' });
     } 
     else {

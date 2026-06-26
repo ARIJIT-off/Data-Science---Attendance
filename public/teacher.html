@@ -785,6 +785,11 @@ function renderRoster(students) {
   }
 
   let html = '';
+  filtered.sort((a, b) => {
+    const rollA = parseInt(a.roll, 10) || 0;
+    const rollB = parseInt(b.roll, 10) || 0;
+    return rollA - rollB;
+  });
   filtered.forEach(s => {
     const initials = s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     html += `
