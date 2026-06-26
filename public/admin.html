@@ -999,19 +999,23 @@
       <div class="glass-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div class="section-title" style="margin-bottom: 0;">All Attendance Records</div>
-          <button class="btn btn-sm btn-primary" onclick="downloadAllFilteredRecordsCSV()" style="font-size: 13px; padding: 6px 14px; background: rgba(0, 229, 160, 0.15); border: 1px solid var(--color-accent); color: var(--color-accent);">
+          <button class="btn btn-sm btn-primary" onclick="downloadAllFilteredRecordsExcel()" style="font-size: 13px; padding: 6px 14px; background: rgba(0, 229, 160, 0.15); border: 1px solid var(--color-accent); color: var(--color-accent);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px; display: inline-block; vertical-align: text-bottom;">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            Download as CSV
+            Download as Excel
           </button>
         </div>
         
         <!-- Filters for All Records -->
         <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Date</label>
-            <input type="date" class="form-input" id="admin-all-records-date" style="height: 38px; line-height: 38px; padding: 0 12px; background: rgba(8,12,28,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; color-scheme: dark;">
+            <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Start Date</label>
+            <input type="date" class="form-input" id="admin-all-records-start-date" style="height: 38px; line-height: 38px; padding: 0 12px; background: rgba(8,12,28,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; color-scheme: dark;">
+          </div>
+          <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">End Date</label>
+            <input type="date" class="form-input" id="admin-all-records-end-date" style="height: 38px; line-height: 38px; padding: 0 12px; background: rgba(8,12,28,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; color-scheme: dark;">
           </div>
           <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px;">
             <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Year</label>
@@ -1412,7 +1416,10 @@ document.getElementById('admin-filter-section').addEventListener('change', () =>
   renderStudentTable(document.getElementById('student-search').value);
 });
 
-document.getElementById('admin-all-records-date')?.addEventListener('change', () => {
+document.getElementById('admin-all-records-start-date')?.addEventListener('change', () => {
+  renderAllRecords();
+});
+document.getElementById('admin-all-records-end-date')?.addEventListener('change', () => {
   renderAllRecords();
 });
 document.getElementById('admin-all-records-year')?.addEventListener('change', () => {
@@ -1545,13 +1552,17 @@ function renderAllRecords() {
   const container = document.getElementById('all-records-container');
   const expandedIds = Array.from(container.querySelectorAll('.record-card.expanded')).map(card => card.id);
 
-  const selectedDate = document.getElementById('admin-all-records-date')?.value || '';
+  const startDate = document.getElementById('admin-all-records-start-date')?.value || '';
+  const endDate = document.getElementById('admin-all-records-end-date')?.value || '';
   const selectedYear = document.getElementById('admin-all-records-year')?.value || 'All';
   const selectedSection = document.getElementById('admin-all-records-section')?.value || 'All';
 
   let filteredRecords = allRecords;
-  if (selectedDate) {
-    filteredRecords = filteredRecords.filter(r => r.date === selectedDate);
+  if (startDate) {
+    filteredRecords = filteredRecords.filter(r => r.date >= startDate);
+  }
+  if (endDate) {
+    filteredRecords = filteredRecords.filter(r => r.date <= endDate);
   }
   if (selectedYear !== 'All') {
     filteredRecords = filteredRecords.filter(r => r.year === selectedYear);
@@ -1631,14 +1642,18 @@ function renderAllRecords() {
   });
 }
 
-function downloadAllFilteredRecordsCSV() {
-  const selectedDate = document.getElementById('admin-all-records-date')?.value || '';
+function downloadAllFilteredRecordsExcel() {
+  const startDate = document.getElementById('admin-all-records-start-date')?.value || '';
+  const endDate = document.getElementById('admin-all-records-end-date')?.value || '';
   const selectedYear = document.getElementById('admin-all-records-year')?.value || 'All';
   const selectedSection = document.getElementById('admin-all-records-section')?.value || 'All';
 
   let filteredRecords = allRecords;
-  if (selectedDate) {
-    filteredRecords = filteredRecords.filter(r => r.date === selectedDate);
+  if (startDate) {
+    filteredRecords = filteredRecords.filter(r => r.date >= startDate);
+  }
+  if (endDate) {
+    filteredRecords = filteredRecords.filter(r => r.date <= endDate);
   }
   if (selectedYear !== 'All') {
     filteredRecords = filteredRecords.filter(r => r.year === selectedYear);
@@ -1652,45 +1667,122 @@ function downloadAllFilteredRecordsCSV() {
     return;
   }
 
-  const flatData = [];
-  filteredRecords.forEach(record => {
-    const safeDate = record.date || '';
-    const safeSubject = record.subject || '';
-    const safeTeacher = record.teacherName || '';
-    
-    // Sort students by roll before adding to CSV
-    const sortedStudents = [...record.students].sort((a, b) => {
-      const rollA = parseInt(a.roll, 10) || 0;
-      const rollB = parseInt(b.roll, 10) || 0;
-      return rollA - rollB;
-    });
+  const wb = XLSX.utils.book_new();
 
-    sortedStudents.forEach(s => {
-      flatData.push({
-        'Date': safeDate,
-        'Period': record.period || '',
-        'Year': record.year || '',
-        'Section': record.section || '',
-        'Subject': safeSubject,
-        'Teacher': safeTeacher,
-        'Roll No': s.roll,
-        'Student Name': s.name,
-        'Enrollment': s.enrollment,
-        'Attendance': s.present ? 'Present' : 'Absent'
-      });
+  // ----- SHEET 1: Summary -----
+  
+  const studentMap = {}; 
+  const classes = []; 
+  const sortedClasses = [...filteredRecords].sort(compareRecordsByDateAndPeriod);
+  const teachers = new Set();
+  
+  sortedClasses.forEach((record) => {
+    const classKey = `Period ${record.period || 'N/A'} (${record.date})`;
+    classes.push({ key: classKey, record });
+    if (record.teacherName) teachers.add(record.teacherName);
+    
+    record.students.forEach(s => {
+      if (!studentMap[s.enrollment]) {
+        studentMap[s.enrollment] = {
+          name: s.name,
+          enrollment: s.enrollment,
+          roll: s.roll,
+          year: record.year || '',
+          section: record.section || '',
+          attendanceMap: {},
+          totalPresent: 0,
+          totalClasses: 0
+        };
+      }
+      studentMap[s.enrollment].attendanceMap[classKey] = s.present ? 'Present' : 'Absent';
+      studentMap[s.enrollment].totalClasses++;
+      if (s.present) studentMap[s.enrollment].totalPresent++;
     });
   });
 
-  const ws = XLSX.utils.json_to_sheet(flatData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Attendance Records");
+  const studentsList = Object.values(studentMap).sort((a, b) => {
+    const rollA = parseInt(a.roll, 10) || 0;
+    const rollB = parseInt(b.roll, 10) || 0;
+    return rollA - rollB;
+  });
   
-  let filename = 'Filtered_Attendance_Records';
-  if (selectedDate) filename += `_${selectedDate}`;
-  if (selectedYear !== 'All') filename += `_${selectedYear.replace(/ /g, '')}`;
-  if (selectedSection !== 'All') filename += `_${selectedSection.replace(/ /g, '')}`;
+  const summaryAOA = [];
   
-  XLSX.writeFile(wb, `${filename}.csv`, { bookType: 'csv' });
+  const displayStart = startDate || (sortedClasses[0] ? sortedClasses[0].date : '');
+  const displayEnd = endDate || (sortedClasses[sortedClasses.length-1] ? sortedClasses[sortedClasses.length-1].date : '');
+  summaryAOA.push([`Attendance record of ${displayStart} to ${displayEnd}`]);
+  
+  const teacherStr = Array.from(teachers).join(', ');
+  summaryAOA.push([`${sortedClasses.length} classes taken by ${teacherStr}`]);
+  
+  summaryAOA.push([]); // empty line
+  
+  const headers = ['No of classes taken', 'Student\'s Name', 'Enrollment', 'Year', 'Section'];
+  classes.forEach(c => headers.push(c.key));
+  headers.push('Avg Attendance');
+  summaryAOA.push(headers);
+  
+  studentsList.forEach(st => {
+    const row = [
+      st.totalClasses,
+      st.name,
+      st.enrollment,
+      st.year,
+      st.section
+    ];
+    classes.forEach(c => {
+      row.push(st.attendanceMap[c.key] || '-');
+    });
+    const avg = st.totalClasses > 0 ? Math.round((st.totalPresent / st.totalClasses) * 100) + '%' : '0%';
+    row.push(avg);
+    summaryAOA.push(row);
+  });
+  
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryAOA);
+  XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+  
+  // ----- SHEETS 2..N: Individual Classes -----
+  
+  sortedClasses.forEach((c) => {
+    const classAOA = [];
+    const teacherName = c.record.teacherName || 'Unknown Teacher';
+    const period = c.record.period || 'N/A';
+    
+    let timeStr = 'N/A';
+    if (c.record.createdAt) {
+       // Just grab the time portion if possible, or use the exact string given if it's already a time string.
+       // The server saves ISO string or a timestamp.
+       timeStr = new Date(c.record.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    }
+    const dateStr = c.record.date;
+    
+    classAOA.push([`${teacherName} has taken this class at period ${period} at ${timeStr} on ${dateStr}`]);
+    classAOA.push([]); 
+    classAOA.push(['Roll No', 'Name', 'Enrollment', 'Attendance']);
+    
+    const sortedStudents = [...c.record.students].sort((a,b) => (parseInt(a.roll, 10)||0) - (parseInt(b.roll, 10)||0));
+    sortedStudents.forEach(s => {
+      classAOA.push([s.roll, s.name, s.enrollment, s.present ? 'Present' : 'Absent']);
+    });
+    
+    const wsClass = XLSX.utils.aoa_to_sheet(classAOA);
+    
+    let sheetName = `P${period}_${dateStr}`.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 31);
+    let finalSheetName = sheetName;
+    let counter = 1;
+    while(wb.SheetNames.includes(finalSheetName)) {
+      finalSheetName = `${sheetName.substring(0, 28)}_${counter}`;
+      counter++;
+    }
+    
+    XLSX.utils.book_append_sheet(wb, wsClass, finalSheetName);
+  });
+  
+  let filename = 'Attendance_Report';
+  if (startDate) filename += `_From_${startDate}`;
+  if (endDate) filename += `_To_${endDate}`;
+  
+  XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
 function downloadSingleRecordExcel(recordId) {
