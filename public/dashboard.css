@@ -606,6 +606,11 @@ a:hover { text-decoration: underline; }
   transition: var(--transition-smooth);
 }
 
+/* Fix padding for smaller inputs that use inline height */
+.form-input[style*="height: 34px"] {
+  padding: 6px 12px !important;
+}
+
 select.form-input {
   cursor: pointer;
   appearance: none;
