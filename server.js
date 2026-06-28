@@ -335,6 +335,7 @@ app.use(async (req, res, next) => {
 const User = require('./models/User');
 const Otp = require('./models/Otp');
 const Subject = require('./models/Subject');
+const Section = require('./models/Section');
 
 // Cache replaced by MongoDB Otp collection for serverless compatibility
 
@@ -2427,6 +2428,49 @@ app.post('/api/admin/users/migrate-year-section', async (req, res) => {
   }
 });
 
+// ==========================================
+// SECTIONS API
+// ==========================================
+
+app.get('/api/admin/sections', async (req, res) => {
+  try {
+    const sections = await Section.find({});
+    const mappedSections = sections.map(s => ({
+      id: s._id.toString(),
+      sectionName: s.sectionName,
+      year: s.year
+    }));
+    res.json(mappedSections);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.post('/api/admin/sections/add', async (req, res) => {
+  try {
+    const { sectionName, year } = req.body;
+    if (!sectionName || !year) {
+      return res.status(400).json({ success: false, message: 'sectionName and year are required' });
+    }
+    const newSection = new Section({ sectionName, year });
+    await newSection.save();
+    res.json({ success: true, message: 'Section added successfully', section: newSection });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error adding section' });
+  }
+});
+
+app.post('/api/admin/sections/delete', async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ success: false, message: 'id is required' });
+    
+    await Section.findByIdAndDelete(id);
+    res.json({ success: true, message: 'Section deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error deleting section' });
+  }
+});
 
 app.get('/api/admin/subjects', async (req, res) => {
   try {
