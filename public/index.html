@@ -142,7 +142,54 @@
                 <span>Don't have a password?</span>
                 <button type="button" id="btn-goto-signup" class="btn-link-inline">Sign Up</button>
               </div>
+
+              <!-- Developer Journey Toggle -->
+              <div class="developer-journey-toggle" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <button type="button" id="btn-goto-dev-journey" class="btn btn-secondary" style="width: 100%; border: 1px solid rgba(0,240,255,0.2); color: var(--color-cyan); background: rgba(0,240,255,0.05);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px; margin-right:8px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                  Developer's Journey
+                </button>
+              </div>
             </form>
+          </section>
+
+          <!-- VIEW 6: Developer Journey -->
+          <section id="view-dev-journey" class="auth-card hidden">
+            <div class="card-header">
+              <button id="btn-back-to-signin-from-dev" class="btn-back" aria-label="Go back to sign in">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <div style="display:flex; justify-content:center; align-items:center; flex-direction:column; gap:12px; margin-top: 12px;">
+                <img src="/background_assets/developer_1.jpg" alt="Arijit Pal" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-cyan); padding: 4px; background: rgba(0, 240, 255, 0.1);" onerror="this.src='/uploads/profile_pics/default.png'">
+                <div style="text-align:center;">
+                  <h2 style="margin-bottom:4px; color:var(--color-cyan);">Arijit Pal</h2>
+                  <p class="subtitle" style="margin-bottom:2px; font-weight:500;">CSE (Data Science) | Enrollment: 12024002037046</p>
+                  <a href="https://arijit-pal.vercel.app" target="_blank" style="color:var(--color-primary-light); text-decoration:none; font-size:0.9rem;">arijit-pal.vercel.app</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="dev-journey-content custom-scrollbar" style="max-height: 400px; overflow-y: auto; padding-right: 12px; margin-top: 16px; font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); text-align: left;">
+              <p style="margin-bottom:12px;">
+                Building the UEMK Data Science Attendance System was an incredible journey of problem-solving, design, and engineering. From a blank canvas, I engineered a bespoke digital ecosystem tailored for the department.
+              </p>
+              <p style="margin-bottom:12px;">
+                I chose a robust Node.js backend using local file storage for maximum portability. We pushed through UI hazards like the "Floating Labels Bug" and perfected a dark, immersive glassmorphism design that looks stunning across devices.
+              </p>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0;">
+                <img src="/background_assets/developer_2.jpg" alt="Dev Journey" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.style.display='none'">
+                <img src="/background_assets/developer_3.jpg" alt="Dev Journey" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.style.display='none'">
+              </div>
+              <p style="margin-bottom:12px;">
+                The authentication maze involved a dual-validation strict student login and a secure Nodemailer OTP system for admins. Tackling data integrity, duplicate ghosts, and sorting nightmares ensured every record stayed perfectly intact.
+              </p>
+              <p style="margin-bottom:12px;">
+                The ultimate victory was engineering the Multi-Sheet Excel Export—pivoting massive datasets into beautifully formatted `.xlsx` workbooks. Every bug squashed resulted in this spectacular, production-ready attendance platform!
+              </p>
+            </div>
           </section>
 
           <!-- VIEW 2: Sign Up - Email Entry -->

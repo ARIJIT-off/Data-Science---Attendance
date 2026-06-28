@@ -6,6 +6,7 @@ const viewSignupEmail = document.getElementById('view-signup-email');
 const viewSignupOtp = document.getElementById('view-signup-otp');
 const viewSetPassword = document.getElementById('view-set-password');
 const viewSignupSuccess = document.getElementById('view-signup-success');
+const viewDevJourney = document.getElementById('view-dev-journey');
 
 const formSignin = document.getElementById('form-signin');
 const formSignupEmail = document.getElementById('form-signup-email');
@@ -43,6 +44,8 @@ const btnGotoSignupFromForgot = document.getElementById('btn-goto-signup-from-fo
 const btnBackToSignin = document.getElementById('btn-back-to-signin');
 const btnGotoSigninFromSignup = document.getElementById('btn-goto-signin-from-signup');
 const btnBackToSignupEmail = document.getElementById('btn-back-to-signup-email');
+const btnGotoDevJourney = document.getElementById('btn-goto-dev-journey');
+const btnBackToSigninFromDev = document.getElementById('btn-back-to-signin-from-dev');
 const btnGotoSigninAfterSetup = document.getElementById('btn-goto-signin-after-setup');
 const btnSignupResendOtp = document.getElementById('btn-signup-resend-otp');
 
@@ -474,6 +477,14 @@ btnBackToSignin.addEventListener('click', () => {
 
 btnGotoSigninFromSignup.addEventListener('click', () => {
   switchView(viewSignupEmail, viewSignin);
+});
+
+btnGotoDevJourney.addEventListener('click', () => {
+  switchView(viewSignin, viewDevJourney);
+});
+
+btnBackToSigninFromDev.addEventListener('click', () => {
+  switchView(viewDevJourney, viewSignin);
 });
 
 btnBackToSignupEmail.addEventListener('click', () => {
