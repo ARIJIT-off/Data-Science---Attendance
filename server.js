@@ -475,8 +475,8 @@ async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
         name: student.name,
         roll: student.roll,
         enrollment: student.enrollment,
-        year: '2nd Year', // Defaulted or store in db if needed
-        section: 'Sec A'
+        year: student.year || '2nd Year',
+        section: student.section || 'Sec A'
       };
     }
 
@@ -492,8 +492,8 @@ async function findStudentByEnrollmentAndRoll(enrollmentNo, rollNo) {
         name: st.name,
         roll: st.roll,
         enrollment: st.enrollment,
-        year: '2nd Year',
-        section: 'Sec A'
+        year: st.year || '2nd Year',
+        section: st.section || 'Sec A'
       };
     }
   } catch (e) {
