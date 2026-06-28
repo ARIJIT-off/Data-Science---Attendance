@@ -1780,6 +1780,7 @@ app.post('/api/session/:token/close', async (req, res) => {
   const record = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     date: session.date,
+    period: session.period || '',
     subject: session.subject,
     year: session.year,
     semester: session.semester || '',
