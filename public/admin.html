@@ -4926,63 +4926,14 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="reports-window-body">
       <div class="profile-reports-panel">
         <div class="report-mini-tabs">
-          <button class="report-mini-tab active" data-report="report-date-range">Date Range</button>
-          <button class="report-mini-tab" data-report="report-student">Student-wise</button>
+          <button class="report-mini-tab active" data-report="report-student">Student-wise</button>
           <button class="report-mini-tab" data-report="report-teacher">Teacher-wise</button>
           <button class="report-mini-tab" data-report="report-section">Section &amp; Year</button>
           <button class="report-mini-tab" data-report="report-subject">Subject Wise</button>
         </div>
 
-        <!-- Subview 1: Date Range -->
-        <div class="report-subview active" id="report-date-range">
-          <div class="report-filters">
-            <div class="report-filter-group">
-              <label>From Date</label>
-              <input type="date" id="rpt-dr-from">
-            </div>
-            <div class="report-filter-group">
-              <label>To Date</label>
-              <input type="date" id="rpt-dr-to">
-            </div>
-            <div class="report-filter-group">
-              <label>Year</label>
-              <select id="rpt-dr-year">
-                <option value="">All Years</option>
-                <option>1st Year</option><option>2nd Year</option>
-                <option>3rd Year</option><option>4th Year</option>
-              </select>
-            </div>
-            <div class="report-filter-group">
-              <label>Section</label>
-              <select id="rpt-dr-section">
-                <option value="">All Sections</option>
-                <option>Sec A</option><option>Sec B</option>
-                <option>Sec C</option><option>Sec D</option>
-              </select>
-            </div>
-            <div class="report-filter-group">
-              <label>Semester</label>
-              <select id="rpt-dr-semester">
-                <option value="">All Semesters</option>
-                <option>1st Sem</option><option>2nd Sem</option>
-                <option>3rd Sem</option><option>4th Sem</option>
-                <option>5th Sem</option><option>6th Sem</option>
-                <option>7th Sem</option><option>8th Sem</option>
-              </select>
-            </div>
-            <div class="report-filter-group">
-              <label>Subject</label>
-              <select id="rpt-dr-subject"><option value="">All Subjects</option></select>
-            </div>
-          </div>
-          <div class="report-btn-row">
-            <button class="report-btn report-btn-generate" onclick="generateDateRangeReport()">Generate Report</button>
-            <button class="report-btn report-btn-download" id="btn-dl-daterange" disabled onclick="exportDateRangeExcel()">Download Excel</button>
-          </div>
-        </div>
-
         <!-- Subview 2: Student-wise -->
-        <div class="report-subview" id="report-student">
+        <div class="report-subview active" id="report-student">
           <div class="report-filters">
             <div class="report-filter-group">
               <label>Year</label>
