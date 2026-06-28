@@ -5,11 +5,11 @@ A secure web-based attendance tracking application designed for the Computer Sci
 ## Key Features
 
 ### Admin Portal
-- Dashboard stats (Total Students, Total Teachers, Total Classes, Overall Attendance Percentage).
+- Dashboard statistics covering Total Students, Total Teachers, Total Classes, and Overall Attendance Percentage.
 - Student-wise attendance log with sorting, search filters, and visual alert levels (under 75% indicator).
 - Teacher activity summaries.
 - Detailed visual log of all past attendance sessions.
-- Downloadable Excel reports.
+- Extensive Excel report generation (multi-sheet date-range reports, subject-wise, teacher-wise).
 
 ### Teacher Portal
 - Roster-based manual attendance logging.
@@ -34,8 +34,8 @@ A secure web-based attendance tracking application designed for the Computer Sci
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ARIJIT-off/UEMK-Datascience-Attendance.git
-   cd UEMK-Datascience-Attendance
+   git clone https://github.com/ARIJIT-off/Data-Science---Attendance.git
+   cd Data-Science---Attendance
    ```
 
 2. Install dependencies:
@@ -43,9 +43,18 @@ A secure web-based attendance tracking application designed for the Computer Sci
    npm install
    ```
 
-3. Update SMTP credentials in the `mailmain.xlsx` file located in the root directory. Ensure the document includes:
-   - A field labeled "Email Address" containing the sender email.
-   - A field labeled "App Password" containing your Google App Password.
+3. Setup Configuration and Data Files:
+   Since this application relies on the local file system for data storage, you must place the following files in the root directory (these are excluded from git tracking to protect privacy) before starting the server:
+   - `student_list passout 2028.xlsx`: Expected layout containing student information (Name, Class Roll, Enrollment Number, Year, Section, Email).
+   - `admin data.xlsx`: Contains the list of administrators.
+   - `teacher data.xlsx`: Contains the list of authorized teachers.
+   - `mailmain.xlsx`: Used as a fallback for SMTP credentials if `.env` is not used. Must contain a field labeled "Email Address" and a field labeled "App Password".
+
+   Alternatively, configure SMTP credentials via a `.env` file in the root directory:
+   ```env
+   EMAIL_USER=your_email@gmail.com
+   EMAIL_PASS=your_app_password
+   ```
 
 4. Start the server:
    ```bash
@@ -53,15 +62,10 @@ A secure web-based attendance tracking application designed for the Computer Sci
    ```
    The local application will run on http://localhost:3000
 
-## File and Roster Configurations
-- `student_list passout 2028.xlsx`: Expected layout containing student information (Name, Class Roll, Enrollment Number, Year, Section, Email).
-- `mailmain.xlsx`: Contains the active email sender credentials.
-- `sessions_data.json`: Persists current attendance records and active QR/Link session data.
-
 ## Deployment Guidelines
 Because this application stores roster records and logs locally on the filesystem, standard ephemeral hosting options (like serverless Vercel or Heroku) will wipe database logs when the server restarts.
 
 When deploying, choose an option that supports file persistence:
-- **Replit**: Supports permanent workspaces and simple setup. Import the repository directly and click Run.
-- **Railway/Render**: Deploy from Git and configure a Persistent Volume mapped to the root workspace.
-- **VPS (Virtual Private Server)**: Set up Node.js with PM2 and Nginx reverse proxy.
+- Replit: Supports permanent workspaces and simple setup. Import the repository directly and click Run.
+- Railway/Render: Deploy from Git and configure a Persistent Volume mapped to the root workspace.
+- VPS (Virtual Private Server): Set up Node.js with PM2 and Nginx reverse proxy.
