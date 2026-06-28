@@ -1778,8 +1778,8 @@ function downloadAllFilteredRecordsExcel() {
     const dispDate = singleDate || (sortedClasses[0] ? sortedClasses[0].date : '');
     summaryAOA.push([`ATTENDANCE RECORD OF ${dispYear} YEAR ${dispSection} SECTION, on ${dispDate}`]);
     
-    const subjectList = Array.from(new Set(sortedClasses.map(c => c.record.subject || 'Unknown Subject'))).join(', ');
-    const periodList = Array.from(new Set(sortedClasses.map(c => c.record.period || 'N/A'))).join(', ');
+    const subjectList = Array.from(new Set(sortedClasses.map(c => c.subject || 'Unknown Subject'))).join(', ');
+    const periodList = Array.from(new Set(sortedClasses.map(c => c.period || 'N/A'))).join(', ');
     summaryAOA.push([`Subjects = ${subjectList}, ${periodList}... all the subject's attendance taken on that particular date`]);
     summaryAOA.push([]); // empty line
     
