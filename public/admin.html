@@ -4064,32 +4064,26 @@ function generateTeacherReport() {
     showToast('Please select a year.', 'warning');
     return;
   }
-  if (!section) {
-    showToast('Please select a section.', 'warning');
-    return;
-  }
   if (!subject) {
     showToast('Please select a subject.', 'warning');
     return;
   }
-  if (!fromDate || !toDate) {
-    showToast('Please select a date range (From Date and To Date).', 'warning');
-    return;
-  }
-  if (new Date(fromDate) > new Date(toDate)) {
+  if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
     showToast('From Date cannot be later than To Date.', 'warning');
     return;
   }
 
   // Use existing filter logic, augmenting with fromDate, toDate, and subject
   let filtered = filterRecords({ teacherEmail, year, section, subject });
-  filtered = filtered.filter(r => {
-    const d = new Date(r.date);
-    const fd = new Date(fromDate);
-    const td = new Date(toDate);
-    // Include boundary dates
-    return d >= fd && d <= td;
-  });
+  if (fromDate && toDate) {
+    filtered = filtered.filter(r => {
+      const d = new Date(r.date);
+      const fd = new Date(fromDate);
+      const td = new Date(toDate);
+      // Include boundary dates
+      return d >= fd && d <= td;
+    });
+  }
 
   const teacherName = filtered.length > 0 ? filtered[0].teacherName : teacherEmail;
 
@@ -4213,14 +4207,16 @@ function exportTeacherExcel() {
   };
 
   const wb = XLSX.utils.book_new();
+  const sortedFiltered = [...filtered].sort(compareRecordsByDateAndPeriod);
+  
+  const displayFromDate = fromDate || (sortedFiltered.length > 0 ? sortedFiltered[0].date : 'N/A');
+  const displayToDate = toDate || (sortedFiltered.length > 0 ? sortedFiltered[sortedFiltered.length - 1].date : 'N/A');
 
   // ----- SHEET 1: Summary -----
   const summaryAOA = [];
-  summaryAOA.push([`${teacherName} has taken these classes between ${fromDate} to ${toDate}`]);
+  summaryAOA.push([`${teacherName} has taken these classes between ${displayFromDate} to ${displayToDate}`]);
   summaryAOA.push([]); // empty line
   summaryAOA.push(['Subject Name', 'Subject ID', 'Date when attendance taken', 'Period', 'Year', 'Sec', 'Total student', 'Student no(Present)', 'Student no(Absent)', 'Avg Attendance']);
-
-  const sortedFiltered = [...filtered].sort(compareRecordsByDateAndPeriod);
   
   sortedFiltered.forEach(r => {
     const subjId = extractSubjectId(r.subject, r.year);
@@ -4250,7 +4246,7 @@ function exportTeacherExcel() {
     const dispSubjId = extractSubjectId(dispSubj, dispYear);
 
     const secAOA = [];
-    secAOA.push([`${teacherName} has taken ${noOfClasses} classes from ${fromDate} to ${toDate} Year = ${dispYear}, Sec = ${sec} Subject = ${dispSubj} ${dispSubjId}`]);
+    secAOA.push([`${teacherName} has taken ${noOfClasses} classes from ${displayFromDate} to ${displayToDate} Year = ${dispYear}, Sec = ${sec} Subject = ${dispSubj} ${dispSubjId}`]);
     secAOA.push([]); // empty line
     secAOA.push(['Roll no', 'Enrollment no', 'Name', 'Total classes', 'No when absent', 'No when present', 'Avg attendance']);
 
