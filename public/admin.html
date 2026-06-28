@@ -4163,10 +4163,20 @@ function exportTeacherExcel() {
   if (!lastTeacherData) return;
   const { teacherName, teacherEmail, filtered, fromDate, toDate, year, section, subject } = lastTeacherData;
 
-  const extractSubjectId = (subjStr) => {
+  const extractSubjectId = (subjStr, subjYear) => {
     if (!subjStr) return 'N/A';
-    const match = subjStr.match(/\((.*?)\)/);
-    return match ? match[1] : 'N/A';
+    if (typeof allSubjects !== 'undefined' && Array.isArray(allSubjects)) {
+      // Find matching subject by name and year (if provided)
+      let match = allSubjects.find(s => s.subjectName === subjStr && s.year === subjYear);
+      if (!match) {
+        // Fallback to just name
+        match = allSubjects.find(s => s.subjectName === subjStr);
+      }
+      if (match && match.subjectCode) return match.subjectCode;
+    }
+    // Fallback if allSubjects isn't available or match not found
+    const matchFallback = subjStr.match(/\((.*?)\)/);
+    return matchFallback ? matchFallback[1] : 'N/A';
   };
 
   const wb = XLSX.utils.book_new();
@@ -4180,7 +4190,7 @@ function exportTeacherExcel() {
   const sortedFiltered = [...filtered].sort(compareRecordsByDateAndPeriod);
   
   sortedFiltered.forEach(r => {
-    const subjId = extractSubjectId(r.subject);
+    const subjId = extractSubjectId(r.subject, r.year);
     const total = r.students.length;
     const present = r.students.filter(s => s.present).length;
     const absent = total - present;
@@ -4204,7 +4214,7 @@ function exportTeacherExcel() {
     // The heading says: <Teacher Name> has taken <no of classes of that subject> classes from <date from> to <date to>  Year = <year>, Sec = <sec> Subject = <subject> <subject id>
     const dispYear = year === 'All Years' || !year ? (secRecords[0] ? secRecords[0].year : 'N/A') : year;
     const dispSubj = subject === 'All Subjects' || !subject ? (secRecords[0] ? secRecords[0].subject : 'N/A') : subject;
-    const dispSubjId = extractSubjectId(dispSubj);
+    const dispSubjId = extractSubjectId(dispSubj, dispYear);
 
     const secAOA = [];
     secAOA.push([`${teacherName} has taken ${noOfClasses} classes from ${fromDate} to ${toDate} Year = ${dispYear}, Sec = ${sec} Subject = ${dispSubj} ${dispSubjId}`]);
