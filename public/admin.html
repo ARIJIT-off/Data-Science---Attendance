@@ -1009,11 +1009,21 @@
         
         <!-- Filters for All Records -->
         <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px;">
+          <div style="flex: 1 1 100%; display: flex; gap: 8px; margin-bottom: 4px;">
+            <button id="btn-mode-single-day" class="btn btn-sm" style="flex: 1; padding: 8px; font-size: 12px; background: rgba(0,240,255,0.15); border: 1px solid var(--color-cyan); color: var(--color-cyan);" onclick="setExcelExportMode('single')">Record Of Single Day</button>
+            <button id="btn-mode-date-range" class="btn btn-sm" style="flex: 1; padding: 8px; font-size: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);" onclick="setExcelExportMode('range')">Record in a Date Range</button>
+          </div>
+          
+          <div id="filter-single-day-container" style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Date</label>
+            <input type="date" class="form-input" id="admin-all-records-single-date" style="height: 38px; line-height: 38px; padding: 0 12px; background: rgba(8,12,28,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; color-scheme: dark;">
+          </div>
+
+          <div id="filter-start-date-container" style="flex: 1; min-width: 120px; display: none; flex-direction: column; gap: 6px;">
             <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Start Date</label>
             <input type="date" class="form-input" id="admin-all-records-start-date" style="height: 38px; line-height: 38px; padding: 0 12px; background: rgba(8,12,28,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; color-scheme: dark;">
           </div>
-          <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px;">
+          <div id="filter-end-date-container" style="flex: 1; min-width: 120px; display: none; flex-direction: column; gap: 6px;">
             <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">End Date</label>
             <input type="date" class="form-input" id="admin-all-records-end-date" style="height: 38px; line-height: 38px; padding: 0 12px; background: rgba(8,12,28,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff; color-scheme: dark;">
           </div>
@@ -1161,6 +1171,7 @@ if (!userData || userData.role !== 'Admin') {
 
 const profile = userData.profile;
 let allRecords = [];
+let excelExportMode = 'single';
 let allStudents = [];
 let allTeachers = [];
 let studentAttendanceData = [];
@@ -1416,6 +1427,43 @@ document.getElementById('admin-filter-section').addEventListener('change', () =>
   renderStudentTable(document.getElementById('student-search').value);
 });
 
+function setExcelExportMode(mode) {
+  excelExportMode = mode;
+  const singleBtn = document.getElementById('btn-mode-single-day');
+  const rangeBtn = document.getElementById('btn-mode-date-range');
+  const singleContainer = document.getElementById('filter-single-day-container');
+  const startContainer = document.getElementById('filter-start-date-container');
+  const endContainer = document.getElementById('filter-end-date-container');
+
+  if (mode === 'single') {
+    singleBtn.style.background = 'rgba(0,240,255,0.15)';
+    singleBtn.style.color = 'var(--color-cyan)';
+    singleBtn.style.borderColor = 'var(--color-cyan)';
+    rangeBtn.style.background = 'rgba(255,255,255,0.05)';
+    rangeBtn.style.color = 'rgba(255,255,255,0.6)';
+    rangeBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+
+    singleContainer.style.display = 'flex';
+    startContainer.style.display = 'none';
+    endContainer.style.display = 'none';
+  } else {
+    rangeBtn.style.background = 'rgba(0,240,255,0.15)';
+    rangeBtn.style.color = 'var(--color-cyan)';
+    rangeBtn.style.borderColor = 'var(--color-cyan)';
+    singleBtn.style.background = 'rgba(255,255,255,0.05)';
+    singleBtn.style.color = 'rgba(255,255,255,0.6)';
+    singleBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+
+    singleContainer.style.display = 'none';
+    startContainer.style.display = 'flex';
+    endContainer.style.display = 'flex';
+  }
+  renderAllRecords();
+}
+
+document.getElementById('admin-all-records-single-date')?.addEventListener('change', () => {
+  renderAllRecords();
+});
 document.getElementById('admin-all-records-start-date')?.addEventListener('change', () => {
   renderAllRecords();
 });
@@ -1552,17 +1600,25 @@ function renderAllRecords() {
   const container = document.getElementById('all-records-container');
   const expandedIds = Array.from(container.querySelectorAll('.record-card.expanded')).map(card => card.id);
 
+  const singleDate = document.getElementById('admin-all-records-single-date')?.value || '';
   const startDate = document.getElementById('admin-all-records-start-date')?.value || '';
   const endDate = document.getElementById('admin-all-records-end-date')?.value || '';
   const selectedYear = document.getElementById('admin-all-records-year')?.value || 'All';
   const selectedSection = document.getElementById('admin-all-records-section')?.value || 'All';
 
   let filteredRecords = allRecords;
-  if (startDate) {
-    filteredRecords = filteredRecords.filter(r => r.date >= startDate);
-  }
-  if (endDate) {
-    filteredRecords = filteredRecords.filter(r => r.date <= endDate);
+  
+  if (excelExportMode === 'single') {
+    if (singleDate) {
+      filteredRecords = filteredRecords.filter(r => r.date === singleDate);
+    }
+  } else {
+    if (startDate) {
+      filteredRecords = filteredRecords.filter(r => r.date >= startDate);
+    }
+    if (endDate) {
+      filteredRecords = filteredRecords.filter(r => r.date <= endDate);
+    }
   }
   if (selectedYear !== 'All') {
     filteredRecords = filteredRecords.filter(r => r.year === selectedYear);
@@ -1643,17 +1699,25 @@ function renderAllRecords() {
 }
 
 function downloadAllFilteredRecordsExcel() {
+  const singleDate = document.getElementById('admin-all-records-single-date')?.value || '';
   const startDate = document.getElementById('admin-all-records-start-date')?.value || '';
   const endDate = document.getElementById('admin-all-records-end-date')?.value || '';
   const selectedYear = document.getElementById('admin-all-records-year')?.value || 'All';
   const selectedSection = document.getElementById('admin-all-records-section')?.value || 'All';
 
   let filteredRecords = allRecords;
-  if (startDate) {
-    filteredRecords = filteredRecords.filter(r => r.date >= startDate);
-  }
-  if (endDate) {
-    filteredRecords = filteredRecords.filter(r => r.date <= endDate);
+
+  if (excelExportMode === 'single') {
+    if (singleDate) {
+      filteredRecords = filteredRecords.filter(r => r.date === singleDate);
+    }
+  } else {
+    if (startDate) {
+      filteredRecords = filteredRecords.filter(r => r.date >= startDate);
+    }
+    if (endDate) {
+      filteredRecords = filteredRecords.filter(r => r.date <= endDate);
+    }
   }
   if (selectedYear !== 'All') {
     filteredRecords = filteredRecords.filter(r => r.year === selectedYear);
@@ -1708,35 +1772,63 @@ function downloadAllFilteredRecordsExcel() {
   
   const summaryAOA = [];
   
-  const displayStart = startDate || (sortedClasses[0] ? sortedClasses[0].date : '');
-  const displayEnd = endDate || (sortedClasses[sortedClasses.length-1] ? sortedClasses[sortedClasses.length-1].date : '');
-  summaryAOA.push([`Attendance record of ${displayStart} to ${displayEnd}`]);
-  
-  const teacherStr = Array.from(teachers).join(', ');
-  summaryAOA.push([`${sortedClasses.length} classes taken by ${teacherStr}`]);
-  
-  summaryAOA.push([]); // empty line
-  
-  const headers = ['No of classes taken', 'Student\'s Name', 'Enrollment', 'Year', 'Section'];
-  classes.forEach(c => headers.push(c.key));
-  headers.push('Avg Attendance');
-  summaryAOA.push(headers);
-  
-  studentsList.forEach(st => {
-    const row = [
-      st.totalClasses,
-      st.name,
-      st.enrollment,
-      st.year,
-      st.section
-    ];
-    classes.forEach(c => {
-      row.push(st.attendanceMap[c.key] || '-');
+  if (excelExportMode === 'single') {
+    const dispYear = selectedYear === 'All' ? 'All Years' : selectedYear;
+    const dispSection = selectedSection === 'All' ? 'All Sections' : selectedSection;
+    const dispDate = singleDate || (sortedClasses[0] ? sortedClasses[0].date : '');
+    summaryAOA.push([`ATTENDANCE RECORD OF ${dispYear} YEAR ${dispSection} SECTION, on ${dispDate}`]);
+    
+    const subjectList = Array.from(new Set(sortedClasses.map(c => c.record.subject || 'Unknown Subject'))).join(', ');
+    const periodList = Array.from(new Set(sortedClasses.map(c => c.record.period || 'N/A'))).join(', ');
+    summaryAOA.push([`Subjects = ${subjectList}, ${periodList}... all the subject's attendance taken on that particular date`]);
+    summaryAOA.push([]); // empty line
+    
+    const headers = ['No of classes taken', 'Student\'s Name', 'Enrollment', 'Year', 'Section'];
+    classes.forEach(c => headers.push(c.key));
+    headers.push('Avg Attendance');
+    summaryAOA.push(headers);
+    
+    studentsList.forEach(st => {
+      const row = [
+        st.totalClasses,
+        st.name,
+        st.enrollment,
+        st.year,
+        st.section
+      ];
+      classes.forEach(c => {
+        row.push(st.attendanceMap[c.key] || '-');
+      });
+      const avg = st.totalClasses > 0 ? Math.round((st.totalPresent / st.totalClasses) * 100) + '%' : '0%';
+      row.push(avg);
+      summaryAOA.push(row);
     });
-    const avg = st.totalClasses > 0 ? Math.round((st.totalPresent / st.totalClasses) * 100) + '%' : '0%';
-    row.push(avg);
-    summaryAOA.push(row);
-  });
+  } else {
+    const displayStart = startDate || (sortedClasses[0] ? sortedClasses[0].date : '');
+    const displayEnd = endDate || (sortedClasses[sortedClasses.length-1] ? sortedClasses[sortedClasses.length-1].date : '');
+    summaryAOA.push([`Attendance record of ${displayStart} to ${displayEnd}`]);
+    
+    const teacherStr = Array.from(teachers).join(', ');
+    summaryAOA.push([`${sortedClasses.length} classes taken by ${teacherStr}`]);
+    summaryAOA.push([]); // empty line
+    
+    const headers = ['Roll no', 'Student Name', 'Enrollment No', 'Total Classes Attended', 'Total Classes Present', 'Total Classes Absent', 'Avg Attendance'];
+    summaryAOA.push(headers);
+    
+    studentsList.forEach(st => {
+      const avg = st.totalClasses > 0 ? Math.round((st.totalPresent / st.totalClasses) * 100) + '%' : '0%';
+      const row = [
+        st.roll,
+        st.name,
+        st.enrollment,
+        st.totalClasses,
+        st.totalPresent,
+        st.totalClasses - st.totalPresent,
+        avg
+      ];
+      summaryAOA.push(row);
+    });
+  }
   
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryAOA);
   XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
