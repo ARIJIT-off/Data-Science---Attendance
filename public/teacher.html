@@ -305,6 +305,9 @@
                     <option value="Sec B">Sec B</option>
                     <option value="Sec C">Sec C</option>
                     <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
                   </select>
                   <label class="form-label">Section</label>
                 </div>
@@ -392,6 +395,9 @@
                     <option value="Sec B">Sec B</option>
                     <option value="Sec C">Sec C</option>
                     <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
                   </select>
                   <label class="form-label">Section</label>
                 </div>
@@ -473,6 +479,9 @@
                       <option value="Sec B">Sec B</option>
                       <option value="Sec C">Sec C</option>
                       <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
                     </select>
                   <label class="form-label">Section</label>
                   </div>
@@ -1138,68 +1147,6 @@ async function toggleStudentAttendance(recordId, enrollment, newStatus) {
   }
 }
 
-// ===== Load Sections =====
-let allSections = [];
-
-async function loadSections() {
-  try {
-    const res = await fetch('/api/admin/sections');
-    allSections = await res.json();
-    setupDynamicSectionDropdownsTeacher();
-  } catch (err) {
-    console.error('Failed to load sections:', err);
-  }
-}
-
-function setupDynamicSectionDropdownsTeacher() {
-  const pairs = [
-    { yearId: 'attendance-year', sectionId: 'attendance-section' },
-    { yearId: 'upload-year', sectionId: 'upload-section' },
-    { yearId: 'live-year', sectionId: 'live-section' }
-  ];
-  
-  pairs.forEach(pair => {
-    const yEl = document.getElementById(pair.yearId);
-    const sEl = document.getElementById(pair.sectionId);
-    if (!yEl || !sEl) return;
-    
-    if (!yEl.hasAttribute('data-section-listener')) {
-      yEl.addEventListener('change', () => updateSectionDropdownTeacher(yEl, sEl));
-      yEl.setAttribute('data-section-listener', 'true');
-    }
-    updateSectionDropdownTeacher(yEl, sEl);
-  });
-}
-
-function updateSectionDropdownTeacher(yEl, sEl) {
-  const year = yEl.value;
-  const currentVal = sEl.value;
-  sEl.innerHTML = ''; // Teachers do not get 'All Sections' option to take attendance
-  
-  let filteredSections = allSections;
-  if (year && year !== 'All Years') {
-    filteredSections = allSections.filter(s => s.year === year);
-  }
-  
-  filteredSections.sort((a, b) => a.sectionName.localeCompare(b.sectionName));
-  
-  const uniqueNames = new Set();
-  filteredSections.forEach(sec => {
-    if (!uniqueNames.has(sec.sectionName)) {
-      uniqueNames.add(sec.sectionName);
-      const opt = document.createElement('option');
-      opt.value = sec.sectionName;
-      opt.textContent = sec.sectionName;
-      sEl.appendChild(opt);
-    }
-  });
-  
-  const optionsArray = Array.from(sEl.options).map(o => o.value);
-  if (optionsArray.includes(currentVal)) {
-    sEl.value = currentVal;
-  }
-}
-
 // ===== Load Subjects =====
 let allSubjects = [];
 
@@ -1308,7 +1255,6 @@ document.getElementById('live-semester').addEventListener('change', () => {
 loadStudentRoster();
 loadRecords();
 loadSubjects();
-loadSections();
 
 // ===== Email Change Modal Logic =====
 const emailModal = document.getElementById('email-modal');

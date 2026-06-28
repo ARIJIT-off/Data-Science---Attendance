@@ -630,6 +630,12 @@
                 <option value="Sec B">Sec B</option>
                 <option value="Sec C">Sec C</option>
                 <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
               </select>
             </div>
 
@@ -649,6 +655,12 @@
                 <option value="Sec B">Sec B</option>
                 <option value="Sec C">Sec C</option>
                 <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
               </select>
               <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" style="display: none;">
               <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
@@ -686,48 +698,6 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               See Current Users List
             </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section: Manage Sections -->
-      <div class="drawer-section" id="drawer-sec-sections">
-        <div class="drawer-section-header" onclick="toggleDrawerSection('drawer-sec-sections')">
-          <span class="drawer-section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-pink)" stroke-width="2" style="width: 16px; height: 16px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            Manage Sections
-          </span>
-          <svg class="drawer-section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div class="drawer-section-content">
-          <!-- Add Section Form -->
-          <div class="glass-card" style="margin-top: 0 !important; margin-bottom: 16px; border-color: rgba(255,255,255,0.06) !important; background: rgba(8,12,28,0.3) !important; padding: 16px;">
-            <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 12px;">Add New Section</div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <select class="form-input" id="new-section-year" style="height: 34px; font-size: 12px;">
-                <option value="1st Year">1st Year</option>
-                <option value="2nd Year">2nd Year</option>
-                <option value="3rd Year">3rd Year</option>
-                <option value="4th Year">4th Year</option>
-              </select>
-              <input type="text" id="new-section-name" class="form-input" style="height: 34px; font-size: 12px;" placeholder="Section Name (e.g. Sec A)">
-            </div>
-            <button class="btn btn-primary" onclick="addSection()" style="width: 100%; height: 34px; min-height: 34px; font-size: 12px; margin-top: 8px; margin-bottom: 0;">Add Section</button>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div style="font-size: 12px; font-weight: 700; color: #fff;">Existing Sections</div>
-            <select id="filter-section-year" class="form-input" style="width: auto; height: 26px; padding: 0 20px 0 8px; font-size: 11px; background: transparent;" onchange="loadSections()">
-              <option value="">All Years</option>
-              <option value="1st Year">1st Year</option>
-              <option value="2nd Year">2nd Year</option>
-              <option value="3rd Year">3rd Year</option>
-              <option value="4th Year">4th Year</option>
-            </select>
-          </div>
-          
-          <div id="sections-list" class="roster-list" style="margin-bottom: 0; min-height: 100px; max-height: 200px; overflow-y: auto;">
-            <div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 20px;">Loading sections...</div>
           </div>
         </div>
       </div>
@@ -971,6 +941,12 @@
               <option value="Sec B">Sec B</option>
               <option value="Sec C">Sec C</option>
               <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
             </select>
           </div>
         </div>
@@ -1087,6 +1063,12 @@
               <option value="Sec B">Sec B</option>
               <option value="Sec C">Sec C</option>
               <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
             </select>
           </div>
         </div>
@@ -3185,173 +3167,6 @@ if (bulkSubYear) {
   updateSemesterDropdown('bulk-sub-year', 'bulk-sub-semester');
 }
 
-// ==========================================
-// SECTIONS MANAGEMENT
-// ==========================================
-let allSections = [];
-
-async function loadSections() {
-  try {
-    const res = await fetch('/api/admin/sections');
-    allSections = await res.json();
-    renderSectionsList();
-    
-    // Update dynamic dropdowns across the site
-    setupDynamicSectionDropdowns();
-  } catch (err) {
-    console.error('Failed to load sections', err);
-    showToast('Failed to load sections', 'error');
-  }
-}
-
-function renderSectionsList() {
-  const container = document.getElementById('sections-list');
-  if (!container) return;
-  const filterYear = document.getElementById('filter-section-year').value;
-  
-  let filtered = allSections;
-  if (filterYear) {
-    filtered = filtered.filter(s => s.year === filterYear);
-  }
-  
-  if (filtered.length === 0) {
-    container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 20px;">No sections found.</div>';
-    return;
-  }
-  
-  // Sort by year, then name
-  filtered.sort((a, b) => {
-    const y = a.year.localeCompare(b.year);
-    if (y !== 0) return y;
-    return a.sectionName.localeCompare(b.sectionName);
-  });
-  
-  let html = '';
-  filtered.forEach(sec => {
-    html += `
-      <div class="roster-item" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div style="font-weight: 600; font-size: 13px; color: #fff;">${sec.sectionName}</div>
-          <div style="font-size: 11px; color: var(--text-secondary);">${sec.year}</div>
-        </div>
-        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteSection('${sec.id}')">Delete</button>
-      </div>
-    `;
-  });
-  container.innerHTML = html;
-}
-
-async function addSection() {
-  const sectionName = document.getElementById('new-section-name').value.trim();
-  const year = document.getElementById('new-section-year').value;
-  
-  if (!sectionName) {
-    showToast('Please enter a section name', 'warning');
-    return;
-  }
-  
-  try {
-    const res = await fetch('/api/admin/sections/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sectionName, year })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('Section added!', 'success');
-      document.getElementById('new-section-name').value = '';
-      loadSections();
-    } else {
-      showToast(data.message, 'error');
-    }
-  } catch (err) {
-    showToast('Server error', 'error');
-  }
-}
-
-async function deleteSection(id) {
-  if (!confirm('Are you sure you want to delete this section?')) return;
-  try {
-    const res = await fetch('/api/admin/sections/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('Section deleted', 'success');
-      loadSections();
-    } else {
-      showToast(data.message, 'error');
-    }
-  } catch (err) {
-    showToast('Server error', 'error');
-  }
-}
-
-function setupDynamicSectionDropdowns() {
-  const pairs = [
-    { yearId: 'new-stud-year', sectionId: 'new-stud-section', allowAll: false },
-    { yearId: 'bulk-stud-year', sectionId: 'bulk-stud-section', allowAll: false },
-    { yearId: 'filter-year', sectionId: 'filter-section', allowAll: true },
-    { yearId: 'bulk-migrate-year', sectionId: 'bulk-migrate-section', allowAll: false },
-    { yearId: 'rpt-sec-year', sectionId: 'rpt-sec-section', allowAll: false },
-    { yearId: 'rpt-tc-year', sectionId: 'rpt-tc-section', allowAll: true },
-    { yearId: 'rpt-st-year', sectionId: 'rpt-st-section', allowAll: true },
-    { yearId: 'rpt-subj-year', sectionId: 'rpt-subj-section', allowAll: true }
-  ];
-  
-  pairs.forEach(pair => {
-    const yEl = document.getElementById(pair.yearId);
-    const sEl = document.getElementById(pair.sectionId);
-    if (!yEl || !sEl) return;
-    
-    // Check if listener is already attached to prevent duplicates on reload
-    if (!yEl.hasAttribute('data-section-listener')) {
-      yEl.addEventListener('change', () => updateSectionDropdown(yEl, sEl, pair.allowAll));
-      yEl.setAttribute('data-section-listener', 'true');
-    }
-    // Update immediately based on current sections
-    updateSectionDropdown(yEl, sEl, pair.allowAll);
-  });
-}
-
-function updateSectionDropdown(yEl, sEl, allowAll) {
-  const year = yEl.value;
-  const currentVal = sEl.value;
-  sEl.innerHTML = allowAll ? '<option value="">All Sections</option>' : '';
-  
-  let filteredSections = allSections;
-  if (year && year !== 'All Years') {
-    filteredSections = allSections.filter(s => s.year === year);
-  }
-  
-  // Sort alphabetically
-  filteredSections.sort((a, b) => a.sectionName.localeCompare(b.sectionName));
-  
-  // Keep track of unique section names if different years have the same section name (e.g. "All Years")
-  const uniqueNames = new Set();
-  
-  filteredSections.forEach(sec => {
-    if (!uniqueNames.has(sec.sectionName)) {
-      uniqueNames.add(sec.sectionName);
-      const opt = document.createElement('option');
-      opt.value = sec.sectionName;
-      opt.textContent = sec.sectionName;
-      sEl.appendChild(opt);
-    }
-  });
-  
-  // Restore previous value if it exists in the new options
-  const optionsArray = Array.from(sEl.options).map(o => o.value);
-  if (optionsArray.includes(currentVal)) {
-    sEl.value = currentVal;
-  }
-  
-  // Trigger a change event so dependent dropdowns (like subjects) can update
-  sEl.dispatchEvent(new Event('change'));
-}
-
 // Fetch subjects from server
 async function loadSubjects() {
   try {
@@ -4863,9 +4678,6 @@ function toggleDrawerSection(sectionId) {
   
   if (!isActive) {
     section.classList.add('active');
-    if (sectionId === 'drawer-sec-sections') {
-      loadSections();
-    }
   }
 }
 
@@ -5139,6 +4951,12 @@ document.addEventListener('DOMContentLoaded', () => {
               <option value="Sec B">Sec B</option>
               <option value="Sec C">Sec C</option>
               <option value="Sec D">Sec D</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
+              <option value="Sec E">Sec E</option>
+              <option value="Sec F">Sec F</option>
+              <option value="Sec G">Sec G</option>
             </select>
             <button id="btn-bulk-delete-students" class="btn btn-sm" style="height: 38px; font-size: 13px; font-weight: 600; padding: 8px 14px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: var(--radius-sm); transition: var(--transition-smooth); white-space: nowrap; flex-shrink: 0;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'; this.style.borderColor='rgba(239, 68, 68, 0.5)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';">
               Delete Class
@@ -5289,7 +5107,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <label>Section</label>
               <select id="rpt-st-section">
                 <option value="">Select Section</option>
-                <option>Sec A</option>
+                <option>Sec A</option><option>Sec B</option><option>Sec C</option><option>Sec D</option><option>Sec E</option><option>Sec F</option><option>Sec G</option>
                 <option>Sec B</option>
                 <option>Sec C</option>
                 <option>Sec D</option>
@@ -5338,7 +5156,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <label>Section</label>
               <select id="rpt-tc-section">
                 <option value="">All Sections</option>
-                <option>Sec A</option><option>Sec B</option>
+                <option>Sec A</option><option>Sec B</option><option>Sec C</option><option>Sec D</option><option>Sec E</option><option>Sec F</option><option>Sec G</option>
                 <option>Sec C</option><option>Sec D</option>
               </select>
             </div>
@@ -5376,7 +5194,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <label>Section</label>
               <select id="rpt-sec-section">
                 <option value="">Select Section</option>
-                <option>Sec A</option><option>Sec B</option>
+                <option>Sec A</option><option>Sec B</option><option>Sec C</option><option>Sec D</option><option>Sec E</option><option>Sec F</option><option>Sec G</option>
                 <option>Sec C</option><option>Sec D</option>
               </select>
             </div>
@@ -5428,7 +5246,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <label>Section</label>
               <select id="rpt-subj-section">
                 <option value="">All Sections</option>
-                <option>Sec A</option><option>Sec B</option>
+                <option>Sec A</option><option>Sec B</option><option>Sec C</option><option>Sec D</option><option>Sec E</option><option>Sec F</option><option>Sec G</option>
                 <option>Sec C</option><option>Sec D</option>
               </select>
             </div>
