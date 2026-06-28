@@ -4064,10 +4064,7 @@ function generateTeacherReport() {
     showToast('Please select a year.', 'warning');
     return;
   }
-  if (!subject) {
-    showToast('Please select a subject.', 'warning');
-    return;
-  }
+
   if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
     showToast('From Date cannot be later than To Date.', 'warning');
     return;
@@ -4215,24 +4212,37 @@ function exportTeacherExcel() {
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryAOA);
   XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
-  // ----- SHEETS 2..N: Sections -----
-  // Find all distinct sections in the filtered records
-  const distinctSections = [...new Set(sortedFiltered.map(r => r.section).filter(Boolean))].sort();
+  // ----- SHEETS 2..N: Section + Subject combinations -----
+  const distinctCombos = [];
+  const comboMap = new Set();
+  sortedFiltered.forEach(r => {
+    if (!r.section || !r.subject) return;
+    const key = `${r.section}___${r.subject}`;
+    if (!comboMap.has(key)) {
+      comboMap.add(key);
+      distinctCombos.push({ section: r.section, subject: r.subject });
+    }
+  });
+  
+  distinctCombos.sort((a, b) => {
+    const sCmp = a.section.localeCompare(b.section);
+    if (sCmp !== 0) return sCmp;
+    return a.subject.localeCompare(b.subject);
+  });
 
-  distinctSections.forEach(sec => {
-    const secRecords = sortedFiltered.filter(r => r.section === sec);
+  distinctCombos.forEach(({ section: sec, subject: subj }) => {
+    const secRecords = sortedFiltered.filter(r => r.section === sec && r.subject === subj);
     const noOfClasses = secRecords.length;
     
     // The heading says: <Teacher Name> has taken <no of classes of that subject> classes from <date from> to <date to>  Year = <year>, Sec = <sec> Subject = <subject>
     const dispYear = year === 'All Years' || !year ? (secRecords[0] ? secRecords[0].year : 'N/A') : year;
-    const dispSubj = subject === 'All Subjects' || !subject ? (secRecords[0] ? secRecords[0].subject : 'N/A') : subject;
 
     const secAOA = [];
-    secAOA.push([`${teacherName} has taken ${noOfClasses} classes from ${displayFromDate} to ${displayToDate} Year = ${dispYear}, Sec = ${sec} Subject = ${dispSubj}`]);
+    secAOA.push([`${teacherName} has taken ${noOfClasses} classes from ${displayFromDate} to ${displayToDate} Year = ${dispYear}, Sec = ${sec} Subject = ${subj}`]);
     secAOA.push([]); // empty line
     secAOA.push(['Roll no', 'Enrollment no', 'Name', 'Total classes', 'No when absent', 'No when present', 'Avg attendance']);
 
-    // Aggregate student data for this section
+    // Aggregate student data for this section+subject combo
     const studentMap = {};
     secRecords.forEach(r => {
       r.students.forEach(s => {
@@ -4257,7 +4267,10 @@ function exportTeacherExcel() {
     });
 
     const wsSec = XLSX.utils.aoa_to_sheet(secAOA);
-    let safeSecName = sec.replace(/[\\/*?:\[\]]/g, '').substring(0, 31);
+    // Excel sheet names max 31 chars
+    // Create a composite name like "Sec A - Physics"
+    let rawName = `${sec} - ${subj}`.replace(/[\\/*?:\[\]]/g, '');
+    let safeSecName = rawName.substring(0, 31);
     if (!safeSecName) safeSecName = 'Section';
     XLSX.utils.book_append_sheet(wb, wsSec, safeSecName);
   });
