@@ -3593,7 +3593,7 @@ function initReportsTab() {
 
   // Populate subject dropdowns from records
   const subjects = [...new Set(allRecords.map(r => r.subject).filter(Boolean))].sort();
-  ['rpt-dr-subject', 'rpt-st-subject', 'rpt-sec-subject', 'rpt-tc-subject'].forEach(id => {
+  ['rpt-dr-subject', 'rpt-st-subject', 'rpt-sec-subject'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
     sel.innerHTML = '<option value="">All Subjects</option>';
@@ -3661,6 +3661,7 @@ function initReportsTab() {
 
   const tcSel = document.getElementById('rpt-tc-teacher');
   if (tcSel) {
+    const currentVal = tcSel.value;
     tcSel.innerHTML = '<option value="">Select Teacher</option>';
     const sortedTeachers = Object.values(teachersMap).sort((a, b) => a.name.localeCompare(b.name));
     sortedTeachers.forEach(t => {
@@ -3670,7 +3671,39 @@ function initReportsTab() {
       opt.textContent = `${t.name} (${classCount} class${classCount === 1 ? '' : 'es'} taken)`;
       tcSel.appendChild(opt);
     });
+    if (currentVal) tcSel.value = currentVal;
   }
+
+  // Populate teacher-wise report subject dropdown (dynamic)
+  const updateTeacherWiseSubjectDropdown = () => {
+    const email = document.getElementById('rpt-tc-teacher')?.value;
+    const yr = document.getElementById('rpt-tc-year')?.value;
+    const sec = document.getElementById('rpt-tc-section')?.value;
+    
+    let filtered = allRecords;
+    if (email) filtered = filtered.filter(r => r.teacherEmail && r.teacherEmail.toLowerCase() === email.toLowerCase());
+    if (yr) filtered = filtered.filter(r => r.year === yr);
+    if (sec) filtered = filtered.filter(r => r.section === sec);
+    
+    const validSubjects = [...new Set(filtered.map(r => r.subject).filter(Boolean))].sort();
+    const subjSel = document.getElementById('rpt-tc-subject');
+    if (subjSel) {
+      const currentVal = subjSel.value;
+      subjSel.innerHTML = '<option value="">Select Subject</option>';
+      validSubjects.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        subjSel.appendChild(opt);
+      });
+      if (validSubjects.includes(currentVal)) subjSel.value = currentVal;
+    }
+  };
+
+  ['rpt-tc-teacher', 'rpt-tc-year', 'rpt-tc-section'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateTeacherWiseSubjectDropdown);
+  });
+  updateTeacherWiseSubjectDropdown();
 
   // Populate student datalist
   updateReportStudentDatalist();
