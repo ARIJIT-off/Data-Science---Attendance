@@ -3593,7 +3593,7 @@ function initReportsTab() {
 
   // Populate subject dropdowns from records
   const subjects = [...new Set(allRecords.map(r => r.subject).filter(Boolean))].sort();
-  ['rpt-dr-subject', 'rpt-st-subject', 'rpt-sec-subject'].forEach(id => {
+  ['rpt-dr-subject', 'rpt-st-subject', 'rpt-sec-subject', 'rpt-tc-subject'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
     sel.innerHTML = '<option value="">All Subjects</option>';
@@ -4019,13 +4019,45 @@ function generateTeacherReport() {
   const teacherEmail = document.getElementById('rpt-tc-teacher').value;
   const year = document.getElementById('rpt-tc-year').value;
   const section = document.getElementById('rpt-tc-section').value;
+  const subject = document.getElementById('rpt-tc-subject').value;
+  const fromDate = document.getElementById('rpt-tc-from').value;
+  const toDate = document.getElementById('rpt-tc-to').value;
 
   if (!teacherEmail) {
     showToast('Please select a teacher.', 'warning');
     return;
   }
+  if (!year) {
+    showToast('Please select a year.', 'warning');
+    return;
+  }
+  if (!section) {
+    showToast('Please select a section.', 'warning');
+    return;
+  }
+  if (!subject) {
+    showToast('Please select a subject.', 'warning');
+    return;
+  }
+  if (!fromDate || !toDate) {
+    showToast('Please select a date range (From Date and To Date).', 'warning');
+    return;
+  }
+  if (new Date(fromDate) > new Date(toDate)) {
+    showToast('From Date cannot be later than To Date.', 'warning');
+    return;
+  }
 
-  const filtered = filterRecords({ teacherEmail, year, section });
+  // Use existing filter logic, augmenting with fromDate, toDate, and subject
+  let filtered = filterRecords({ teacherEmail, year, section, subject });
+  filtered = filtered.filter(r => {
+    const d = new Date(r.date);
+    const fd = new Date(fromDate);
+    const td = new Date(toDate);
+    // Include boundary dates
+    return d >= fd && d <= td;
+  });
+
   const teacherName = filtered.length > 0 ? filtered[0].teacherName : teacherEmail;
 
   if (filtered.length === 0) {
@@ -4122,34 +4154,96 @@ function generateTeacherReport() {
       </table>
     </div>`;
 
-  lastTeacherData = { teacherName, teacherEmail, filtered, subjMap };
+  lastTeacherData = { teacherName, teacherEmail, filtered, subjMap, fromDate, toDate, year, section, subject };
   document.getElementById('btn-dl-teacher').disabled = false;
   showToast(`Report for ${teacherName}: ${totalClasses} classes, ${avgPct}% avg attendance.`, 'success');
 }
 
 function exportTeacherExcel() {
   if (!lastTeacherData) return;
-  const { teacherName, teacherEmail, filtered, subjMap } = lastTeacherData;
-  const summary = [
-    ['Teacher Attendance Report'],
-    [],
-    ['Teacher', teacherName],
-    ['Email', teacherEmail],
-    [],
-    ['Subject', 'Classes', 'Present', 'Total', 'Avg Attendance %']
-  ];
-  Object.entries(subjMap).sort((a, b) => a[0].localeCompare(b[0])).forEach(([subj, data]) => {
-    summary.push([subj, data.classes, data.present, data.total, data.total > 0 ? Math.round((data.present/data.total)*100) + '%' : '0%']);
-  });
+  const { teacherName, teacherEmail, filtered, fromDate, toDate, year, section, subject } = lastTeacherData;
 
-  const detail = [['Date', 'Subject', 'Year', 'Section', 'Present', 'Total', 'Attendance %']];
-  [...filtered].sort(compareRecordsByDateAndPeriod).forEach(r => {
-    const present = r.students.filter(s => s.present).length;
+  const extractSubjectId = (subjStr) => {
+    if (!subjStr) return 'N/A';
+    const match = subjStr.match(/\((.*?)\)/);
+    return match ? match[1] : 'N/A';
+  };
+
+  const wb = XLSX.utils.book_new();
+
+  // ----- SHEET 1: Summary -----
+  const summaryAOA = [];
+  summaryAOA.push([`${teacherName} has taken these classes between ${fromDate} to ${toDate}`]);
+  summaryAOA.push([]); // empty line
+  summaryAOA.push(['Subject Name', 'Subject ID', 'Date when attendance taken', 'Period', 'Year', 'Sec', 'Total student', 'Student no(Present)', 'Student no(Absent)', 'Avg Attendance']);
+
+  const sortedFiltered = [...filtered].sort(compareRecordsByDateAndPeriod);
+  
+  sortedFiltered.forEach(r => {
+    const subjId = extractSubjectId(r.subject);
     const total = r.students.length;
-    detail.push([r.date, r.subject, r.year, r.section, present, total, total > 0 ? Math.round((present/total)*100) + '%' : '0%']);
+    const present = r.students.filter(s => s.present).length;
+    const absent = total - present;
+    const avg = total > 0 ? Math.round((present / total) * 100) + '%' : '0%';
+    summaryAOA.push([
+      r.subject, subjId, r.date, r.period || 'N/A', r.year, r.section, total, present, absent, avg
+    ]);
   });
 
-  exportToExcel([{ name: 'Summary', data: summary }, { name: 'Class Detail', data: detail }], `Attendance_Teacher_${teacherName.replace(/\s+/g, '_')}.xlsx`);
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryAOA);
+  XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+
+  // ----- SHEETS 2..N: Sections -----
+  // Find all distinct sections in the filtered records
+  const distinctSections = [...new Set(sortedFiltered.map(r => r.section).filter(Boolean))].sort();
+
+  distinctSections.forEach(sec => {
+    const secRecords = sortedFiltered.filter(r => r.section === sec);
+    const noOfClasses = secRecords.length;
+    
+    // The heading says: <Teacher Name> has taken <no of classes of that subject> classes from <date from> to <date to>  Year = <year>, Sec = <sec> Subject = <subject> <subject id>
+    const dispYear = year === 'All Years' || !year ? (secRecords[0] ? secRecords[0].year : 'N/A') : year;
+    const dispSubj = subject === 'All Subjects' || !subject ? (secRecords[0] ? secRecords[0].subject : 'N/A') : subject;
+    const dispSubjId = extractSubjectId(dispSubj);
+
+    const secAOA = [];
+    secAOA.push([`${teacherName} has taken ${noOfClasses} classes from ${fromDate} to ${toDate} Year = ${dispYear}, Sec = ${sec} Subject = ${dispSubj} ${dispSubjId}`]);
+    secAOA.push([]); // empty line
+    secAOA.push(['Roll no', 'Enrollment no', 'Name', 'Total classes', 'No when absent', 'No when present', 'Avg attendance']);
+
+    // Aggregate student data for this section
+    const studentMap = {};
+    secRecords.forEach(r => {
+      r.students.forEach(s => {
+        if (!studentMap[s.enrollment]) {
+          studentMap[s.enrollment] = { name: s.name, roll: s.roll, enrollment: s.enrollment, total: 0, present: 0 };
+        }
+        studentMap[s.enrollment].total++;
+        if (s.present) studentMap[s.enrollment].present++;
+      });
+    });
+
+    const studentsList = Object.values(studentMap).sort((a, b) => {
+      const rollA = parseInt(a.roll, 10) || 0;
+      const rollB = parseInt(b.roll, 10) || 0;
+      return rollA - rollB;
+    });
+
+    studentsList.forEach(st => {
+      const absent = st.total - st.present;
+      const avg = st.total > 0 ? Math.round((st.present / st.total) * 100) + '%' : '0%';
+      secAOA.push([st.roll, st.enrollment, st.name, st.total, absent, st.present, avg]);
+    });
+
+    const wsSec = XLSX.utils.aoa_to_sheet(secAOA);
+    let safeSecName = sec.replace(/[\\/*?:\[\]]/g, '').substring(0, 31);
+    if (!safeSecName) safeSecName = 'Section';
+    XLSX.utils.book_append_sheet(wb, wsSec, safeSecName);
+  });
+
+  const finalSubjectName = subject === 'All Subjects' || !subject ? 'All_Subjects' : subject;
+  let filename = `Teacher_${teacherName.replace(/\s+/g, '_')}_${finalSubjectName.replace(/\s+/g, '_')}.xlsx`;
+  XLSX.writeFile(wb, filename);
   showToast('Excel downloaded!', 'success');
 }
 
@@ -4989,18 +5083,30 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="report-filter-group">
               <label>Year</label>
               <select id="rpt-tc-year">
-                <option value="">All Years</option>
+                <option value="">Select Year</option>
                 <option>1st Year</option><option>2nd Year</option>
                 <option>3rd Year</option><option>4th Year</option>
               </select>
             </div>
-            <div class="report-filter-group" style="grid-column: span 2;">
+            <div class="report-filter-group">
               <label>Section</label>
               <select id="rpt-tc-section">
                 <option value="">All Sections</option>
                 <option>Sec A</option><option>Sec B</option>
                 <option>Sec C</option><option>Sec D</option>
               </select>
+            </div>
+            <div class="report-filter-group" style="grid-column: span 2;">
+              <label>Subject</label>
+              <select id="rpt-tc-subject"><option value="">Select Subject</option></select>
+            </div>
+            <div class="report-filter-group">
+              <label>From Date</label>
+              <input type="date" id="rpt-tc-from">
+            </div>
+            <div class="report-filter-group">
+              <label>To Date</label>
+              <input type="date" id="rpt-tc-to">
             </div>
           </div>
           <div class="report-btn-row">
