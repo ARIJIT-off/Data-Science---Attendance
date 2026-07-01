@@ -1,71 +1,130 @@
-# UEMK Datascience Attendance Management System
+# UEMK DataScience Portal
 
-A secure web-based attendance tracking application designed for the Computer Science and Engineering (Data Science) department of UEM Kolkata. It features role-specific dashboards for Administrators, Teachers, and Students.
+## Overview
+The UEMK DataScience Portal is a comprehensive attendance management system designed for educational institutions. It provides role-based access for students, teachers, and administrators with streamlined attendance tracking and reporting capabilities.
 
-## Key Features
+---
 
-### Admin Portal
-- Dashboard statistics covering Total Students, Total Teachers, Total Classes, and Overall Attendance Percentage.
-- Student-wise attendance log with sorting, search filters, and visual alert levels (under 75% indicator).
-- Teacher activity summaries.
-- Detailed visual log of all past attendance sessions.
-- Extensive Excel report generation (multi-sheet date-range reports, subject-wise, teacher-wise).
+## Portal Features & Benefits
 
-### Teacher Portal
-- Roster-based manual attendance logging.
-- Interactive session generation (QR codes and Web Links) scoped specifically to Year, Section, and Semester.
-- Session activity records showing student attendance details.
-- Secure email OTP login.
+### Login Portal & Criteria
+
+#### **Teachers & Admins**
+
+##### Sign Up
+- Teachers and admins can register using their official email account
+- Users must set a password to complete the sign-up process
+- Registration enables access to all portal features
+
+##### Sign In
+- Users must provide their registered email ID and password
+- Secure login grants access to role-specific dashboards
+
+##### Forgot Password
+- In case of forgotten password, users must sign up again to reset their credentials
+
+---
 
 ### Student Portal
-- Direct secure login via Enrollment Number and Class Roll Number.
-- Circular SVG progress indicators displaying overall attendance stats.
-- Subject-wise attendance summary.
-- Date-wise logs showing detailed history.
-- Verification checks preventing students from signing attendance sessions outside their registered Year and Section.
 
-## Tech Stack
-- Backend: Node.js, Express
-- Storage: Local File System (JSON for active session storage, Excel for student and teacher roster indexing)
-- Frontend: HTML5, Vanilla CSS3, Javascript
-- Authentication: Nodemailer SMTP email OTP (for Admin and Teacher roles)
+The student portal provides students with self-service attendance features:
 
-## Local Installation
+1. **View Attendance Records**
+   - Students can access their complete attendance history
+   - Real-time visibility of attendance status
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ARIJIT-off/Data-Science---Attendance.git
-   cd Data-Science---Attendance
-   ```
+2. **Mark Attendance**
+   - Mark attendance using Link method
+   - Mark attendance using QR code scanning
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+---
 
-3. Setup Configuration and Data Files:
-   Since this application relies on the local file system for data storage, you must place the following files in the root directory (these are excluded from git tracking to protect privacy) before starting the server:
-   - `student_list passout 2028.xlsx`: Expected layout containing student information (Name, Class Roll, Enrollment Number, Year, Section, Email).
-   - `admin data.xlsx`: Contains the list of administrators.
-   - `teacher data.xlsx`: Contains the list of authorized teachers.
-   - `mailmain.xlsx`: Used as a fallback for SMTP credentials if `.env` is not used. Must contain a field labeled "Email Address" and a field labeled "App Password".
+### Teacher Portal
 
-   Alternatively, configure SMTP credentials via a `.env` file in the root directory:
-   ```env
-   EMAIL_USER=your_email@gmail.com
-   EMAIL_PASS=your_app_password
-   ```
+Teachers have comprehensive attendance management capabilities:
 
-4. Start the server:
-   ```bash
-   npm start
-   ```
-   The local application will run on http://localhost:3000
+1. **Manual Attendance Entry**
+   - Manually input attendance records for classes
 
-## Deployment Guidelines
-Because this application stores roster records and logs locally on the filesystem, standard ephemeral hosting options (like serverless Vercel or Heroku) will wipe database logs when the server restarts.
+2. **Bulk Upload**
+   - Upload attendance records directly via Excel sheets
 
-When deploying, choose an option that supports file persistence:
-- Replit: Supports permanent workspaces and simple setup. Import the repository directly and click Run.
-- Railway/Render: Deploy from Git and configure a Persistent Volume mapped to the root workspace.
-- VPS (Virtual Private Server): Set up Node.js with PM2 and Nginx reverse proxy.
+3. **Attendance Link & QR Generation**
+   - Generate attendance links within the app
+   - Create QR codes for distribution to students
+   - Circulate links/QR codes to students for self-marking
+
+4. **View & Download Records**
+   - Access attendance records in the **"My Records"** section
+   - Download records in multiple formats:
+     - Excel (.xlsx)
+     - Image (.png)
+     - PDF (.pdf)
+
+5. **Real-time Editing**
+   - Edit attendance records instantly within the teacher portal
+   - Make corrections without system restrictions
+
+---
+
+### Admin Portal
+
+The admin portal provides institutional-level oversight and management across 5 main sections:
+
+#### **1. Teacher Summary**
+- View attendance records for all registered teachers who have conducted classes
+- Track teaching activity and class frequency
+
+#### **2. Student Records**
+- Access attendance records organized by class and section
+- Monitor individual student attendance status
+
+#### **3. All Records**
+- Comprehensive view of all attendance records across classes and sections
+- Displays period and time information for each record
+- Download records in Excel (.xlsx) format
+
+#### **4. Admin Controls**
+Manage users and academic structure:
+- **Add/Remove Students**
+  - Manage student enrollment by year and section
+- **Add/Remove Teachers**
+  - Handle teacher registration and removal
+- **Add/Remove Admins**
+  - Manage other administrator accounts
+- **Add Subjects**
+  - Add and manage subjects for each year and semester
+
+#### **5. Reports**
+Generate and download comprehensive reports in Excel format:
+- **Section & Year-wise Reports**
+  - Attendance aggregated by academic section and year
+- **Teacher-wise Reports**
+  - Attendance data organized by individual teachers
+- **Student-wise Reports**
+  - Individual attendance records for each student
+- **Subject-wise Reports**
+  - Attendance data organized by subject
+
+---
+
+## Technical Stack
+
+- **Frontend**: HTML5, Vanilla CSS3, Javascript
+- **Backend**: Node.js, Express
+- **Database**: MongoDB (Mongoose)
+- **File Formats**: Excel (.xlsx), PDF, PNG, QR Code generation
+
+---
+
+## Getting Started
+
+1. **For Teachers & Admins**: Sign up with your registered email and set a password
+2. **For Students**: Access the student portal to view attendance and mark present
+3. **For Administrators**: Log in to the admin portal to manage users and generate reports
+
+---
+
+## GRIEVANCE & REPORTS
+
+TEACHERS & STUDENT CAN DIRECTLY WRITE THEIR APPEALS & GRIVANCES TO THE ADMIN PANEL
