@@ -4848,6 +4848,8 @@ const originalGenerateDateRangeReport = generateDateRangeReport;
 generateDateRangeReport = function() {
   document.getElementById('reports-results-section').style.display = 'block';
   closeReportsWindow();
+  document.querySelectorAll('.report-results-subview').forEach(r => r.style.display = 'none');
+  const _el_res_dr = document.getElementById('res-date-range'); if (_el_res_dr) _el_res_dr.style.display = 'block';
   originalGenerateDateRangeReport();
   if (typeof syncMainDownloadButtonState === 'function') syncMainDownloadButtonState();
 };
@@ -4856,6 +4858,8 @@ const originalGenerateStudentReport = generateStudentReport;
 generateStudentReport = function() {
   document.getElementById('reports-results-section').style.display = 'block';
   closeReportsWindow();
+  document.querySelectorAll('.report-results-subview').forEach(r => r.style.display = 'none');
+  const _el_res_student = document.getElementById('res-student'); if (_el_res_student) _el_res_student.style.display = 'block';
   originalGenerateStudentReport();
   if (typeof syncMainDownloadButtonState === 'function') syncMainDownloadButtonState();
 };
@@ -4864,6 +4868,8 @@ const originalGenerateTeacherReport = generateTeacherReport;
 generateTeacherReport = function() {
   document.getElementById('reports-results-section').style.display = 'block';
   closeReportsWindow();
+  document.querySelectorAll('.report-results-subview').forEach(r => r.style.display = 'none');
+  const _el_res_teacher = document.getElementById('res-teacher'); if (_el_res_teacher) _el_res_teacher.style.display = 'block';
   originalGenerateTeacherReport();
   if (typeof syncMainDownloadButtonState === 'function') syncMainDownloadButtonState();
 };
@@ -4872,6 +4878,8 @@ const originalGenerateSectionReport = generateSectionReport;
 generateSectionReport = function() {
   document.getElementById('reports-results-section').style.display = 'block';
   closeReportsWindow();
+  document.querySelectorAll('.report-results-subview').forEach(r => r.style.display = 'none');
+  const _el_res_section = document.getElementById('res-section'); if (_el_res_section) _el_res_section.style.display = 'block';
   originalGenerateSectionReport();
   if (typeof syncMainDownloadButtonState === 'function') syncMainDownloadButtonState();
 };
@@ -4880,6 +4888,8 @@ const originalGenerateSubjectReport = generateSubjectReport;
 generateSubjectReport = function() {
   document.getElementById('reports-results-section').style.display = 'block';
   closeReportsWindow();
+  document.querySelectorAll('.report-results-subview').forEach(r => r.style.display = 'none');
+  const _el_res_subject = document.getElementById('res-subject'); if (_el_res_subject) _el_res_subject.style.display = 'block';
   originalGenerateSubjectReport();
   if (typeof syncMainDownloadButtonState === 'function') syncMainDownloadButtonState();
 };
@@ -5108,9 +5118,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <select id="rpt-st-section">
                 <option value="">Select Section</option>
                 <option>Sec A</option><option>Sec B</option><option>Sec C</option><option>Sec D</option><option>Sec E</option><option>Sec F</option><option>Sec G</option>
-                <option>Sec B</option>
-                <option>Sec C</option>
-                <option>Sec D</option>
               </select>
             </div>
             <div class="report-filter-group" style="min-width: 220px; flex: 2;">
