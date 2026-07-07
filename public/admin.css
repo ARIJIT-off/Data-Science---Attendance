@@ -146,8 +146,8 @@ a:hover { text-decoration: underline; }
 }
 
 .brand-logo {
-  height: 28px;
-  width: 38px; /* Force exact same width and height box in navbar too */
+  height: 48px;
+  width: auto;
   object-fit: contain;
 }
 
