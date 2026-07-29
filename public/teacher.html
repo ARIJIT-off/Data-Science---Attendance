@@ -577,7 +577,86 @@
         <!-- TAB 2: My Records -->
         <div class="tab-content" id="tab-records">
           <div class="glass-card">
-            <div class="section-title">My Attendance Records</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+              <div class="section-title" style="margin-bottom:0;">My Attendance Records</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <button class="btn btn-sm btn-secondary" onclick="openBulkDownloadPanel('single')" style="padding:6px 14px; font-size:12px; display:flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                  Record of a Single Date
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="openBulkDownloadPanel('range')" style="padding:6px 14px; font-size:12px; display:flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Record in a Date Range
+                </button>
+              </div>
+            </div>
+
+            <!-- Bulk Download Panel (hidden by default) -->
+            <div id="bulk-download-panel" style="display:none; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:16px; margin-bottom:18px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                <span id="bulk-panel-title" style="font-size:13px; font-weight:700; color:#fff;"></span>
+                <button onclick="closeBulkDownloadPanel()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:16px; padding:2px 6px;">✕</button>
+              </div>
+
+              <!-- Date inputs -->
+              <div id="bulk-date-single" style="display:none; margin-bottom:12px;">
+                <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Select Date</label>
+                <input type="date" id="bulk-single-date" class="form-input" style="width:180px; height:34px; font-size:13px; padding:6px 10px;">
+              </div>
+              <div id="bulk-date-range" style="display:none; margin-bottom:12px; display:none;">
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                  <div>
+                    <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">From Date</label>
+                    <input type="date" id="bulk-from-date" class="form-input" style="width:160px; height:34px; font-size:13px; padding:6px 10px;">
+                  </div>
+                  <div>
+                    <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">To Date</label>
+                    <input type="date" id="bulk-to-date" class="form-input" style="width:160px; height:34px; font-size:13px; padding:6px 10px;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filter type -->
+              <div style="margin-bottom:12px;">
+                <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">Filter By</label>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <label style="display:flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="radio" name="bulk-filter" value="none" checked onchange="updateBulkFilterFields()"> No Filter</label>
+                  <label style="display:flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="radio" name="bulk-filter" value="year" onchange="updateBulkFilterFields()"> Year wise</label>
+                  <label style="display:flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="radio" name="bulk-filter" value="section" onchange="updateBulkFilterFields()"> Section wise</label>
+                  <label style="display:flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="radio" name="bulk-filter" value="year_section" onchange="updateBulkFilterFields()"> Year &amp; Section wise</label>
+                  <label style="display:flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="radio" name="bulk-filter" value="subject" onchange="updateBulkFilterFields()"> Subject wise</label>
+                </div>
+              </div>
+
+              <!-- Dynamic filter fields -->
+              <div id="bulk-filter-fields" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+                <div id="bulk-year-field" style="display:none;">
+                  <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Year</label>
+                  <select id="bulk-filter-year" class="form-input" style="height:34px; width:140px; font-size:13px; padding:4px 8px;">
+                    <option value="">All Years</option>
+                    <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+                  </select>
+                </div>
+                <div id="bulk-section-field" style="display:none;">
+                  <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Section</label>
+                  <select id="bulk-filter-section" class="form-input" style="height:34px; width:130px; font-size:13px; padding:4px 8px;">
+                    <option value="">All Sections</option>
+                    <option>Sec A</option><option>Sec B</option><option>Sec C</option><option>Sec D</option><option>Sec E</option><option>Sec F</option><option>Sec G</option>
+                  </select>
+                </div>
+                <div id="bulk-subject-field" style="display:none;">
+                  <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Subject</label>
+                  <input type="text" id="bulk-filter-subject" class="form-input" placeholder="e.g. Data Science" style="height:34px; width:200px; font-size:13px; padding:4px 10px;" list="bulk-subject-datalist">
+                  <datalist id="bulk-subject-datalist"></datalist>
+                </div>
+              </div>
+
+              <button onclick="executeBulkDownload()" class="btn btn-primary" style="padding:8px 20px; font-size:13px; display:flex; align-items:center; gap:8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download as Excel
+              </button>
+            </div>
+
             <div id="records-container">
               <div class="loading-overlay" id="records-loading">
                 <div class="spinner"></div>
@@ -586,6 +665,7 @@
             </div>
           </div>
         </div>
+
 
       </div>
 
@@ -2123,6 +2203,241 @@ function resetLiveSession() {
     btnGenerate.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Generate Link & QR';
   }
 }
+
+// ===== Bulk CSV/Excel Download Functions =====
+
+let bulkDownloadMode = 'single'; // 'single' or 'range'
+
+function openBulkDownloadPanel(mode) {
+  bulkDownloadMode = mode;
+  const panel = document.getElementById('bulk-download-panel');
+  const title = document.getElementById('bulk-panel-title');
+  const singleDateDiv = document.getElementById('bulk-date-single');
+  const rangeDateDiv = document.getElementById('bulk-date-range');
+
+  panel.style.display = 'block';
+  title.textContent = mode === 'single' ? '📋 Record of a Single Date' : '📅 Record in a Date Range';
+
+  if (mode === 'single') {
+    singleDateDiv.style.display = 'block';
+    rangeDateDiv.style.display = 'none';
+    // Set today as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('bulk-single-date').value = today;
+  } else {
+    singleDateDiv.style.display = 'none';
+    rangeDateDiv.style.display = 'block';
+    // Default last 7 days
+    const today = new Date();
+    const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 7);
+    document.getElementById('bulk-to-date').value = today.toISOString().split('T')[0];
+    document.getElementById('bulk-from-date').value = weekAgo.toISOString().split('T')[0];
+  }
+
+  // Reset filter to no filter
+  document.querySelector('input[name="bulk-filter"][value="none"]').checked = true;
+  updateBulkFilterFields();
+
+  // Populate subject datalist from loaded records
+  populateBulkSubjectDatalist();
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeBulkDownloadPanel() {
+  document.getElementById('bulk-download-panel').style.display = 'none';
+}
+
+function updateBulkFilterFields() {
+  const filterVal = document.querySelector('input[name="bulk-filter"]:checked').value;
+  const yearField = document.getElementById('bulk-year-field');
+  const sectionField = document.getElementById('bulk-section-field');
+  const subjectField = document.getElementById('bulk-subject-field');
+
+  yearField.style.display = (filterVal === 'year' || filterVal === 'year_section') ? 'block' : 'none';
+  sectionField.style.display = (filterVal === 'section' || filterVal === 'year_section') ? 'block' : 'none';
+  subjectField.style.display = filterVal === 'subject' ? 'block' : 'none';
+}
+
+function populateBulkSubjectDatalist() {
+  const dl = document.getElementById('bulk-subject-datalist');
+  if (!dl || !teacherRecords.length) return;
+  const subjects = [...new Set(teacherRecords.map(r => r.subject).filter(Boolean))].sort();
+  dl.innerHTML = subjects.map(s => `<option value="${s}">`).join('');
+}
+
+function getDayWithDate(dateStr) {
+  // dateStr: 'YYYY-MM-DD'
+  if (!dateStr) return dateStr;
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${days[d.getDay()]} ${parseInt(parts[2])} ${months[d.getMonth()]} ${parts[0]}`;
+}
+
+function executeBulkDownload() {
+  if (!teacherRecords || teacherRecords.length === 0) {
+    showToast('No records loaded yet.', 'warning');
+    return;
+  }
+
+  const filterVal = document.querySelector('input[name="bulk-filter"]:checked').value;
+  const filterYear = document.getElementById('bulk-filter-year').value.trim();
+  const filterSection = document.getElementById('bulk-filter-section').value.trim();
+  const filterSubject = document.getElementById('bulk-filter-subject').value.trim().toLowerCase();
+
+  // --- Date filter ---
+  let filtered = [...teacherRecords];
+  if (bulkDownloadMode === 'single') {
+    const selDate = document.getElementById('bulk-single-date').value;
+    if (!selDate) { showToast('Please select a date.', 'warning'); return; }
+    filtered = filtered.filter(r => r.date === selDate);
+    if (filtered.length === 0) { showToast('No records found for that date.', 'warning'); return; }
+  } else {
+    const fromDate = document.getElementById('bulk-from-date').value;
+    const toDate = document.getElementById('bulk-to-date').value;
+    if (!fromDate || !toDate) { showToast('Please select both From and To dates.', 'warning'); return; }
+    if (fromDate > toDate) { showToast('From date must be before To date.', 'warning'); return; }
+    filtered = filtered.filter(r => r.date >= fromDate && r.date <= toDate);
+    if (filtered.length === 0) { showToast('No records found in that date range.', 'warning'); return; }
+  }
+
+  // --- Category filter ---
+  if (filterVal === 'year' && filterYear) {
+    filtered = filtered.filter(r => (r.year || '') === filterYear);
+  } else if (filterVal === 'section' && filterSection) {
+    filtered = filtered.filter(r => (r.section || '') === filterSection);
+  } else if (filterVal === 'year_section') {
+    if (filterYear) filtered = filtered.filter(r => (r.year || '') === filterYear);
+    if (filterSection) filtered = filtered.filter(r => (r.section || '') === filterSection);
+  } else if (filterVal === 'subject' && filterSubject) {
+    filtered = filtered.filter(r => (r.subject || '').toLowerCase().includes(filterSubject));
+  }
+
+  if (filtered.length === 0) {
+    showToast('No records match the selected filters.', 'warning');
+    return;
+  }
+
+  // Sort by date asc, then period
+  filtered.sort((a, b) => {
+    const dd = (a.date || '').localeCompare(b.date || '');
+    if (dd !== 0) return dd;
+    const w = p => p === 'EAA' ? 8 : (parseInt(p) || 99);
+    return w(a.period || '') - w(b.period || '');
+  });
+
+  const teacherName = profile.name || 'Teacher';
+  const teacherEmail = profile.email || '';
+
+  // ---- Build workbook ----
+  const wb = XLSX.utils.book_new();
+
+  // ---- Sheet 1: Summary ----
+  const summaryRows = [];
+
+  if (bulkDownloadMode === 'single') {
+    const dateLabel = getDayWithDate(filtered[0].date);
+    summaryRows.push([`ATTENDANCE taken by ${teacherName} (${teacherEmail}) on ${dateLabel}`]);
+    summaryRows.push([]);
+    summaryRows.push(['Period', 'Time', 'Subject', 'No. of Students Present', 'No. of Students Absent']);
+    filtered.forEach(r => {
+      const present = r.students.filter(s => s.present).length;
+      const absent = r.students.length - present;
+      const timeStr = formatTimeIST(r.createdAt) || 'N/A';
+      summaryRows.push([
+        r.period || 'N/A',
+        timeStr,
+        r.subject || 'N/A',
+        present,
+        absent
+      ]);
+    });
+  } else {
+    const fromLabel = getDayWithDate(document.getElementById('bulk-from-date').value);
+    const toLabel = getDayWithDate(document.getElementById('bulk-to-date').value);
+    summaryRows.push([`ATTENDANCE taken by ${teacherName} (${teacherEmail}) from ${fromLabel} to ${toLabel}`]);
+    summaryRows.push([]);
+    summaryRows.push(['Period', 'Day (Date)', 'Time', 'Subject', 'No. of Students Present', 'No. of Students Absent']);
+    filtered.forEach(r => {
+      const present = r.students.filter(s => s.present).length;
+      const absent = r.students.length - present;
+      const timeStr = formatTimeIST(r.createdAt) || 'N/A';
+      summaryRows.push([
+        r.period || 'N/A',
+        getDayWithDate(r.date),
+        timeStr,
+        r.subject || 'N/A',
+        present,
+        absent
+      ]);
+    });
+  }
+
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+  // Make header row bold by setting column widths
+  wsSummary['!cols'] = [{ wch: 8 }, { wch: 28 }, { wch: 18 }, { wch: 35 }, { wch: 22 }, { wch: 22 }];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  // ---- Sheets 2+: One per record ----
+  const sheetNames = {}; // track duplicates
+  filtered.forEach((r, idx) => {
+    const dateLabel = formatDateString(r.date);
+    const present = r.students.filter(s => s.present).length;
+    const absent = r.students.length - present;
+
+    const rows = [];
+    rows.push([`Attendance taken on ${dateLabel}`]);
+    rows.push([`subject = ${r.subject || 'N/A'}`]);
+    rows.push([`Year = ${r.year || 'N/A'}${r.semester ? ' (' + r.semester + ')' : ''}`]);
+    rows.push([`Section = ${r.section || 'N/A'}`]);
+    rows.push([`Period = ${r.period || 'N/A'}   |   Time = ${formatTimeIST(r.createdAt) || 'N/A'}`]);
+    rows.push([`Present: ${present}   |   Absent: ${absent}   |   Total: ${r.students.length}`]);
+    rows.push([]);
+    rows.push(['Enrollment No.', 'Roll No.', "Student's Name", 'Present / Absent']);
+
+    r.students.forEach(s => {
+      rows.push([
+        s.enrollment || 'N/A',
+        s.roll || 'N/A',
+        s.name || 'N/A',
+        s.present ? 'Present' : 'Absent'
+      ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 18 }, { wch: 10 }, { wch: 28 }, { wch: 14 }];
+
+    // Generate a unique short sheet name (max 31 chars)
+    let sheetName = `${dateLabel} P${r.period || idx + 1}`.substring(0, 28);
+    if (sheetNames[sheetName]) {
+      sheetNames[sheetName]++;
+      sheetName = `${sheetName}(${sheetNames[sheetName]})`.substring(0, 31);
+    } else {
+      sheetNames[sheetName] = 1;
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  // ---- Download ----
+  const filterSuffix = filterVal === 'none' ? '' :
+    filterVal === 'year' ? `_${filterYear}` :
+    filterVal === 'section' ? `_${filterSection}` :
+    filterVal === 'year_section' ? `_${filterYear}_${filterSection}` :
+    filterVal === 'subject' ? `_${filterSubject}` : '';
+
+  const modeSuffix = bulkDownloadMode === 'single'
+    ? `_${document.getElementById('bulk-single-date').value}`
+    : `_${document.getElementById('bulk-from-date').value}_to_${document.getElementById('bulk-to-date').value}`;
+
+  const filename = `Attendance_${teacherName.replace(/\s+/g,'_')}${modeSuffix}${filterSuffix}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  showToast(`Downloaded ${filtered.length} record(s) successfully!`, 'success');
+}
+
 </script>
 </body>
 </html>
