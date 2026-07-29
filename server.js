@@ -1182,29 +1182,36 @@ app.post('/api/attendance/mark', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Student list cannot be empty.' });
   }
 
-  const record = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-    date,
-    subject: subject.trim(),
-    year: year.trim(),
-    semester: (semester || '').toString().trim(),
-    section: section.trim(),
-    period: (period || '').toString().trim(),
-    teacherEmail: teacherEmail.trim().toLowerCase(),
-    teacherName: teacherName.trim(),
-    students: students.map(s => ({
-      name: s.name,
-      roll: s.roll,
-      enrollment: s.enrollment,
-      present: !!s.present
-    })),
-    createdAt: new Date().toISOString()
-  };
+  const periods = (period || '').toString().split(',').map(p => p.trim()).filter(Boolean);
+  if (periods.length === 0) periods.push('');
 
-  await writeAttendanceRecord(record);
+  const savedRecords = [];
+  for (const p of periods) {
+    const record = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+      date,
+      subject: subject.trim(),
+      year: year.trim(),
+      semester: (semester || '').toString().trim(),
+      section: section.trim(),
+      period: p,
+      teacherEmail: teacherEmail.trim().toLowerCase(),
+      teacherName: teacherName.trim(),
+      students: students.map(s => ({
+        name: s.name,
+        roll: s.roll,
+        enrollment: s.enrollment,
+        present: !!s.present
+      })),
+      createdAt: new Date().toISOString()
+    };
 
-  console.log(`Attendance marked by ${teacherName} for ${subject} (${year} - ${section}) on ${date} — ${students.filter(s => s.present).length}/${students.length} present`);
-  res.json({ success: true, message: 'Attendance recorded successfully.', record });
+    await writeAttendanceRecord(record);
+    savedRecords.push(record);
+  }
+
+  console.log(`Attendance marked by ${teacherName} for ${subject} (${year} - ${section}) on ${date} for periods [${periods.join(', ')}] — ${students.filter(s => s.present).length}/${students.length} present`);
+  res.json({ success: true, message: 'Attendance recorded successfully.', records: savedRecords });
 });
 
 // Endpoint: Get student's attendance records by enrollment number
@@ -1777,23 +1784,28 @@ app.post('/api/session/:token/close', async (req, res) => {
     return res.json({ success: true, message: 'Session closed. No students were found to record.', markedCount: 0 });
   }
 
-  const record = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-    date: session.date,
-    period: session.period || '',
-    subject: session.subject,
-    year: session.year,
-    semester: session.semester || '',
-    section: session.section,
-    teacherEmail: session.teacherEmail,
-    teacherName: session.teacherName,
-    students: studentsForRecord,
-    source: 'live-session',
-    sessionToken: token,
-    createdAt: new Date().toISOString()
-  };
+  const periods = session.period ? session.period.split(',').map(p => p.trim()).filter(Boolean) : [''];
+  const savedRecords = [];
+  for (const p of periods) {
+    const record = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+      date: session.date,
+      period: p,
+      subject: session.subject,
+      year: session.year,
+      semester: session.semester || '',
+      section: session.section,
+      teacherEmail: session.teacherEmail,
+      teacherName: session.teacherName,
+      students: studentsForRecord,
+      source: 'live-session',
+      sessionToken: token,
+      createdAt: new Date().toISOString()
+    };
 
-  await writeAttendanceRecord(record);
+    await writeAttendanceRecord(record);
+    savedRecords.push(record);
+  }
 
   const presentCount = session.markedStudents.length;
   console.log(`Session ${token} closed. Recorded attendance: ${presentCount} present, ${studentsForRecord.length - presentCount} absent.`);

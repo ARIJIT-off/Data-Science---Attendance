@@ -307,19 +307,23 @@
                   </select>
                   <label class="form-label">Section</label>
                 </div>
-                <div class="form-group" style="flex: 1.2;">
-                  <select class="form-input" id="attendance-period">
-                    <option value="">Period</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="EAA">EAA</option>
-                  </select>
+                <div class="form-group custom-multiselect-container" style="flex: 1.2; position: relative;">
+                  <div class="form-input custom-multiselect" id="attendance-period-container" tabindex="0" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 8px; cursor: pointer; user-select: none;">
+                    <span class="multiselect-display" style="color: var(--text-primary);">Period</span>
+                    <span class="arrow" style="font-size: 10px; color: var(--color-cyan); margin-left: 4px;">▼</span>
+                  </div>
+                  <input type="hidden" id="attendance-period" value="">
                   <label class="form-label">Period (1-7/EAA)</label>
+                  <div class="multiselect-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); z-index: 100; max-height: 200px; overflow-y: auto; padding: 8px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="1" style="cursor: pointer;"> <span>1</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="2" style="cursor: pointer;"> <span>2</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="3" style="cursor: pointer;"> <span>3</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="4" style="cursor: pointer;"> <span>4</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="5" style="cursor: pointer;"> <span>5</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="6" style="cursor: pointer;"> <span>6</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="7" style="cursor: pointer;"> <span>7</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="EAA" style="cursor: pointer;"> <span>EAA</span></div>
+                  </div>
                 </div>
                 <div class="form-group" style="flex: 2;">
                   <select class="form-input" id="attendance-subject">
@@ -397,19 +401,23 @@
                   </select>
                   <label class="form-label">Section</label>
                 </div>
-                <div class="form-group" style="flex: 1.2;">
-                  <select class="form-input" id="upload-period">
-                    <option value="">Period</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="EAA">EAA</option>
-                  </select>
+                <div class="form-group custom-multiselect-container" style="flex: 1.2; position: relative;">
+                  <div class="form-input custom-multiselect" id="upload-period-container" tabindex="0" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 8px; cursor: pointer; user-select: none;">
+                    <span class="multiselect-display" style="color: var(--text-primary);">Period</span>
+                    <span class="arrow" style="font-size: 10px; color: var(--color-cyan); margin-left: 4px;">▼</span>
+                  </div>
+                  <input type="hidden" id="upload-period" value="">
                   <label class="form-label">Period (1-7/EAA)</label>
+                  <div class="multiselect-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); z-index: 100; max-height: 200px; overflow-y: auto; padding: 8px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="1" style="cursor: pointer;"> <span>1</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="2" style="cursor: pointer;"> <span>2</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="3" style="cursor: pointer;"> <span>3</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="4" style="cursor: pointer;"> <span>4</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="5" style="cursor: pointer;"> <span>5</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="6" style="cursor: pointer;"> <span>6</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="7" style="cursor: pointer;"> <span>7</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="EAA" style="cursor: pointer;"> <span>EAA</span></div>
+                  </div>
                 </div>
                 <div class="form-group" style="flex: 2;">
                   <select class="form-input" id="upload-subject">
@@ -481,19 +489,23 @@
                     </select>
                   <label class="form-label">Section</label>
                   </div>
-                  <div class="form-group" style="flex: 1.2;">
-                    <select class="form-input" id="live-period">
-                      <option value="">Period</option>
-                      <option value="1">1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                      <option value="4">4</option>
-                      <option value="5">5</option>
-                      <option value="6">6</option>
-                      <option value="7">7</option>
-                      <option value="EAA">EAA</option>
-                    </select>
+                  <div class="form-group custom-multiselect-container" style="flex: 1.2; position: relative;">
+                    <div class="form-input custom-multiselect" id="live-period-container" tabindex="0" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 8px; cursor: pointer; user-select: none;">
+                      <span class="multiselect-display" style="color: var(--text-primary);">Period</span>
+                      <span class="arrow" style="font-size: 10px; color: var(--color-cyan); margin-left: 4px;">▼</span>
+                    </div>
+                    <input type="hidden" id="live-period" value="">
                     <label class="form-label">Period (1-7/EAA)</label>
+                    <div class="multiselect-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); z-index: 100; max-height: 200px; overflow-y: auto; padding: 8px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="1" style="cursor: pointer;"> <span>1</span></div>
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="2" style="cursor: pointer;"> <span>2</span></div>
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="3" style="cursor: pointer;"> <span>3</span></div>
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="4" style="cursor: pointer;"> <span>4</span></div>
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="5" style="cursor: pointer;"> <span>5</span></div>
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="6" style="cursor: pointer;"> <span>6</span></div>
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="7" style="cursor: pointer;"> <span>7</span></div>
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="EAA" style="cursor: pointer;"> <span>EAA</span></div>
+                    </div>
                   </div>
                   <div class="form-group" style="flex: 2;">
                   <select class="form-input" id="live-subject">
@@ -1055,6 +1067,7 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
     if (result.success) {
       showToast('Attendance recorded successfully!', 'success');
       // Reset form and all card states
+      resetCustomMultiselect('attendance-period-container', 'attendance-period');
       document.getElementById('attendance-subject').value = '';
       document.querySelectorAll('.checkbox-row[data-state]').forEach(row => {
         const cb = row.querySelector('.student-checkbox');
@@ -1814,6 +1827,7 @@ if (btnSubmitUpload) {
 
       if (result.success) {
         showToast('Attendance recorded from Excel successfully!', 'success');
+        resetCustomMultiselect('upload-period-container', 'upload-period');
         document.getElementById('upload-subject').value = '';
         resetUploadFile();
         loadRecords();
@@ -2027,6 +2041,9 @@ if (btnGenerate) {
 
       liveSessionToken = result.token;
       liveSessionLink = `${window.location.origin}/student.html?session=${liveSessionToken}`;
+
+      resetCustomMultiselect('live-period-container', 'live-period');
+      document.getElementById('live-subject').value = '';
 
       // Show active view
       document.getElementById('live-step-setup').style.display = 'none';
@@ -2437,6 +2454,84 @@ function executeBulkDownload() {
   XLSX.writeFile(wb, filename);
   showToast(`Downloaded ${filtered.length} record(s) successfully!`, 'success');
 }
+
+
+function setupCustomMultiselect(containerId, hiddenInputId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const display = container.querySelector('.multiselect-display');
+  const dropdown = container.querySelector('.multiselect-dropdown');
+  const hiddenInput = document.getElementById(hiddenInputId);
+
+  // Toggle dropdown on click
+  container.addEventListener('click', (e) => {
+    if (e.target.closest('input[type="checkbox"]')) return;
+    
+    // Close other multiselects
+    document.querySelectorAll('.custom-multiselect').forEach(el => {
+      if (el !== container) {
+        el.classList.remove('open');
+        const d = el.parentNode.querySelector('.multiselect-dropdown');
+        if (d) d.style.display = 'none';
+      }
+    });
+
+    container.classList.toggle('open');
+    dropdown.style.display = container.classList.contains('open') ? 'block' : 'none';
+  });
+
+  // Handle checking/unchecking
+  const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateValue();
+    });
+  });
+
+  function updateValue() {
+    const selected = Array.from(checkboxes)
+      .filter(c => c.checked)
+      .map(c => c.value);
+    
+    if (selected.length > 0) {
+      display.textContent = selected.join(', ');
+      hiddenInput.value = selected.join(', ');
+      container.classList.add('has-value');
+    } else {
+      display.textContent = 'Period';
+      hiddenInput.value = '';
+      container.classList.remove('has-value');
+    }
+  }
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target)) {
+      container.classList.remove('open');
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+function resetCustomMultiselect(containerId, hiddenInputId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const display = container.querySelector('.multiselect-display');
+  const dropdown = container.querySelector('.multiselect-dropdown');
+  const hiddenInput = document.getElementById(hiddenInputId);
+
+  dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+  display.textContent = 'Period';
+  hiddenInput.value = '';
+  container.classList.remove('has-value');
+  container.classList.remove('open');
+  dropdown.style.display = 'none';
+}
+
+// Initialize custom multiselects
+setupCustomMultiselect('attendance-period-container', 'attendance-period');
+setupCustomMultiselect('upload-period-container', 'upload-period');
+setupCustomMultiselect('live-period-container', 'live-period');
 
 </script>
 </body>
