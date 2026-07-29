@@ -307,23 +307,24 @@
                   </select>
                   <label class="form-label">Section</label>
                 </div>
-                <div class="form-group custom-multiselect-container" style="flex: 1.2; position: relative;">
-                  <div class="form-input custom-multiselect" id="attendance-period-container" tabindex="0" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 8px; cursor: pointer; user-select: none;">
-                    <span class="multiselect-display" style="color: var(--text-primary);">Period</span>
-                    <span class="arrow" style="font-size: 10px; color: var(--color-cyan); margin-left: 4px;">▼</span>
+                <div class="form-group" style="flex: 1.2;">
+                <div class="period-multi-wrap" id="attendance-period-wrap" style="position:relative;">
+                  <div class="form-input period-multi-display" id="attendance-period-display" onclick="togglePeriodDropdown('attendance-period')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; min-height:48px; user-select:none;">
+                    <span id="attendance-period-label" style="color:var(--text-secondary);">Period</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
-                  <input type="hidden" id="attendance-period" value="">
+                  <div id="attendance-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:140px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:8px; z-index:999; padding:6px 0; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="1" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 1</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="2" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 2</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="3" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 3</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="4" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 4</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 5</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="6" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 6</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 7</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="EAA" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> EAA</label>
+                  </div>
                   <label class="form-label">Period (1-7/EAA)</label>
-                  <div class="multiselect-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); z-index: 100; max-height: 200px; overflow-y: auto; padding: 8px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="1" style="cursor: pointer;"> <span>1</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="2" style="cursor: pointer;"> <span>2</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="3" style="cursor: pointer;"> <span>3</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="4" style="cursor: pointer;"> <span>4</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="5" style="cursor: pointer;"> <span>5</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="6" style="cursor: pointer;"> <span>6</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="7" style="cursor: pointer;"> <span>7</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="EAA" style="cursor: pointer;"> <span>EAA</span></div>
-                  </div>
+                </div>
                 </div>
                 <div class="form-group" style="flex: 2;">
                   <select class="form-input" id="attendance-subject">
@@ -401,23 +402,24 @@
                   </select>
                   <label class="form-label">Section</label>
                 </div>
-                <div class="form-group custom-multiselect-container" style="flex: 1.2; position: relative;">
-                  <div class="form-input custom-multiselect" id="upload-period-container" tabindex="0" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 8px; cursor: pointer; user-select: none;">
-                    <span class="multiselect-display" style="color: var(--text-primary);">Period</span>
-                    <span class="arrow" style="font-size: 10px; color: var(--color-cyan); margin-left: 4px;">▼</span>
+                <div class="form-group" style="flex: 1.2;">
+                <div class="period-multi-wrap" id="upload-period-wrap" style="position:relative;">
+                  <div class="form-input period-multi-display" id="upload-period-display" onclick="togglePeriodDropdown('upload-period')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; min-height:48px; user-select:none;">
+                    <span id="upload-period-label" style="color:var(--text-secondary);">Period</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
-                  <input type="hidden" id="upload-period" value="">
+                  <div id="upload-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:140px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:8px; z-index:999; padding:6px 0; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="1" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 1</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="2" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 2</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="3" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 3</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="4" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 4</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 5</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="6" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 6</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 7</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="EAA" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> EAA</label>
+                  </div>
                   <label class="form-label">Period (1-7/EAA)</label>
-                  <div class="multiselect-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); z-index: 100; max-height: 200px; overflow-y: auto; padding: 8px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="1" style="cursor: pointer;"> <span>1</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="2" style="cursor: pointer;"> <span>2</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="3" style="cursor: pointer;"> <span>3</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="4" style="cursor: pointer;"> <span>4</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="5" style="cursor: pointer;"> <span>5</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="6" style="cursor: pointer;"> <span>6</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="7" style="cursor: pointer;"> <span>7</span></div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="EAA" style="cursor: pointer;"> <span>EAA</span></div>
-                  </div>
+                </div>
                 </div>
                 <div class="form-group" style="flex: 2;">
                   <select class="form-input" id="upload-subject">
@@ -489,23 +491,24 @@
                     </select>
                   <label class="form-label">Section</label>
                   </div>
-                  <div class="form-group custom-multiselect-container" style="flex: 1.2; position: relative;">
-                    <div class="form-input custom-multiselect" id="live-period-container" tabindex="0" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 8px; cursor: pointer; user-select: none;">
-                      <span class="multiselect-display" style="color: var(--text-primary);">Period</span>
-                      <span class="arrow" style="font-size: 10px; color: var(--color-cyan); margin-left: 4px;">▼</span>
-                    </div>
-                    <input type="hidden" id="live-period" value="">
-                    <label class="form-label">Period (1-7/EAA)</label>
-                    <div class="multiselect-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card-solid); border: 1px solid var(--border-color); border-radius: var(--radius-md); z-index: 100; max-height: 200px; overflow-y: auto; padding: 8px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="1" style="cursor: pointer;"> <span>1</span></div>
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="2" style="cursor: pointer;"> <span>2</span></div>
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="3" style="cursor: pointer;"> <span>3</span></div>
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="4" style="cursor: pointer;"> <span>4</span></div>
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="5" style="cursor: pointer;"> <span>5</span></div>
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="6" style="cursor: pointer;"> <span>6</span></div>
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="7" style="cursor: pointer;"> <span>7</span></div>
-                      <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #fff;"><input type="checkbox" value="EAA" style="cursor: pointer;"> <span>EAA</span></div>
-                    </div>
+                  <div class="form-group" style="flex: 1.2;">
+                  <div class="period-multi-wrap" id="live-period-wrap" style="position:relative;">
+                  <div class="form-input period-multi-display" id="live-period-display" onclick="togglePeriodDropdown('live-period')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; min-height:48px; user-select:none;">
+                    <span id="live-period-label" style="color:var(--text-secondary);">Period</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                  <div id="live-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:140px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:8px; z-index:999; padding:6px 0; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="1" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 1</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="2" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 2</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="3" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 3</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="4" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 4</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 5</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="6" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 6</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 7</label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="EAA" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> EAA</label>
+                  </div>
+                  <label class="form-label">Period (1-7/EAA)</label>
+                </div>
                   </div>
                   <div class="form-group" style="flex: 2;">
                   <select class="form-input" id="live-subject">
@@ -1017,13 +1020,13 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
   const year = document.getElementById('attendance-year').value;
   const semester = document.getElementById('attendance-semester').value;
   const section = document.getElementById('attendance-section').value;
-  const period = document.getElementById('attendance-period').value;
+  const periods = getSelectedPeriods('attendance-period');
 
   if (!date) { showToast('Please select a date.', 'error'); return; }
   if (!year) { showToast('Please select a year.', 'error'); return; }
   if (!semester) { showToast('Please select a semester.', 'error'); return; }
   if (!section) { showToast('Please select a section.', 'error'); return; }
-  if (!period) { showToast('Please select a period.', 'error'); return; }
+  if (periods.length === 0) { showToast('Please select at least one period.', 'error'); return; }
   if (!subject) { showToast('Please select a subject.', 'error'); return; }
 
   const students = [];
@@ -1046,28 +1049,23 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
   btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Submitting...';
 
   try {
-    const res = await fetch('/api/attendance/mark', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        date,
-        subject,
-        year,
-        semester,
-        section,
-        period,
-        teacherEmail: profile.email,
-        teacherName: profile.name,
-        students
-      })
-    });
-
-    const result = await res.json();
-
-    if (result.success) {
-      showToast('Attendance recorded successfully!', 'success');
-      // Reset form and all card states
-      resetCustomMultiselect('attendance-period-container', 'attendance-period');
+    let allSuccess = true;
+    for (const period of periods) {
+      const res = await fetch('/api/attendance/mark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date, subject, year, semester, section, period,
+          teacherEmail: profile.email,
+          teacherName: profile.name,
+          students
+        })
+      });
+      const result = await res.json();
+      if (!result.success) { allSuccess = false; showToast(result.message || 'Failed to submit for period ' + period, 'error'); break; }
+    }
+    if (allSuccess) {
+      showToast(periods.length > 1 ? `Attendance recorded for ${periods.length} periods!` : 'Attendance recorded successfully!', 'success');
       document.getElementById('attendance-subject').value = '';
       document.querySelectorAll('.checkbox-row[data-state]').forEach(row => {
         const cb = row.querySelector('.student-checkbox');
@@ -1078,10 +1076,7 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
         if (cb) { cb.checked = false; cb.dataset.markedAbsent = ''; }
       });
       updateSelectCount();
-      // Reload records in the background
       loadRecords();
-    } else {
-      showToast(result.message || 'Failed to submit attendance.', 'error');
     }
   } catch (err) {
     console.error(err);
@@ -1752,13 +1747,13 @@ if (btnSubmitUpload) {
     const year = document.getElementById('upload-year').value;
     const semester = document.getElementById('upload-semester').value;
     const section = document.getElementById('upload-section').value;
-    const period = document.getElementById('upload-period').value;
+    const periods = getSelectedPeriods('upload-period');
 
     if (!date) { showToast('Please select a date.', 'error'); return; }
     if (!year) { showToast('Please select a year.', 'error'); return; }
     if (!semester) { showToast('Please select a semester.', 'error'); return; }
     if (!section) { showToast('Please select a section.', 'error'); return; }
-    if (!period) { showToast('Please select a period.', 'error'); return; }
+    if (periods.length === 0) { showToast('Please select at least one period.', 'error'); return; }
     if (!subject) { showToast('Please select a subject.', 'error'); return; }
     if (!parsedExcelStudents || parsedExcelStudents.length === 0) {
       showToast('Please upload a valid excel sheet first.', 'error');
@@ -1799,7 +1794,7 @@ if (btnSubmitUpload) {
       };
     });
 
-    if (!confirm(`Mapped ${allStudents.length} students from roster.\nResult: ${presentMappedCount} Present, ${allStudents.length - presentMappedCount} Absent.\n\nDo you want to submit?`)) {
+    if (!confirm(`Mapped ${allStudents.length} students from roster.\nResult: ${presentMappedCount} Present, ${allStudents.length - presentMappedCount} Absent.\n\nPeriod(s): ${periods.join(', ')}\nDo you want to submit?`)) {
       return;
     }
 
@@ -1807,34 +1802,27 @@ if (btnSubmitUpload) {
     btnSubmitUpload.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Submitting...';
 
     try {
-      const res = await fetch('/api/attendance/mark', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date,
-          subject,
-          year,
-          semester,
-          section,
-          period,
-          teacherEmail: profile.email,
-          teacherName: profile.name,
-          students: finalStudents
-        })
-      });
-
-      const result = await res.json();
-
-      if (result.success) {
-        showToast('Attendance recorded from Excel successfully!', 'success');
-        resetCustomMultiselect('upload-period-container', 'upload-period');
+      let allSuccess = true;
+      for (const period of periods) {
+        const res = await fetch('/api/attendance/mark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date, subject, year, semester, section, period,
+            teacherEmail: profile.email,
+            teacherName: profile.name,
+            students: finalStudents
+          })
+        });
+        const result = await res.json();
+        if (!result.success) { allSuccess = false; showToast(result.message || 'Failed for period ' + period, 'error'); break; }
+      }
+      if (allSuccess) {
+        showToast(periods.length > 1 ? `Attendance recorded for ${periods.length} periods from Excel!` : 'Attendance recorded from Excel successfully!', 'success');
         document.getElementById('upload-subject').value = '';
         resetUploadFile();
         loadRecords();
-        // Switch to tab records
         document.querySelectorAll('.tab-btn')[1].click();
-      } else {
-        showToast(result.message || 'Failed to submit attendance.', 'error');
       }
     } catch (err) {
       console.error(err);
@@ -1990,7 +1978,8 @@ if (btnGenerate) {
     const year = document.getElementById('live-year').value;
     const semester = document.getElementById('live-semester').value;
     const section = document.getElementById('live-section').value;
-    const period = document.getElementById('live-period').value;
+    const periods = getSelectedPeriods('live-period');
+    const period = periods[0] || '';  // Live uses first selected period; multiple periods create separate sessions
 
     if (!date) {
       showToast('Please select a date.', 'error');
@@ -2008,8 +1997,8 @@ if (btnGenerate) {
       showToast('Please select a section.', 'error');
       return;
     }
-    if (!period) {
-      showToast('Please select a period.', 'error');
+    if (periods.length === 0) {
+      showToast('Please select at least one period.', 'error');
       return;
     }
     if (!subject) {
@@ -2041,9 +2030,6 @@ if (btnGenerate) {
 
       liveSessionToken = result.token;
       liveSessionLink = `${window.location.origin}/student.html?session=${liveSessionToken}`;
-
-      resetCustomMultiselect('live-period-container', 'live-period');
-      document.getElementById('live-subject').value = '';
 
       // Show active view
       document.getElementById('live-step-setup').style.display = 'none';
@@ -2456,82 +2442,43 @@ function executeBulkDownload() {
 }
 
 
-function setupCustomMultiselect(containerId, hiddenInputId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const display = container.querySelector('.multiselect-display');
-  const dropdown = container.querySelector('.multiselect-dropdown');
-  const hiddenInput = document.getElementById(hiddenInputId);
-
-  // Toggle dropdown on click
-  container.addEventListener('click', (e) => {
-    if (e.target.closest('input[type="checkbox"]')) return;
-    
-    // Close other multiselects
-    document.querySelectorAll('.custom-multiselect').forEach(el => {
-      if (el !== container) {
-        el.classList.remove('open');
-        const d = el.parentNode.querySelector('.multiselect-dropdown');
-        if (d) d.style.display = 'none';
-      }
-    });
-
-    container.classList.toggle('open');
-    dropdown.style.display = container.classList.contains('open') ? 'block' : 'none';
+// ===== Multi-period selector helpers =====
+function togglePeriodDropdown(id) {
+  const dd = document.getElementById(id + '-dropdown');
+  // Close all other dropdowns first
+  document.querySelectorAll('[id$="-dropdown"].period-dd-open').forEach(el => {
+    if (el.id !== id + '-dropdown') { el.style.display = 'none'; el.classList.remove('period-dd-open'); }
   });
+  const isOpen = dd.style.display === 'block';
+  dd.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) dd.classList.add('period-dd-open'); else dd.classList.remove('period-dd-open');
+}
 
-  // Handle checking/unchecking
-  const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(cb => {
-    cb.addEventListener('change', () => {
-      updateValue();
-    });
-  });
-
-  function updateValue() {
-    const selected = Array.from(checkboxes)
-      .filter(c => c.checked)
-      .map(c => c.value);
-    
-    if (selected.length > 0) {
-      display.textContent = selected.join(', ');
-      hiddenInput.value = selected.join(', ');
-      container.classList.add('has-value');
-    } else {
-      display.textContent = 'Period';
-      hiddenInput.value = '';
-      container.classList.remove('has-value');
-    }
+function updatePeriodDisplay(id) {
+  const checkboxes = document.querySelectorAll(`.period-cb[data-target="${id}"]:checked`);
+  const label = document.getElementById(id + '-label');
+  if (checkboxes.length === 0) {
+    label.style.color = 'var(--text-secondary)';
+    label.textContent = 'Period';
+  } else {
+    label.style.color = '#fff';
+    label.textContent = Array.from(checkboxes).map(c => c.value).join(', ');
   }
-
-  // Close when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!container.contains(e.target)) {
-      container.classList.remove('open');
-      dropdown.style.display = 'none';
-    }
-  });
 }
 
-function resetCustomMultiselect(containerId, hiddenInputId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const display = container.querySelector('.multiselect-display');
-  const dropdown = container.querySelector('.multiselect-dropdown');
-  const hiddenInput = document.getElementById(hiddenInputId);
-
-  dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-  display.textContent = 'Period';
-  hiddenInput.value = '';
-  container.classList.remove('has-value');
-  container.classList.remove('open');
-  dropdown.style.display = 'none';
+function getSelectedPeriods(id) {
+  return Array.from(document.querySelectorAll(`.period-cb[data-target="${id}"]:checked`)).map(c => c.value);
 }
 
-// Initialize custom multiselects
-setupCustomMultiselect('attendance-period-container', 'attendance-period');
-setupCustomMultiselect('upload-period-container', 'upload-period');
-setupCustomMultiselect('live-period-container', 'live-period');
+// Close period dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.period-multi-wrap')) {
+    document.querySelectorAll('[id$="-dropdown"]').forEach(dd => {
+      dd.style.display = 'none';
+      dd.classList.remove('period-dd-open');
+    });
+  }
+});
 
 </script>
 </body>
