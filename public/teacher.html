@@ -188,7 +188,36 @@
     }
 
 
-  </style>
+  
+    /* Period chip multi-select */
+    .period-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font-family, inherit);
+    }
+    .period-chip:hover {
+      border-color: var(--color-cyan, #06b6d4);
+      color: #fff;
+      background: rgba(6,182,212,0.12);
+    }
+    .period-chip--active {
+      background: var(--color-cyan, #06b6d4) !important;
+      border-color: var(--color-cyan, #06b6d4) !important;
+      color: #000 !important;
+      font-weight: 700;
+    }
+    .period-multi-display {
+      padding: 8px 12px !important;
+    }
+
+    </style>
 </head>
 <body>
 
@@ -311,17 +340,20 @@
                 <div class="period-multi-wrap" id="attendance-period-wrap" style="position:relative;">
                   <div class="form-input period-multi-display" id="attendance-period-display" onclick="togglePeriodDropdown('attendance-period')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; min-height:48px; user-select:none;">
                     <span id="attendance-period-label" style="color:var(--text-secondary);">Period</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
-                  <div id="attendance-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:140px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:8px; z-index:999; padding:6px 0; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="1" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 1</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="2" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 2</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="3" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 3</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="4" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 4</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 5</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="6" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 6</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> 7</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="EAA" class="period-cb" data-target="attendance-period" onchange="updatePeriodDisplay('attendance-period')" style="accent-color:var(--color-cyan);"> EAA</label>
+                  <div id="attendance-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:180px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:10px; z-index:999; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,0.6);">
+                    <div style="font-size:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; font-weight:600;">Tap to select / tap again to deselect</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="1" onclick="togglePeriodChip('attendance-period', this)">1</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="2" onclick="togglePeriodChip('attendance-period', this)">2</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="3" onclick="togglePeriodChip('attendance-period', this)">3</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="4" onclick="togglePeriodChip('attendance-period', this)">4</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="5" onclick="togglePeriodChip('attendance-period', this)">5</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="6" onclick="togglePeriodChip('attendance-period', this)">6</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="7" onclick="togglePeriodChip('attendance-period', this)">7</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="EAA" onclick="togglePeriodChip('attendance-period', this)">EAA</button>
+                    </div>
                   </div>
                   <label class="form-label">Period (1-7/EAA)</label>
                 </div>
@@ -406,17 +438,20 @@
                 <div class="period-multi-wrap" id="upload-period-wrap" style="position:relative;">
                   <div class="form-input period-multi-display" id="upload-period-display" onclick="togglePeriodDropdown('upload-period')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; min-height:48px; user-select:none;">
                     <span id="upload-period-label" style="color:var(--text-secondary);">Period</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
-                  <div id="upload-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:140px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:8px; z-index:999; padding:6px 0; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="1" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 1</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="2" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 2</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="3" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 3</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="4" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 4</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 5</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="6" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 6</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> 7</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="EAA" class="period-cb" data-target="upload-period" onchange="updatePeriodDisplay('upload-period')" style="accent-color:var(--color-cyan);"> EAA</label>
+                  <div id="upload-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:180px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:10px; z-index:999; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,0.6);">
+                    <div style="font-size:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; font-weight:600;">Tap to select / tap again to deselect</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="1" onclick="togglePeriodChip('upload-period', this)">1</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="2" onclick="togglePeriodChip('upload-period', this)">2</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="3" onclick="togglePeriodChip('upload-period', this)">3</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="4" onclick="togglePeriodChip('upload-period', this)">4</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="5" onclick="togglePeriodChip('upload-period', this)">5</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="6" onclick="togglePeriodChip('upload-period', this)">6</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="7" onclick="togglePeriodChip('upload-period', this)">7</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="EAA" onclick="togglePeriodChip('upload-period', this)">EAA</button>
+                    </div>
                   </div>
                   <label class="form-label">Period (1-7/EAA)</label>
                 </div>
@@ -495,17 +530,20 @@
                   <div class="period-multi-wrap" id="live-period-wrap" style="position:relative;">
                   <div class="form-input period-multi-display" id="live-period-display" onclick="togglePeriodDropdown('live-period')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; min-height:48px; user-select:none;">
                     <span id="live-period-label" style="color:var(--text-secondary);">Period</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
-                  <div id="live-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:140px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:8px; z-index:999; padding:6px 0; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="1" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 1</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="2" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 2</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="3" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 3</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="4" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 4</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 5</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="6" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 6</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> 7</label>
-                    <label style="display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="EAA" class="period-cb" data-target="live-period" onchange="updatePeriodDisplay('live-period')" style="accent-color:var(--color-cyan);"> EAA</label>
+                  <div id="live-period-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:180px; background:#0e1420; border:1px solid rgba(255,255,255,0.15); border-radius:10px; z-index:999; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,0.6);">
+                    <div style="font-size:10px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; font-weight:600;">Tap to select / tap again to deselect</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    <button type="button" class="period-chip" data-target="live-period" data-value="1" onclick="togglePeriodChip('live-period', this)">1</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="2" onclick="togglePeriodChip('live-period', this)">2</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="3" onclick="togglePeriodChip('live-period', this)">3</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="4" onclick="togglePeriodChip('live-period', this)">4</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="5" onclick="togglePeriodChip('live-period', this)">5</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="6" onclick="togglePeriodChip('live-period', this)">6</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="7" onclick="togglePeriodChip('live-period', this)">7</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="EAA" onclick="togglePeriodChip('live-period', this)">EAA</button>
+                    </div>
                   </div>
                   <label class="form-label">Period (1-7/EAA)</label>
                 </div>
@@ -2442,40 +2480,46 @@ function executeBulkDownload() {
 }
 
 
-// ===== Multi-period selector helpers =====
+// ===== Multi-period chip selector helpers =====
 function togglePeriodDropdown(id) {
   const dd = document.getElementById(id + '-dropdown');
   // Close all other dropdowns first
-  document.querySelectorAll('[id$="-dropdown"].period-dd-open').forEach(el => {
-    if (el.id !== id + '-dropdown') { el.style.display = 'none'; el.classList.remove('period-dd-open'); }
+  ['attendance-period','upload-period','live-period'].forEach(oid => {
+    if (oid !== id) {
+      const odd = document.getElementById(oid + '-dropdown');
+      if (odd) odd.style.display = 'none';
+    }
   });
-  const isOpen = dd.style.display === 'block';
-  dd.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) dd.classList.add('period-dd-open'); else dd.classList.remove('period-dd-open');
+  dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+}
+
+function togglePeriodChip(id, btn) {
+  btn.classList.toggle('period-chip--active');
+  updatePeriodDisplay(id);
 }
 
 function updatePeriodDisplay(id) {
-  const checkboxes = document.querySelectorAll(`.period-cb[data-target="${id}"]:checked`);
+  const chips = document.querySelectorAll(`.period-chip[data-target="${id}"].period-chip--active`);
   const label = document.getElementById(id + '-label');
-  if (checkboxes.length === 0) {
+  if (chips.length === 0) {
     label.style.color = 'var(--text-secondary)';
     label.textContent = 'Period';
   } else {
     label.style.color = '#fff';
-    label.textContent = Array.from(checkboxes).map(c => c.value).join(', ');
+    label.textContent = Array.from(chips).map(c => c.dataset.value).join(', ');
   }
 }
 
 function getSelectedPeriods(id) {
-  return Array.from(document.querySelectorAll(`.period-cb[data-target="${id}"]:checked`)).map(c => c.value);
+  return Array.from(document.querySelectorAll(`.period-chip[data-target="${id}"].period-chip--active`)).map(c => c.dataset.value);
 }
 
 // Close period dropdowns when clicking outside
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.period-multi-wrap')) {
-    document.querySelectorAll('[id$="-dropdown"]').forEach(dd => {
-      dd.style.display = 'none';
-      dd.classList.remove('period-dd-open');
+    ['attendance-period','upload-period','live-period'].forEach(id => {
+      const dd = document.getElementById(id + '-dropdown');
+      if (dd) dd.style.display = 'none';
     });
   }
 });
