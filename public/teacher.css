@@ -1441,21 +1441,3 @@ select.form-input option {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-
-/* Custom Multiselect styles */
-.custom-multiselect.open {
-  border-color: var(--color-cyan);
-  background: rgba(0, 240, 255, 0.05);
-  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.1);
-}
-
-.custom-multiselect.has-value + .form-label,
-.custom-multiselect.open + .form-label {
-  transform: translateY(-8px) scale(0.75);
-  color: var(--color-cyan);
-}
-
-.multiselect-dropdown div:hover {
-  background: rgba(255,255,255,0.06);
-}
-
