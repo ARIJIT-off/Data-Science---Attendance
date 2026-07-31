@@ -858,6 +858,12 @@ const todayStr = `${yyyy}-${mm}-${dd}`;
 document.getElementById('attendance-date').value = todayStr;
 document.getElementById('upload-date').value = todayStr;
 
+// Restrict future dates on all attendance date pickers
+['attendance-date', 'upload-date', 'live-date'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.max = todayStr;
+});
+
 // ===== Toast =====
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
