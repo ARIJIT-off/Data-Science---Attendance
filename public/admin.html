@@ -1310,6 +1310,31 @@ async function loadAllData() {
     allStudents = studentsData.success ? studentsData.students : [];
     allTeachers = teachersData.success ? teachersData.teachers : [];
 
+    // Populate teacher filter dropdown
+    const teacherSelect = document.getElementById('admin-all-records-teacher');
+    if (teacherSelect) {
+      const currentVal = teacherSelect.value;
+      teacherSelect.innerHTML = '<option value="All">All Teachers</option>';
+      
+      // Get unique teachers from records
+      const teachersMap = new Map();
+      allRecords.forEach(r => {
+        if (r.teacherName && r.teacherEmail && r.teacherEmail !== 'N/A') {
+          teachersMap.set(r.teacherEmail, r.teacherName);
+        }
+      });
+      
+      Array.from(teachersMap.entries()).sort((a,b) => a[1].localeCompare(b[1])).forEach(([email, name]) => {
+        const opt = document.createElement('option');
+        opt.value = email;
+        opt.textContent = name;
+        teacherSelect.appendChild(opt);
+      });
+      if (teachersMap.has(currentVal) || currentVal === 'All') {
+        teacherSelect.value = currentVal;
+      }
+    }
+
     computeStudentAttendance();
     renderStudentTable();
     renderTeacherSummary();
@@ -1498,6 +1523,9 @@ document.getElementById('admin-all-records-year')?.addEventListener('change', ()
 document.getElementById('admin-all-records-section')?.addEventListener('change', () => {
   renderAllRecords();
 });
+document.getElementById('admin-all-records-teacher')?.addEventListener('change', () => {
+  renderAllRecords();
+});
 
 // ===== Render Teacher Summary =====
 function renderTeacherSummary() {
@@ -1627,6 +1655,7 @@ function renderAllRecords() {
   const endDate = document.getElementById('admin-all-records-end-date')?.value || '';
   const selectedYear = document.getElementById('admin-all-records-year')?.value || 'All';
   const selectedSection = document.getElementById('admin-all-records-section')?.value || 'All';
+  const selectedTeacher = document.getElementById('admin-all-records-teacher')?.value || 'All';
 
   let filteredRecords = allRecords;
   
@@ -1647,6 +1676,9 @@ function renderAllRecords() {
   }
   if (selectedSection !== 'All') {
     filteredRecords = filteredRecords.filter(r => r.section === selectedSection);
+  }
+  if (selectedTeacher !== 'All') {
+    filteredRecords = filteredRecords.filter(r => r.teacherEmail === selectedTeacher);
   }
 
   if (filteredRecords.length === 0) {
@@ -1790,6 +1822,7 @@ function downloadAllFilteredRecordsExcel() {
   const endDate = document.getElementById('admin-all-records-end-date')?.value || '';
   const selectedYear = document.getElementById('admin-all-records-year')?.value || 'All';
   const selectedSection = document.getElementById('admin-all-records-section')?.value || 'All';
+  const selectedTeacher = document.getElementById('admin-all-records-teacher')?.value || 'All';
 
   let filteredRecords = allRecords;
 
@@ -1810,6 +1843,9 @@ function downloadAllFilteredRecordsExcel() {
   }
   if (selectedSection !== 'All') {
     filteredRecords = filteredRecords.filter(r => r.section === selectedSection);
+  }
+  if (selectedTeacher !== 'All') {
+    filteredRecords = filteredRecords.filter(r => r.teacherEmail === selectedTeacher);
   }
 
   if (filteredRecords.length === 0) {
