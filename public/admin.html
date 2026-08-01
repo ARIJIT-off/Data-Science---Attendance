@@ -1004,12 +1004,20 @@
       <div class="glass-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div class="section-title" style="margin-bottom: 0;">All Attendance Records</div>
-          <button class="btn btn-sm btn-primary" onclick="downloadAllFilteredRecordsExcel()" style="font-size: 13px; padding: 6px 14px; background: rgba(0, 229, 160, 0.15); border: 1px solid var(--color-accent); color: var(--color-accent);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px; display: inline-block; vertical-align: text-bottom;">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Download as Excel
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-sm" onclick="deleteFilteredRecords()" style="font-size: 13px; padding: 6px 14px; background: rgba(255, 60, 60, 0.15); border: 1px solid #ff3c3c; color: #ff3c3c;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px; display: inline-block; vertical-align: text-bottom;">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Delete Records
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="downloadAllFilteredRecordsExcel()" style="font-size: 13px; padding: 6px 14px; background: rgba(0, 229, 160, 0.15); border: 1px solid var(--color-accent); color: var(--color-accent);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px; display: inline-block; vertical-align: text-bottom;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download as Excel
+            </button>
+          </div>
         </div>
         
         <!-- Filters for All Records -->
@@ -1053,6 +1061,12 @@
               <option value="Sec E">Sec E</option>
               <option value="Sec F">Sec F</option>
               <option value="Sec G">Sec G</option>
+            </select>
+          
+          <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Teacher</label>
+            <select class="form-input" id="admin-all-records-teacher" style="height: 38px; line-height: 38px; padding: 0 12px; background: rgba(8,12,28,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff;">
+              <option value="All">All Teachers</option>
             </select>
           </div>
         </div>
@@ -1704,6 +1718,70 @@ function renderAllRecords() {
     const card = document.getElementById(id);
     if (card) card.classList.add('expanded');
   });
+}
+
+
+async function deleteFilteredRecords() {
+  const singleDate = document.getElementById('admin-all-records-single-date')?.value || '';
+  const startDate = document.getElementById('admin-all-records-start-date')?.value || '';
+  const endDate = document.getElementById('admin-all-records-end-date')?.value || '';
+  const selectedYear = document.getElementById('admin-all-records-year')?.value || 'All';
+  const selectedSection = document.getElementById('admin-all-records-section')?.value || 'All';
+  const selectedTeacher = document.getElementById('admin-all-records-teacher')?.value || 'All';
+
+  let filteredRecords = allRecords;
+
+  if (excelExportMode === 'single') {
+    if (singleDate) {
+      filteredRecords = filteredRecords.filter(r => r.date === singleDate);
+    }
+  } else {
+    if (startDate) {
+      filteredRecords = filteredRecords.filter(r => r.date >= startDate);
+    }
+    if (endDate) {
+      filteredRecords = filteredRecords.filter(r => r.date <= endDate);
+    }
+  }
+  if (selectedYear !== 'All') {
+    filteredRecords = filteredRecords.filter(r => r.year === selectedYear);
+  }
+  if (selectedSection !== 'All') {
+    filteredRecords = filteredRecords.filter(r => r.section === selectedSection);
+  }
+  if (selectedTeacher !== 'All') {
+    filteredRecords = filteredRecords.filter(r => r.teacherEmail === selectedTeacher);
+  }
+
+  if (filteredRecords.length === 0) {
+    showToast('No records match the current filters to delete.', 'error');
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete ${filteredRecords.length} records? This cannot be undone.`)) {
+    return;
+  }
+
+  const idsToDelete = filteredRecords.map(r => r.id);
+
+  try {
+    const res = await fetch('/api/attendance/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: idsToDelete })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast(result.message, 'success');
+      loadAllRecords(); // Reload records after deletion
+      loadDashboardStats(); // Refresh stats
+    } else {
+      showToast(result.message || 'Failed to delete records.', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server error.', 'error');
+  }
 }
 
 function downloadAllFilteredRecordsExcel() {

@@ -1334,6 +1334,33 @@ app.delete('/api/attendance/:id', async (req, res) => {
   res.json({ success: true, message: 'Record deleted successfully.' });
 });
 
+
+// Endpoint: Bulk Delete attendance records (for admin)
+app.post('/api/attendance/bulk-delete', async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ success: false, message: 'Invalid data provided.' });
+  }
+
+  try {
+    if (useMongoDb) {
+      const result = await AttendanceModel.deleteMany({ id: { $in: ids } });
+      return res.json({ success: true, message: `${result.deletedCount} records deleted.`, deletedCount: result.deletedCount });
+    } else {
+      const data = _jsonRead(ATTENDANCE_FILE);
+      const filtered = data.filter(r => !ids.includes(r.id));
+      const deletedCount = data.length - filtered.length;
+      if (deletedCount > 0) {
+        _jsonWrite(ATTENDANCE_FILE, filtered);
+      }
+      return res.json({ success: true, message: `${deletedCount} records deleted.`, deletedCount });
+    }
+  } catch (err) {
+    console.error('Error during bulk delete:', err);
+    return res.status(500).json({ success: false, message: 'Server error during bulk delete.' });
+  }
+});
+
 // Endpoint: Update student status in an attendance record (for admin)
 app.patch('/api/attendance/:recordId/student/:enrollment', async (req, res) => {
   const { recordId, enrollment } = req.params;
