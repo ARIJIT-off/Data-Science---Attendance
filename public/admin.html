@@ -1199,6 +1199,12 @@ let allTeachers = [];
 let studentAttendanceData = [];
 let currentSort = { key: 'roll', asc: true };
 
+// Restrict future dates on all date pickers
+const todayStr = new Date().toLocaleDateString('en-CA'); // 'en-CA' outputs YYYY-MM-DD
+document.querySelectorAll('input[type="date"]').forEach(el => {
+  el.max = todayStr;
+});
+
 let allSubjects = [];
 let selectedSubjectIds = new Set();
 let activeSubjectMethod = 'single'; // 'single' | 'bulk'
