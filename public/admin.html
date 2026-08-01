@@ -1805,8 +1805,8 @@ async function deleteFilteredRecords() {
     const result = await res.json();
     if (result.success) {
       showToast(result.message, 'success');
-      loadAllRecords(); // Reload records after deletion
-      loadDashboardStats(); // Refresh stats
+      loadAllData(); // Reload records after deletion
+      loadStats(); // Refresh stats
     } else {
       showToast(result.message || 'Failed to delete records.', 'error');
     }
