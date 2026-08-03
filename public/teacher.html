@@ -352,7 +352,7 @@
                     <button type="button" class="period-chip" data-target="attendance-period" data-value="5" onclick="togglePeriodChip('attendance-period', this)">5</button>
                     <button type="button" class="period-chip" data-target="attendance-period" data-value="6" onclick="togglePeriodChip('attendance-period', this)">6</button>
                     <button type="button" class="period-chip" data-target="attendance-period" data-value="7" onclick="togglePeriodChip('attendance-period', this)">7</button>
-                    <button type="button" class="period-chip" data-target="attendance-period" data-value="EAA" onclick="togglePeriodChip('attendance-period', this)">EAA</button>
+                    <button type="button" class="period-chip" data-target="attendance-period" data-value="8" onclick="togglePeriodChip('attendance-period', this)">8</button>
                     </div>
                   </div>
 
@@ -450,7 +450,7 @@
                     <button type="button" class="period-chip" data-target="upload-period" data-value="5" onclick="togglePeriodChip('upload-period', this)">5</button>
                     <button type="button" class="period-chip" data-target="upload-period" data-value="6" onclick="togglePeriodChip('upload-period', this)">6</button>
                     <button type="button" class="period-chip" data-target="upload-period" data-value="7" onclick="togglePeriodChip('upload-period', this)">7</button>
-                    <button type="button" class="period-chip" data-target="upload-period" data-value="EAA" onclick="togglePeriodChip('upload-period', this)">EAA</button>
+                    <button type="button" class="period-chip" data-target="upload-period" data-value="8" onclick="togglePeriodChip('upload-period', this)">8</button>
                     </div>
                   </div>
 
@@ -542,7 +542,7 @@
                     <button type="button" class="period-chip" data-target="live-period" data-value="5" onclick="togglePeriodChip('live-period', this)">5</button>
                     <button type="button" class="period-chip" data-target="live-period" data-value="6" onclick="togglePeriodChip('live-period', this)">6</button>
                     <button type="button" class="period-chip" data-target="live-period" data-value="7" onclick="togglePeriodChip('live-period', this)">7</button>
-                    <button type="button" class="period-chip" data-target="live-period" data-value="EAA" onclick="togglePeriodChip('live-period', this)">EAA</button>
+                    <button type="button" class="period-chip" data-target="live-period" data-value="8" onclick="togglePeriodChip('live-period', this)">8</button>
                     </div>
                   </div>
 
@@ -1192,7 +1192,7 @@ async function loadRecords() {
           <div class="record-header" onclick="toggleRecord('${record.id}')">
             <div class="record-info">
               <span class="record-date">${dateStr}${timeStr ? `<span style="font-size:10px; font-weight:400; opacity:0.7; margin-left:6px;">🕐 ${timeStr}</span>` : ''}</span>
-              <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? record.period + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
+              <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? (record.period === 'EAA' ? '8' : record.period) + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
               <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
             </div>
             <svg class="record-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>

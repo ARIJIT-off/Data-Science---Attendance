@@ -1727,7 +1727,7 @@ function renderAllRecords() {
         <div class="record-header" onclick="toggleRecord('${record.id}')">
           <div class="record-info">
             <span class="record-date">${dateStr}${timeStr ? `<span style="font-size:10px; font-weight:400; opacity:0.7; margin-left:6px;">🕐 ${timeStr}</span>` : ''}</span>
-            <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? record.period + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
+            <span class="record-subject">${record.subject} <span style="font-size:11px; opacity:0.75; margin-left:6px; font-weight:400; padding:2px 8px; background:rgba(255,255,255,0.06); border-radius:4px;">${record.period ? (record.period === 'EAA' ? '8' : record.period) + ' | ' : ''}${record.year || 'N/A'}${record.semester ? ' (' + record.semester + ')' : ''} - ${record.section || 'N/A'}</span></span>
             <span class="record-teacher">${record.teacherName}</span>
             <span class="record-stats"><strong>${presentCount}</strong> / ${totalCount} present</span>
           </div>
@@ -1869,7 +1869,7 @@ function downloadAllFilteredRecordsExcel() {
   const teachers = new Set();
   
   sortedClasses.forEach((record) => {
-    const classKey = `Period ${record.period || 'N/A'} (${record.date})`;
+    const classKey = `Period ${record.period === 'EAA' ? '8' : (record.period || 'N/A')} (${record.date})`;
     classes.push({ key: classKey, record });
     if (record.teacherName) teachers.add(record.teacherName);
     
