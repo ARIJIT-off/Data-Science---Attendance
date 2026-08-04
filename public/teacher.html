@@ -1809,9 +1809,17 @@ if (btnSubmitUpload) {
       return;
     }
 
+    // Filter to only students in the selected year+section (not the entire database)
+    const rosterStudents = allStudents.filter(s => s.year === year && s.section === section);
+
+    if (rosterStudents.length === 0) {
+      showToast('No students found for the selected Year and Section.', 'error');
+      return;
+    }
+
     // Map official roster against Excel sheet parsed students using smart roll matching
     let presentMappedCount = 0;
-    const finalStudents = allStudents.map(s => {
+    const finalStudents = rosterStudents.map(s => {
       const match = parsedExcelStudents.find(ex => {
         const r1 = s.roll.trim().replace(/^0+/, '');
         const r2 = ex.roll.trim().replace(/^0+/, '');
@@ -1838,7 +1846,7 @@ if (btnSubmitUpload) {
       };
     });
 
-    if (!confirm(`Mapped ${allStudents.length} students from roster.\nResult: ${presentMappedCount} Present, ${allStudents.length - presentMappedCount} Absent.\n\nPeriod(s): ${periods.join(', ')}\nDo you want to submit?`)) {
+    if (!confirm(`Mapped ${rosterStudents.length} students from roster.\nResult: ${presentMappedCount} Present, ${rosterStudents.length - presentMappedCount} Absent.\n\nPeriod(s): ${periods.join(', ')}\nDo you want to submit?`)) {
       return;
     }
 
