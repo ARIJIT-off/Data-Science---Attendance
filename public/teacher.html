@@ -795,6 +795,41 @@
     </div>
   </div>
 
+  <!-- Edit Attendance Modal -->
+  <div id="edit-record-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 99999; justify-content: center; align-items: center;">
+    <div class="glass-card" style="width: 90%; max-width: 440px; padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); background: rgba(18, 24, 38, 0.95); box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 18px; color: var(--color-cyan); font-weight: 600;">Edit Record Details</h3>
+        <button onclick="closeEditRecordModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 24px; line-height: 1; padding: 0 4px;">&times;</button>
+      </div>
+      <input type="hidden" id="edit-record-id">
+      
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label" style="font-size: 12px; margin-bottom: 8px; display: block; color: var(--text-secondary); font-weight: 600;">Subject (Registered for Section)</label>
+        <select id="edit-record-subject" class="form-input" style="width: 100%; font-size: 13px; height: 42px; padding: 0 12px; border-radius: 8px;"></select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label class="form-label" style="font-size: 12px; margin-bottom: 8px; display: block; color: var(--text-secondary); font-weight: 600;">Period</label>
+        <select id="edit-record-period" class="form-input" style="width: 100%; font-size: 13px; height: 42px; padding: 0 12px; border-radius: 8px;">
+          <option value="1">Period 1</option>
+          <option value="2">Period 2</option>
+          <option value="3">Period 3</option>
+          <option value="4">Period 4</option>
+          <option value="5">Period 5</option>
+          <option value="6">Period 6</option>
+          <option value="7">Period 7</option>
+          <option value="8">Period 8</option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-secondary" onclick="closeEditRecordModal()" type="button" style="padding: 9px 18px; font-size: 13px;">Cancel</button>
+        <button class="btn btn-primary" onclick="submitEditRecordModal()" type="button" style="padding: 9px 18px; font-size: 13px; min-width: 110px;">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 // ===== Auth Guard =====
 const userData = JSON.parse(sessionStorage.getItem('user') || 'null');
@@ -1212,7 +1247,7 @@ async function loadRecords() {
                 </button>
               </div>
               <div style="display: flex; gap: 8px; align-items: center;">
-                <button class="btn btn-sm btn-secondary" onclick="editRecordMetadata('${record.id}', \`${(record.subject || '').replace(/`/g, '\\`')}\`, '${record.period || ''}')" style="color:var(--color-cyan); border-color:rgba(6,182,212,0.3); padding: 5px 10px; font-size:11px;" type="button">
+                <button class="btn btn-sm btn-secondary" onclick="editRecordMetadata('${record.id}')" style="color:var(--color-cyan); border-color:rgba(6,182,212,0.3); padding: 5px 10px; font-size:11px;" type="button">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit
                 </button>
                 <button class="btn btn-sm btn-secondary" onclick="deleteRecord('${record.id}')" style="color:var(--color-error); border-color:rgba(244,63,94,0.2); padding: 5px 10px; font-size:11px;" type="button">
@@ -1243,21 +1278,66 @@ function toggleRecord(id) {
   if (card) card.classList.toggle('expanded');
 }
 
-async function editRecordMetadata(id, currentSubject, currentPeriod) {
-  const displayPeriod = currentPeriod === 'EAA' ? '8' : currentPeriod;
-  const newSubject = prompt('Edit Subject Name:', currentSubject);
-  if (newSubject === null) return; // User cancelled
-  const trimmedSubject = newSubject.trim();
-  if (!trimmedSubject) {
-    showToast('Subject name cannot be empty.', 'error');
-    return;
+function editRecordMetadata(id) {
+  const record = teacherRecords.find(r => r.id === id);
+  if (!record) return;
+
+  document.getElementById('edit-record-id').value = id;
+
+  // Filter subjects by the record's year and semester
+  const filteredSubjects = allSubjects.filter(s => s.year === record.year && s.semester === record.semester);
+  const subjectSelect = document.getElementById('edit-record-subject');
+  subjectSelect.innerHTML = '';
+
+  if (filteredSubjects.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = record.subject || '';
+    opt.textContent = record.subject ? `${record.subject}` : 'No subjects registered for this class';
+    subjectSelect.appendChild(opt);
+  } else {
+    let matchFound = false;
+    filteredSubjects.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.subjectName;
+      opt.textContent = `${s.subjectName} (${s.subjectCode})`;
+      if (s.subjectName === record.subject) matchFound = true;
+      subjectSelect.appendChild(opt);
+    });
+
+    if (!matchFound && record.subject) {
+      const opt = document.createElement('option');
+      opt.value = record.subject;
+      opt.textContent = `${record.subject}`;
+      subjectSelect.appendChild(opt);
+    }
   }
 
-  const newPeriod = prompt('Edit Period (e.g., 1, 2, 3, 4, 5, 6, 7, 8):', displayPeriod);
-  if (newPeriod === null) return; // User cancelled
-  const trimmedPeriod = newPeriod.trim();
-  if (!trimmedPeriod) {
-    showToast('Period cannot be empty.', 'error');
+  subjectSelect.value = record.subject || '';
+
+  const periodSelect = document.getElementById('edit-record-period');
+  const currentPeriodVal = record.period === 'EAA' ? '8' : (record.period || '1');
+  periodSelect.value = currentPeriodVal;
+
+  const modal = document.getElementById('edit-record-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeEditRecordModal() {
+  const modal = document.getElementById('edit-record-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function submitEditRecordModal() {
+  const id = document.getElementById('edit-record-id').value;
+  const subject = document.getElementById('edit-record-subject').value.trim();
+  const period = document.getElementById('edit-record-period').value.trim();
+
+  if (!subject) {
+    showToast('Please select a subject.', 'error');
+    return;
+  }
+  if (!period) {
+    showToast('Please select a period.', 'error');
     return;
   }
 
@@ -1265,11 +1345,12 @@ async function editRecordMetadata(id, currentSubject, currentPeriod) {
     const res = await fetch('/api/attendance/' + id + '/metadata', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subject: trimmedSubject, period: trimmedPeriod })
+      body: JSON.stringify({ subject, period })
     });
     const data = await res.json();
     if (data.success) {
-      showToast('Subject and Period updated successfully!', 'success');
+      showToast('Subject & Period updated successfully!', 'success');
+      closeEditRecordModal();
       loadRecords();
     } else {
       showToast(data.message || 'Failed to update record.', 'error');
