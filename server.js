@@ -174,6 +174,24 @@ async function deleteAttendanceRecord(id) {
   return true;
 }
 
+async function updateAttendanceRecordMetadata(id, subject, period) {
+  if (useMongoDb) {
+    const doc = await AttendanceModel.findOne({ id });
+    if (!doc) return false;
+    doc.subject = subject;
+    doc.period = period;
+    await doc.save();
+    return true;
+  }
+  const data = _jsonRead(ATTENDANCE_FILE);
+  const idx = data.findIndex(r => r.id === id);
+  if (idx === -1) return false;
+  data[idx].subject = subject;
+  data[idx].period = period;
+  _jsonWrite(ATTENDANCE_FILE, data);
+  return true;
+}
+
 async function updateStudentInAttendanceRecord(recordId, enrollment, present) {
   if (useMongoDb) {
     const doc = await AttendanceModel.findOne({ id: recordId });
@@ -1316,6 +1334,201 @@ app.get('/api/attendance/stats', async (req, res) => {
   res.json({
     success: true,
     stats: {
+    section: studentInfo.section || 'Sec A'
+  };
+
+  if (supervisorName) {
+    profile.supervisorName = supervisorName;
+    profile.supervisorMobile = supervisorMobile;
+    profile.supervisorEmail = supervisorEmail;
+  }
+
+  console.log(`Student ${studentInfo.name} logged in directly.`);
+
+  res.status(200).json({
+    success: true,
+    message: 'Authentication successful.',
+    user: {
+      email: email,
+      role: 'Student',
+      profile: profile
+    }
+  });
+});
+
+
+// ============================================================
+// ATTENDANCE MANAGEMENT API ENDPOINTS
+// ============================================================
+
+// Endpoint: Get full student list
+app.get('/api/student-list', async (req, res) => {
+  const students = await getAllStudents();
+  res.json({ success: true, students });
+});
+
+// Endpoint: Get student count
+app.get('/api/stats/student-count', async (req, res) => {
+  try {
+    const count = await User.countDocuments({ role: { $regex: /^student$/i } });
+    res.json({ success: true, count });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Endpoint: Get full teacher list
+app.get('/api/teacher-list', async (req, res) => {
+  const teachers = await getAllTeachers();
+  res.json({ success: true, teachers });
+});
+
+// Endpoint: Mark Attendance
+app.post('/api/attendance/mark', async (req, res) => {
+  const { date, subject, year, semester, section, period, teacherEmail, teacherName, students } = req.body;
+
+  if (!date || !subject || !year || !section || !teacherEmail || !teacherName || !students || !Array.isArray(students)) {
+    return res.status(400).json({ success: false, message: 'Missing required fields: date, subject, year, section, teacherEmail, teacherName, students.' });
+  }
+
+  if (students.length === 0) {
+    return res.status(400).json({ success: false, message: 'Student list cannot be empty.' });
+  }
+
+  const record = {
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    date,
+    subject: subject.trim(),
+    year: year.trim(),
+    semester: (semester || '').toString().trim(),
+    section: section.trim(),
+    period: (period || '').toString().trim(),
+    teacherEmail: teacherEmail.trim().toLowerCase(),
+    teacherName: teacherName.trim(),
+    students: students.map(s => ({
+      name: s.name,
+      roll: s.roll,
+      enrollment: s.enrollment,
+      present: !!s.present
+    })),
+    createdAt: new Date().toISOString()
+  };
+
+  await writeAttendanceRecord(record);
+
+  console.log(`Attendance marked by ${teacherName} for ${subject} (${year} - ${section}) on ${date} — ${students.filter(s => s.present).length}/${students.length} present`);
+  res.json({ success: true, message: 'Attendance recorded successfully.', record });
+});
+
+// Endpoint: Get student's attendance records by enrollment number
+app.get('/api/attendance/student/:enrollment', async (req, res) => {
+  const enrollment = decodeURIComponent(req.params.enrollment).trim();
+
+  try {
+    let studentRecords;
+    if (useMongoDb) {
+      // Direct DB query — only fetch records containing this student
+      const docs = await AttendanceModel.find(
+        { 'students.enrollment': enrollment },
+        { id:1, date:1, subject:1, year:1, section:1, semester:1, period:1, teacherName:1, 'students.$':1, createdAt:1 }
+      ).lean();
+      studentRecords = docs.map(record => {
+        const studentEntry = (record.students || []).find(s => s.enrollment === enrollment);
+        return {
+          id: record.id,
+          date: record.date,
+          subject: record.subject,
+          year: record.year || '',
+          semester: record.semester || '',
+          section: record.section || '',
+          period: record.period || '',
+          teacherName: record.teacherName,
+          createdAt: record.createdAt,
+          present: studentEntry ? studentEntry.present : false
+        };
+      });
+    } else {
+      const allRecords = _jsonRead(ATTENDANCE_FILE);
+      studentRecords = allRecords.filter(record =>
+        record.students.some(s => s.enrollment === enrollment)
+      ).map(record => {
+        const studentEntry = record.students.find(s => s.enrollment === enrollment);
+        return {
+          id: record.id, date: record.date, subject: record.subject,
+          year: record.year || '', semester: record.semester || '',
+          section: record.section || '', period: record.period || '',
+          teacherName: record.teacherName, createdAt: record.createdAt,
+          present: studentEntry ? studentEntry.present : false
+        };
+      });
+    }
+    res.json({ success: true, records: studentRecords });
+  } catch (err) {
+    console.error('Error fetching student attendance:', err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Endpoint: Get teacher's attendance records by email
+app.get('/api/attendance/teacher/:email', async (req, res) => {
+  const email = decodeURIComponent(req.params.email).trim().toLowerCase();
+
+  try {
+    let teacherRecords;
+    if (useMongoDb) {
+      // Direct DB query — only fetch this teacher's records, sorted at DB level
+      teacherRecords = await AttendanceModel.find({ teacherEmail: email })
+        .sort({ date: -1 }).lean();
+    } else {
+      const allRecords = _jsonRead(ATTENDANCE_FILE);
+      teacherRecords = allRecords.filter(r => r.teacherEmail === email);
+    }
+    res.json({ success: true, records: teacherRecords });
+  } catch (err) {
+    console.error('Error fetching teacher attendance:', err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Endpoint: Get all attendance records (for admin)
+app.get('/api/attendance/all', async (req, res) => {
+  try {
+    let allRecords;
+    if (useMongoDb) {
+      // Fetch sorted at DB level — no post-processing needed
+      allRecords = await AttendanceModel.find({}).sort({ date: -1 }).lean();
+    } else {
+      allRecords = _jsonRead(ATTENDANCE_FILE);
+    }
+    res.json({ success: true, records: allRecords });
+  } catch (err) {
+    console.error('Error fetching all attendance:', err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// Endpoint: Get attendance statistics (for admin)
+app.get('/api/attendance/stats', async (req, res) => {
+  const allRecords = await readAttendanceData();
+  const students = await getAllStudents();
+  const teachers = await getAllTeachers();
+
+  const totalClasses = allRecords.length;
+  let totalPresent = 0;
+  let totalEntries = 0;
+
+  allRecords.forEach(record => {
+    record.students.forEach(s => {
+      totalEntries++;
+      if (s.present) totalPresent++;
+    });
+  });
+
+  const overallAttendance = totalEntries > 0 ? Math.round((totalPresent / totalEntries) * 100) : 0;
+
+  res.json({
+    success: true,
+    stats: {
       totalStudents: students.length,
       totalTeachers: teachers.length,
       totalClasses,
@@ -1332,6 +1545,20 @@ app.delete('/api/attendance/:id', async (req, res) => {
     return res.status(404).json({ success: false, message: 'Record not found.' });
   }
   res.json({ success: true, message: 'Record deleted successfully.' });
+});
+
+// Endpoint: Update an attendance record metadata (subject/period)
+app.patch('/api/attendance/:id', async (req, res) => {
+  const id = req.params.id;
+  const { subject, period } = req.body;
+  if (!subject || !period) {
+    return res.status(400).json({ success: false, message: 'Subject and Period are required.' });
+  }
+  const updated = await updateAttendanceRecordMetadata(id, subject, period);
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Record not found.' });
+  }
+  res.json({ success: true, message: 'Record updated successfully.' });
 });
 
 
