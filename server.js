@@ -194,6 +194,24 @@ async function updateStudentInAttendanceRecord(recordId, enrollment, present) {
   return record;
 }
 
+async function updateAttendanceMetadata(recordId, subject, period) {
+  if (useMongoDb) {
+    const doc = await AttendanceModel.findOne({ id: recordId });
+    if (!doc) return null;
+    if (subject) doc.subject = subject;
+    if (period) doc.period = period;
+    await doc.save();
+    return doc.toObject();
+  }
+  const data = _jsonRead(ATTENDANCE_FILE);
+  const record = data.find(r => r.id === recordId);
+  if (!record) return null;
+  if (subject) record.subject = subject;
+  if (period) record.period = period;
+  _jsonWrite(ATTENDANCE_FILE, data);
+  return record;
+}
+
 async function readSessionsData() {
   if (useMongoDb) {
     const docs = await SessionModel.find({}).lean();
@@ -1378,6 +1396,28 @@ app.patch('/api/attendance/:recordId/student/:enrollment', async (req, res) => {
 
   console.log(`Admin updated attendance in record ${recordId}: Student (${enrollment}) set to ${present ? 'Present' : 'Absent'}`);
   res.json({ success: true, message: 'Student status updated successfully.', record });
+});
+
+// Endpoint: Update subject and period of an attendance record (teacher/admin)
+app.patch('/api/attendance/:id/metadata', async (req, res) => {
+  const { id } = req.params;
+  const { subject, period } = req.body;
+
+  if (!subject && !period) {
+    return res.status(400).json({ success: false, message: 'Subject or Period must be provided.' });
+  }
+
+  try {
+    const updated = await updateAttendanceMetadata(id, subject, period);
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Record not found.' });
+    }
+    console.log(`Updated attendance record ${id} metadata: Subject="${subject}", Period="${period}"`);
+    res.json({ success: true, message: 'Attendance details updated successfully.', record: updated });
+  } catch (err) {
+    console.error('Error updating attendance metadata:', err);
+    res.status(500).json({ success: false, message: 'Server error updating attendance details.' });
+  }
 });
 
 // Endpoint: Submit a student or teacher grievance
