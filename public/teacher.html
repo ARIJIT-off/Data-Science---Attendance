@@ -699,7 +699,9 @@
                 </div>
                 <div id="bulk-subject-field" style="display:none;">
                   <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Subject</label>
-                  <select id="bulk-filter-subject" class="form-input" style="height:34px; width:200px; font-size:13px; padding:4px 8px;"></select>
+                  <select id="bulk-filter-subject" class="form-input" style="height:34px; min-width:200px; max-width:280px; font-size:13px; padding:4px 8px;">
+                    <option value="">All Subjects</option>
+                  </select>
                 </div>
               </div>
 
@@ -1260,6 +1262,7 @@ async function loadRecords() {
       `;
     });
     container.innerHTML = html;
+    populateBulkSubjectDatalist();
 
     expandedIds.forEach(id => {
       const card = document.getElementById(id);
@@ -2439,15 +2442,16 @@ function updateBulkFilterFields() {
 function populateBulkSubjectDatalist() {
   const select = document.getElementById('bulk-filter-subject');
   if (!select) return;
-  select.innerHTML = '<option value="">Select Subject</option>';
-  if (!teacherRecords.length) return;
+  const currentVal = select.value;
+  if (!teacherRecords || !teacherRecords.length) {
+    select.innerHTML = '<option value="">All Subjects</option>';
+    return;
+  }
   const subjects = [...new Set(teacherRecords.map(r => r.subject).filter(Boolean))].sort();
-  subjects.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    select.appendChild(opt);
-  });
+  select.innerHTML = '<option value="">All Subjects</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+  if (currentVal && subjects.includes(currentVal)) {
+    select.value = currentVal;
+  }
 }
 
 function getDayWithDate(dateStr) {
