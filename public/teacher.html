@@ -699,8 +699,7 @@
                 </div>
                 <div id="bulk-subject-field" style="display:none;">
                   <label style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Subject</label>
-                  <input type="text" id="bulk-filter-subject" class="form-input" placeholder="e.g. Data Science" style="height:34px; width:200px; font-size:13px; padding:4px 10px;" list="bulk-subject-datalist">
-                  <datalist id="bulk-subject-datalist"></datalist>
+                  <select id="bulk-filter-subject" class="form-input" style="height:34px; width:200px; font-size:13px; padding:4px 8px;"></select>
                 </div>
               </div>
 
@@ -2438,10 +2437,17 @@ function updateBulkFilterFields() {
 }
 
 function populateBulkSubjectDatalist() {
-  const dl = document.getElementById('bulk-subject-datalist');
-  if (!dl || !teacherRecords.length) return;
+  const select = document.getElementById('bulk-filter-subject');
+  if (!select) return;
+  select.innerHTML = '<option value="">Select Subject</option>';
+  if (!teacherRecords.length) return;
   const subjects = [...new Set(teacherRecords.map(r => r.subject).filter(Boolean))].sort();
-  dl.innerHTML = subjects.map(s => `<option value="${s}">`).join('');
+  subjects.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    select.appendChild(opt);
+  });
 }
 
 function getDayWithDate(dateStr) {
