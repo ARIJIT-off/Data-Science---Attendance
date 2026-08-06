@@ -641,6 +641,10 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   Record in a Date Range
                 </button>
+                <button class="btn btn-sm" onclick="openAtRiskPanel()" id="at-risk-btn" style="padding:6px 14px; font-size:12px; display:flex; align-items:center; gap:6px; background:linear-gradient(135deg,#f43f5e,#fb923c); border:none; color:#fff; font-weight:700; border-radius:8px; cursor:pointer; box-shadow:0 2px 12px rgba(244,63,94,0.35); transition:all 0.2s;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Students at Risk
+                </button>
               </div>
             </div>
 
@@ -710,6 +714,82 @@
                 Download as Excel
               </button>
             </div>
+
+            <!-- ============================================================ -->
+            <!-- STUDENTS AT RISK PANEL (hidden by default)                   -->
+            <!-- ============================================================ -->
+            <div id="at-risk-panel" style="display:none; background:rgba(244,63,94,0.06); border:1px solid rgba(244,63,94,0.25); border-radius:12px; padding:20px; margin-bottom:18px;">
+              <!-- Header -->
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#f43f5e,#fb923c);display:flex;align-items:center;justify-content:center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" style="width:16px;height:16px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  </div>
+                  <span style="font-size:14px; font-weight:700; color:#fff;">Students at Risk</span>
+                </div>
+                <button onclick="closeAtRiskPanel()" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:18px;padding:2px 6px;line-height:1;">✕</button>
+              </div>
+
+              <!-- Filters -->
+              <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin-bottom:18px;">
+                <!-- Year -->
+                <div>
+                  <label style="font-size:11px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Year</label>
+                  <select id="risk-year" class="form-input" style="height:36px;font-size:13px;padding:4px 8px;width:100%;" onchange="onRiskYearSectionChange()">
+                    <option value="">All Years</option>
+                    <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+                  </select>
+                </div>
+                <!-- Section -->
+                <div>
+                  <label style="font-size:11px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Section</label>
+                  <select id="risk-section" class="form-input" style="height:36px;font-size:13px;padding:4px 8px;width:100%;" onchange="onRiskYearSectionChange()">
+                    <option value="">All Sections</option>
+                    <option>Sec A</option><option>Sec B</option><option>Sec C</option><option>Sec D</option><option>Sec E</option><option>Sec F</option><option>Sec G</option>
+                  </select>
+                </div>
+                <!-- Min Attendance % -->
+                <div>
+                  <label style="font-size:11px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Max Attendance % (below this = at risk)</label>
+                  <input type="number" id="risk-threshold" class="form-input" min="1" max="100" value="75" placeholder="e.g. 75" style="height:36px;font-size:13px;padding:4px 10px;width:100%;">
+                </div>
+              </div>
+
+              <!-- Subject chips (auto-populated) -->
+              <div style="margin-bottom:18px;">
+                <label style="font-size:11px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">Select Subject <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.4);font-size:10px;">(only subjects with records for the chosen year/section appear)</span></label>
+                <div id="risk-subject-chips" style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <span style="font-size:12px;color:var(--text-secondary);font-style:italic;">Load records first, then choose Year/Section above to see subjects.</span>
+                </div>
+              </div>
+
+              <!-- Generate button -->
+              <button onclick="generateAtRiskReport()" class="btn btn-primary" style="background:linear-gradient(135deg,#f43f5e,#fb923c);border:none;padding:9px 22px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Find Students at Risk
+              </button>
+
+              <!-- Results section -->
+              <div id="at-risk-results" style="display:none; margin-top:20px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                  <div>
+                    <span id="at-risk-results-title" style="font-size:13px;font-weight:700;color:#fff;"></span>
+                    <span id="at-risk-results-count" style="font-size:12px;color:var(--text-secondary);margin-left:10px;"></span>
+                  </div>
+                  <button onclick="downloadAtRiskExcel()" style="padding:7px 16px;font-size:12px;font-weight:700;background:linear-gradient(135deg,#10b981,#06b6d4);border:none;color:#fff;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:7px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download Excel
+                  </button>
+                </div>
+
+                <!-- Legend -->
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:10px;">Sorted by attendance % — least present first. Click on a student row to see absent dates.</div>
+
+                <!-- Student rows injected here -->
+                <div id="at-risk-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+              </div>
+            </div>
+            <!-- END STUDENTS AT RISK PANEL -->
 
             <div id="records-container">
               <div class="loading-overlay" id="records-loading">
@@ -2390,6 +2470,9 @@ let bulkDownloadMode = 'single'; // 'single' or 'range'
 
 function openBulkDownloadPanel(mode) {
   bulkDownloadMode = mode;
+  // Close at-risk panel if open
+  const arPanel = document.getElementById('at-risk-panel');
+  if (arPanel) arPanel.style.display = 'none';
   const panel = document.getElementById('bulk-download-panel');
   const title = document.getElementById('bulk-panel-title');
   const singleDateDiv = document.getElementById('bulk-date-single');
@@ -2659,6 +2742,273 @@ function updatePeriodDisplay(id) {
 
 function getSelectedPeriods(id) {
   return Array.from(document.querySelectorAll(`.period-chip[data-target="${id}"].period-chip--active`)).map(c => c.dataset.value);
+}
+
+// ===== Students At Risk =====
+let atRiskData = null; // holds the last generated report data
+
+function openAtRiskPanel() {
+  // Close bulk panel if open
+  document.getElementById('bulk-download-panel').style.display = 'none';
+  const panel = document.getElementById('at-risk-panel');
+  panel.style.display = 'block';
+  // Reset results
+  document.getElementById('at-risk-results').style.display = 'none';
+  // Populate subject chips based on current filters
+  onRiskYearSectionChange();
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeAtRiskPanel() {
+  document.getElementById('at-risk-panel').style.display = 'none';
+}
+
+function onRiskYearSectionChange() {
+  const year = document.getElementById('risk-year').value.trim();
+  const section = document.getElementById('risk-section').value.trim();
+  const chipsContainer = document.getElementById('risk-subject-chips');
+
+  if (!teacherRecords || !teacherRecords.length) {
+    chipsContainer.innerHTML = '<span style="font-size:12px;color:var(--text-secondary);font-style:italic;">No records loaded yet.</span>';
+    return;
+  }
+
+  // Filter records by year/section to get relevant subjects
+  let filtered = teacherRecords;
+  if (year) filtered = filtered.filter(r => (r.year || '') === year);
+  if (section) filtered = filtered.filter(r => (r.section || '') === section);
+
+  const subjects = [...new Set(filtered.map(r => r.subject).filter(Boolean))].sort();
+
+  if (!subjects.length) {
+    chipsContainer.innerHTML = '<span style="font-size:12px;color:var(--text-secondary);font-style:italic;">No subjects found for the chosen filter.</span>';
+    return;
+  }
+
+  // Preserve currently selected subject if still valid
+  const currentSelected = chipsContainer.querySelector('.risk-chip--active')?.dataset.subject;
+
+  chipsContainer.innerHTML = subjects.map(s => {
+    const isActive = s === currentSelected ? 'risk-chip--active' : '';
+    return `<button type="button" class="risk-chip ${isActive}" data-subject="${s}"
+      onclick="selectRiskSubjectChip(this)"
+      style="padding:6px 14px;font-size:12px;font-weight:600;border-radius:20px;cursor:pointer;transition:all 0.18s;
+             border:1.5px solid rgba(244,63,94,0.4);background:${s === currentSelected ? 'linear-gradient(135deg,#f43f5e,#fb923c)' : 'rgba(244,63,94,0.08)'};
+             color:${s === currentSelected ? '#fff' : 'rgba(255,255,255,0.75)'};">${s}</button>`;
+  }).join('');
+}
+
+function selectRiskSubjectChip(btn) {
+  // Deactivate all chips
+  document.querySelectorAll('#risk-subject-chips .risk-chip').forEach(c => {
+    c.classList.remove('risk-chip--active');
+    c.style.background = 'rgba(244,63,94,0.08)';
+    c.style.color = 'rgba(255,255,255,0.75)';
+    c.style.border = '1.5px solid rgba(244,63,94,0.4)';
+  });
+  // Activate clicked chip
+  btn.classList.add('risk-chip--active');
+  btn.style.background = 'linear-gradient(135deg,#f43f5e,#fb923c)';
+  btn.style.color = '#fff';
+  btn.style.border = '1.5px solid transparent';
+}
+
+function generateAtRiskReport() {
+  if (!teacherRecords || !teacherRecords.length) {
+    showToast('No records loaded. Please go to My Records first.', 'warning');
+    return;
+  }
+
+  const year = document.getElementById('risk-year').value.trim();
+  const section = document.getElementById('risk-section').value.trim();
+  const thresholdRaw = parseInt(document.getElementById('risk-threshold').value);
+  const selectedChip = document.querySelector('#risk-subject-chips .risk-chip--active');
+
+  if (!selectedChip) {
+    showToast('Please select a subject.', 'warning');
+    return;
+  }
+  const subject = selectedChip.dataset.subject;
+
+  if (isNaN(thresholdRaw) || thresholdRaw < 1 || thresholdRaw > 100) {
+    showToast('Please enter a valid attendance threshold between 1 and 100.', 'warning');
+    return;
+  }
+  const threshold = thresholdRaw;
+
+  // Filter records that match year + section + subject
+  let relevantRecords = teacherRecords.filter(r => r.subject === subject);
+  if (year) relevantRecords = relevantRecords.filter(r => (r.year || '') === year);
+  if (section) relevantRecords = relevantRecords.filter(r => (r.section || '') === section);
+
+  if (!relevantRecords.length) {
+    showToast('No records found for the selected filters.', 'warning');
+    return;
+  }
+
+  // Build per-student attendance map
+  // studentMap: enrollment -> { name, roll, totalClasses, presentCount, absentSessions: [{date, period}] }
+  const studentMap = {};
+
+  relevantRecords.forEach(record => {
+    (record.students || []).forEach(s => {
+      if (!s.enrollment) return;
+      if (!studentMap[s.enrollment]) {
+        studentMap[s.enrollment] = {
+          name: s.name || 'Unknown',
+          roll: s.roll || '',
+          enrollment: s.enrollment,
+          totalClasses: 0,
+          presentCount: 0,
+          absentSessions: []
+        };
+      }
+      const st = studentMap[s.enrollment];
+      st.totalClasses++;
+      if (s.present) {
+        st.presentCount++;
+      } else {
+        st.absentSessions.push({ date: record.date, period: record.period || '' });
+      }
+    });
+  });
+
+  // Compute attendance %, filter at risk, sort ascending by %
+  const atRiskStudents = Object.values(studentMap)
+    .map(st => ({
+      ...st,
+      attendancePct: st.totalClasses > 0 ? ((st.presentCount / st.totalClasses) * 100) : 0
+    }))
+    .filter(st => st.attendancePct < threshold)
+    .sort((a, b) => a.attendancePct - b.attendancePct); // least present first
+
+  // Store for download
+  atRiskData = { students: atRiskStudents, year, section, subject, threshold };
+
+  // Render results
+  const resultsDiv = document.getElementById('at-risk-results');
+  const titleEl = document.getElementById('at-risk-results-title');
+  const countEl = document.getElementById('at-risk-results-count');
+  const listEl = document.getElementById('at-risk-list');
+
+  const label = [year, section, subject].filter(Boolean).join(' · ');
+  titleEl.textContent = label || 'All Records';
+  countEl.textContent = `${atRiskStudents.length} student${atRiskStudents.length !== 1 ? 's' : ''} below ${threshold}%`;
+
+  if (!atRiskStudents.length) {
+    listEl.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-secondary);font-size:13px;">
+      🎉 No students below ${threshold}% attendance! Everyone is on track.
+    </div>`;
+  } else {
+    listEl.innerHTML = atRiskStudents.map((st, idx) => {
+      const pct = st.attendancePct.toFixed(1);
+      const danger = st.attendancePct < 40 ? '#f43f5e' : st.attendancePct < 60 ? '#fb923c' : '#f59e0b';
+      const absentRows = st.absentSessions
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+        .map(s => `<div style="display:flex;gap:16px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;">
+            <span style="min-width:130px;color:rgba(255,255,255,0.75);">${formatDateString(s.date)}</span>
+            <span style="color:var(--text-secondary);">Period ${s.period === 'EAA' ? '8 (EAA)' : (s.period || '—')}</span>
+          </div>`).join('');
+
+      return `
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;overflow:hidden;">
+          <div onclick="toggleAtRiskRow(${idx})" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;transition:background 0.15s;" 
+               onmouseenter="this.style.background='rgba(255,255,255,0.05)'" onmouseleave="this.style.background='transparent'">
+            <span style="font-size:11px;font-weight:700;color:var(--text-secondary);min-width:22px;">${idx + 1}</span>
+            <span style="min-width:70px;font-size:12px;color:rgba(255,255,255,0.5);">${st.roll || '—'}</span>
+            <span style="min-width:130px;font-size:12px;color:rgba(255,255,255,0.55);">${st.enrollment}</span>
+            <span style="flex:1;font-size:13px;font-weight:600;color:#fff;">${st.name}</span>
+            <span style="font-size:13px;font-weight:800;color:${danger};min-width:54px;text-align:right;">${pct}%</span>
+            <span style="font-size:11px;color:var(--text-secondary);min-width:80px;text-align:right;">${st.presentCount}/${st.totalClasses} classes</span>
+            <svg id="risk-chevron-${idx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;color:var(--text-secondary);transition:transform 0.2s;margin-left:8px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div id="risk-row-body-${idx}" style="display:none;padding:10px 14px 12px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Absent on:</div>
+            ${absentRows || '<div style="font-size:12px;color:var(--text-secondary);font-style:italic;">No absences recorded.</div>'}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  resultsDiv.style.display = 'block';
+  resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleAtRiskRow(idx) {
+  const body = document.getElementById(`risk-row-body-${idx}`);
+  const chevron = document.getElementById(`risk-chevron-${idx}`);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function downloadAtRiskExcel() {
+  if (!atRiskData || !atRiskData.students.length) {
+    showToast('No at-risk data to download. Generate the report first.', 'warning');
+    return;
+  }
+
+  const { students, year, section, subject, threshold } = atRiskData;
+  const wb = XLSX.utils.book_new();
+
+  // ---- Sheet 1: Summary ----
+  const summaryRows = [];
+  summaryRows.push([`Students at Risk Report`]);
+  summaryRows.push([`Year: ${year || 'All'}    Section: ${section || 'All'}    Subject: ${subject}`]);
+  summaryRows.push([`Threshold: Below ${threshold}% attendance`]);
+  summaryRows.push([`Generated: ${new Date().toLocaleString()}`]);
+  summaryRows.push([]);
+  summaryRows.push(['#', 'Roll No.', 'Enrollment No.', 'Student Name', 'Attendance %', 'Classes Present', 'Total Classes', 'Classes Absent']);
+
+  students.forEach((st, i) => {
+    summaryRows.push([
+      i + 1,
+      st.roll || '',
+      st.enrollment,
+      st.name,
+      parseFloat(st.attendancePct.toFixed(2)),
+      st.presentCount,
+      st.totalClasses,
+      st.totalClasses - st.presentCount
+    ]);
+  });
+
+  const ws1 = XLSX.utils.aoa_to_sheet(summaryRows);
+  ws1['!cols'] = [{ wch: 5 }, { wch: 10 }, { wch: 18 }, { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 13 }, { wch: 13 }];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+
+  // ---- Sheet per student ----
+  students.forEach(st => {
+    const rows = [];
+    rows.push([`${st.name}`]);
+    rows.push([`Classes (${subject}) - Absent sessions:`]);
+    rows.push([]);
+    rows.push(['Date', 'Period']);
+
+    const sortedAbsences = [...st.absentSessions].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    sortedAbsences.forEach(s => {
+      rows.push([
+        formatDateString(s.date),
+        s.period === 'EAA' ? '8 (EAA)' : (s.period || '—')
+      ]);
+    });
+
+    rows.push([]);
+    rows.push([`Total Absent: ${st.absentSessions.length}`, `Total Present: ${st.presentCount}`, `Total Classes: ${st.totalClasses}`, `Attendance: ${st.attendancePct.toFixed(1)}%`]);
+
+    const wsS = XLSX.utils.aoa_to_sheet(rows);
+    wsS['!cols'] = [{ wch: 22 }, { wch: 16 }];
+
+    // Sanitize sheet name (max 31 chars, no special chars)
+    let sheetName = (st.name || 'Student').replace(/[\\\/\*\?\[\]\:]/g, '').trim().substring(0, 28);
+    if (wb.SheetNames.includes(sheetName)) sheetName = sheetName.substring(0, 25) + '_' + (wb.SheetNames.length);
+    XLSX.utils.book_append_sheet(wb, wsS, sheetName);
+  });
+
+  const safeSubject = subject.replace(/[^a-zA-Z0-9_\-]/g, '_').substring(0, 20);
+  XLSX.writeFile(wb, `At_Risk_${safeSubject}_${year || 'All'}_${section || 'All'}.xlsx`);
+  showToast('Excel downloaded successfully!', 'success');
 }
 
 // Close period dropdowns when clicking outside
