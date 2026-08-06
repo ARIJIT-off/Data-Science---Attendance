@@ -1295,6 +1295,40 @@ app.get('/api/attendance/teacher/:email', async (req, res) => {
   }
 });
 
+// Endpoint: Get attendance records for a specific date + year + semester + section (for daily summary panel)
+app.get('/api/attendance/day-summary', async (req, res) => {
+  const { date, year, semester, section } = req.query;
+  if (!date || !year || !semester || !section) {
+    return res.status(400).json({ success: false, message: 'Missing query params: date, year, semester, section' });
+  }
+  try {
+    let records;
+    if (useMongoDb) {
+      records = await AttendanceModel.find({ date, year, semester, section })
+        .sort({ period: 1 }).lean();
+    } else {
+      const allRecords = _jsonRead(ATTENDANCE_FILE);
+      records = allRecords.filter(r =>
+        r.date === date && r.year === year && r.semester === semester && r.section === section
+      );
+    }
+    // Return only the metadata we need (no full student arrays — only counts)
+    const summary = records.map(r => ({
+      id: r._id || r.id,
+      subject: r.subject,
+      period: r.period,
+      presentCount: (r.students || []).filter(s => s.present).length,
+      absentCount: (r.students || []).filter(s => !s.present).length,
+      teacherName: r.teacherName || r.teacherEmail || 'Unknown',
+      teacherEmail: r.teacherEmail || ''
+    }));
+    res.json({ success: true, summary });
+  } catch (err) {
+    console.error('Error fetching day summary:', err.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
 // Endpoint: Get all attendance records (for admin)
 app.get('/api/attendance/all', async (req, res) => {
   try {

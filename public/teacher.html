@@ -366,6 +366,34 @@
                 </div>
               </div>
 
+              <!-- =====================================================
+                   DAY SUMMARY PANEL: shows attendance already recorded
+                   for the selected date/year/semester/section
+                   ===================================================== -->
+              <div id="day-summary-panel" style="display:none; background:rgba(6,182,212,0.05); border:1px solid rgba(6,182,212,0.2); border-radius:10px; padding:14px 16px; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-cyan)" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  <span id="day-summary-title" style="font-size:12px; font-weight:700; color:var(--color-cyan); text-transform:uppercase; letter-spacing:0.4px;">Attendance recorded today</span>
+                </div>
+                <div id="day-summary-table-wrap" style="overflow-x:auto;">
+                  <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                    <thead>
+                      <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                        <th style="padding:5px 10px; text-align:left; color:var(--text-secondary); font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:0.5px; white-space:nowrap;">Subject</th>
+                        <th style="padding:5px 10px; text-align:center; color:var(--text-secondary); font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:0.5px; white-space:nowrap;">Period</th>
+                        <th style="padding:5px 10px; text-align:center; color:var(--text-secondary); font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:0.5px; white-space:nowrap;">Present</th>
+                        <th style="padding:5px 10px; text-align:center; color:var(--text-secondary); font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:0.5px; white-space:nowrap;">Absent</th>
+                        <th style="padding:5px 10px; text-align:left; color:var(--text-secondary); font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:0.5px; white-space:nowrap;">Taken By</th>
+                      </tr>
+                    </thead>
+                    <tbody id="day-summary-tbody">
+                      <tr><td colspan="5" style="padding:12px 10px; text-align:center; color:var(--text-secondary); font-style:italic; font-size:12px;">Loading…</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- END DAY SUMMARY PANEL -->
+
               <!-- Search & Actions -->
               <div class="actions-bar">
                 <div>
@@ -1167,10 +1195,20 @@ document.getElementById('student-search').addEventListener('input', (e) => {
 
 document.getElementById('attendance-year').addEventListener('change', () => {
   renderRoster(allStudents);
+  loadDaySummary();
 });
 
 document.getElementById('attendance-section').addEventListener('change', () => {
   renderRoster(allStudents);
+  loadDaySummary();
+});
+
+document.getElementById('attendance-date').addEventListener('change', () => {
+  loadDaySummary();
+});
+
+document.getElementById('attendance-semester').addEventListener('change', () => {
+  loadDaySummary();
 });
 
 // ===== Submit Attendance =====
@@ -1237,6 +1275,7 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
       });
       updateSelectCount();
       loadRecords();
+      loadDaySummary(); // Refresh the daily summary & re-gray taken periods
     }
   } catch (err) {
     console.error(err);
@@ -1246,6 +1285,115 @@ document.getElementById('btn-submit-attendance').addEventListener('click', async
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><polyline points="20 6 9 17 4 12"/></svg> Submit Attendance';
 });
+
+// ===== Day Summary Panel =====
+let _daySummaryDebounce = null;
+
+async function loadDaySummary() {
+  const date = document.getElementById('attendance-date').value;
+  const year = document.getElementById('attendance-year').value;
+  const semester = document.getElementById('attendance-semester').value;
+  const section = document.getElementById('attendance-section').value;
+
+  const panel = document.getElementById('day-summary-panel');
+  const tbody = document.getElementById('day-summary-tbody');
+  const titleEl = document.getElementById('day-summary-title');
+
+  // All four filters must be filled before showing the panel
+  if (!date || !year || !semester || !section) {
+    panel.style.display = 'none';
+    applyPeriodGrayout([]);
+    return;
+  }
+
+  panel.style.display = 'block';
+  titleEl.textContent = `Attendance recorded on ${formatDateString(date)} · ${year} · ${semester} · ${section}`;
+  tbody.innerHTML = '<tr><td colspan="5" style="padding:10px; text-align:center; color:var(--text-secondary); font-style:italic;">Loading…</td></tr>';
+
+  // Debounce rapid filter changes
+  clearTimeout(_daySummaryDebounce);
+  _daySummaryDebounce = setTimeout(async () => {
+    try {
+      const params = new URLSearchParams({ date, year, semester, section });
+      const res = await fetch('/api/attendance/day-summary?' + params.toString());
+      const data = await res.json();
+
+      if (!data.success) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:10px; text-align:center; color:var(--text-secondary);">Could not load summary.</td></tr>';
+        return;
+      }
+
+      const summary = data.summary || [];
+      if (!summary.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:10px; text-align:center; color:var(--text-secondary); font-style:italic;">No attendance recorded yet for this date / year / section.</td></tr>';
+        applyPeriodGrayout([]);
+        return;
+      }
+
+      // Sort by period
+      summary.sort((a, b) => {
+        const w = p => p === 'EAA' ? 8 : (parseInt(p) || 99);
+        return w(a.period) - w(b.period);
+      });
+
+      tbody.innerHTML = summary.map(row => {
+        const periodLabel = row.period === 'EAA' ? '8 (EAA)' : (row.period || '—');
+        const isOwn = (row.teacherEmail || '').toLowerCase() === profile.email.toLowerCase();
+        const nameStyle = isOwn ? 'color:var(--color-cyan);font-weight:600;' : 'color:rgba(255,255,255,0.75);';
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+          <td style="padding:6px 10px; color:#fff; font-weight:500;">${row.subject || '—'}</td>
+          <td style="padding:6px 10px; text-align:center; font-weight:700; color:var(--color-cyan);">${periodLabel}</td>
+          <td style="padding:6px 10px; text-align:center; color:#10b981; font-weight:700;">${row.presentCount}</td>
+          <td style="padding:6px 10px; text-align:center; color:#f43f5e; font-weight:700;">${row.absentCount}</td>
+          <td style="padding:6px 10px; ${nameStyle}">${row.teacherName}${isOwn ? ' <span style="font-size:10px;background:rgba(6,182,212,0.15);color:var(--color-cyan);padding:1px 5px;border-radius:4px;">You</span>' : ''}</td>
+        </tr>`;
+      }).join('');
+
+      // Gray out taken periods in the period picker
+      const takenPeriods = summary.map(r => String(r.period));
+      applyPeriodGrayout(takenPeriods);
+
+    } catch (err) {
+      console.error('Day summary error:', err);
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:10px; text-align:center; color:var(--text-secondary);">Error loading summary.</td></tr>';
+    }
+  }, 350);
+}
+
+function applyPeriodGrayout(takenPeriods) {
+  // Works on attendance-period and upload-period chips
+  ['attendance-period', 'upload-period'].forEach(target => {
+    document.querySelectorAll(`.period-chip[data-target="${target}"]`).forEach(chip => {
+      const val = chip.dataset.value;
+      const isTaken = takenPeriods.includes(val) || (val === 'EAA' && takenPeriods.includes('EAA'));
+      if (isTaken) {
+        // Gray out and disable
+        chip.disabled = true;
+        chip.title = 'Attendance already recorded for this period';
+        chip.style.opacity = '0.35';
+        chip.style.cursor = 'not-allowed';
+        chip.style.textDecoration = 'line-through';
+        chip.style.pointerEvents = 'none';
+        // Deselect if currently active
+        if (chip.classList.contains('period-chip--active')) {
+          chip.classList.remove('period-chip--active');
+          // Update the display label
+          const displayTarget = target === 'attendance-period' ? 'attendance-period' : 'upload-period';
+          const labelEl = document.getElementById(displayTarget + '-label');
+          const active = Array.from(document.querySelectorAll(`.period-chip[data-target="${displayTarget}"].period-chip--active`));
+          if (labelEl) labelEl.textContent = active.length ? active.map(c => c.dataset.value).join(', ') : 'Period';
+        }
+      } else {
+        chip.disabled = false;
+        chip.title = '';
+        chip.style.opacity = '';
+        chip.style.cursor = '';
+        chip.style.textDecoration = '';
+        chip.style.pointerEvents = '';
+      }
+    });
+  });
+}
 
 // ===== Load Records =====
 async function loadRecords() {
