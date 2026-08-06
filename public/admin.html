@@ -4400,7 +4400,16 @@ function exportTeacherExcel() {
     let rawName = `${sec} - ${subj}`.replace(/[\\/*?:\[\]]/g, '');
     let safeSecName = rawName.substring(0, 31);
     if (!safeSecName) safeSecName = 'Section';
-    XLSX.utils.book_append_sheet(wb, wsSec, safeSecName);
+    
+    let finalSheetName = safeSecName;
+    let counter = 1;
+    while (wb.SheetNames.includes(finalSheetName)) {
+      const suffix = ` (${counter})`;
+      finalSheetName = safeSecName.substring(0, 31 - suffix.length) + suffix;
+      counter++;
+    }
+    
+    XLSX.utils.book_append_sheet(wb, wsSec, finalSheetName);
   });
 
   const finalSubjectName = subject === 'All Subjects' || !subject ? 'All_Subjects' : subject;
