@@ -1649,10 +1649,6 @@ async function loadSubjects() {
       updateSubjectsDropdown('attendance-year', 'attendance-semester', 'attendance-subject');
       updateSubjectsDropdown('upload-year', 'upload-semester', 'upload-subject');
       updateSubjectsDropdown('live-year', 'live-semester', 'live-subject');
-      // NOTE: loadDaySummary is NOT called here intentionally.
-      // Browser form restoration (restoring last-used Year/Section) happens
-      // AFTER DOMContentLoaded, so semester derived here might use the wrong
-      // HTML-default year. We call it from the window.load handler below instead.
     }
   } catch (err) {
     console.error('Failed to load subjects:', err);
@@ -1743,19 +1739,8 @@ document.getElementById('live-semester').addEventListener('change', () => {
 loadStudentRoster();
 loadRecords();
 loadSubjects();
-
-// ===== Day-summary init: fire AFTER browser form restoration is complete =====
-// window.load fires after all resources and browser autocomplete/form-restore
-// have run, so form values (Year, Section, Semester) are reliable at that point.
-window.addEventListener('load', () => {
-  // Re-sync semester dropdown with whatever year the browser restored
-  updateSemesterDropdown('attendance-year', 'attendance-semester');
-  updateSubjectsDropdown('attendance-year', 'attendance-semester', 'attendance-subject');
-  // Refresh the date hint too (browser may have restored a date)
-  updateDateHint('attendance-date', 'attendance-date-hint');
-  // Now all filters are reliable — load the day summary
-  loadDaySummary();
-});
+// Day summary panel starts hidden — only appears when user changes a filter (year/section/date/semester).
+// This avoids showing stale defaults like "1st Sem / Sec A" on first open.
 
 // ---- Formatted date hints (fix iOS MM/DD/YYYY display) ----
 function updateDateHint(inputId, hintId) {
