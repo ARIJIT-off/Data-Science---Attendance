@@ -3085,16 +3085,14 @@ function generateAtRiskReport() {
           </div>`).join('');
 
       return `
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;overflow:hidden;">
-          <div onclick="toggleAtRiskRow(${idx})" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;transition:background 0.15s;" 
+        <div data-risk-idx="${idx}" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;overflow:hidden;touch-action:pan-y;">
+          <div onclick="toggleAtRiskRow(${idx})" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background 0.15s;user-select:none;"
                onmouseenter="this.style.background='rgba(255,255,255,0.05)'" onmouseleave="this.style.background='transparent'">
-            <span style="font-size:11px;font-weight:700;color:var(--text-secondary);min-width:22px;">${idx + 1}</span>
-            <span style="min-width:70px;font-size:12px;color:rgba(255,255,255,0.5);">${st.roll || '—'}</span>
-            <span style="min-width:130px;font-size:12px;color:rgba(255,255,255,0.55);">${st.enrollment}</span>
+            <span style="min-width:34px;font-size:12px;font-weight:700;color:var(--color-cyan);flex-shrink:0;">${st.roll || '—'}</span>
             <span style="flex:1;font-size:13px;font-weight:600;color:#fff;">${st.name}</span>
-            <span style="font-size:13px;font-weight:800;color:${danger};min-width:54px;text-align:right;">${pct}%</span>
-            <span style="font-size:11px;color:var(--text-secondary);min-width:80px;text-align:right;">${st.presentCount}/${st.totalClasses} classes</span>
-            <svg id="risk-chevron-${idx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;color:var(--text-secondary);transition:transform 0.2s;margin-left:8px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+            <span style="font-size:13px;font-weight:800;color:${danger};min-width:48px;text-align:right;flex-shrink:0;">${pct}%</span>
+            <span style="font-size:11px;color:var(--text-secondary);min-width:64px;text-align:right;flex-shrink:0;">${st.presentCount}/${st.totalClasses}</span>
+            <svg id="risk-chevron-${idx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;color:var(--text-secondary);transition:transform 0.25s;margin-left:4px;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div id="risk-row-body-${idx}" style="display:none;padding:10px 14px 12px;border-top:1px solid rgba(255,255,255,0.06);">
             <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Absent on:</div>
@@ -3106,6 +3104,8 @@ function generateAtRiskReport() {
 
   resultsDiv.style.display = 'block';
   resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Attach swipe listeners after DOM is rendered
+  requestAnimationFrame(() => attachAtRiskSwipeListeners());
 }
 
 function toggleAtRiskRow(idx) {
@@ -3115,6 +3115,26 @@ function toggleAtRiskRow(idx) {
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+// ---- Swipe left/right on at-risk rows to expand/collapse ----
+function attachAtRiskSwipeListeners() {
+  document.querySelectorAll('[data-risk-idx]').forEach(card => {
+    let startX = 0, startY = 0;
+    card.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+    card.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      // Only treat as horizontal swipe if dx > threshold and not predominantly vertical
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        const idx = parseInt(card.dataset.riskIdx, 10);
+        toggleAtRiskRow(idx);
+      }
+    }, { passive: true });
+  });
 }
 
 function downloadAtRiskExcel() {
