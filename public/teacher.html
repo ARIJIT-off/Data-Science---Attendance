@@ -313,6 +313,7 @@
                 </div>
                 <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="attendance-year">
+                    <option value="">Select Year</option>
                     <option value="1st Year">1st Year</option>
                     <option value="2nd Year">2nd Year</option>
                     <option value="3rd Year">3rd Year</option>
@@ -327,6 +328,7 @@
                 </div>
                 <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="attendance-section">
+                    <option value="">Select Section</option>
                     <option value="Sec A">Sec A</option>
                     <option value="Sec B">Sec B</option>
                     <option value="Sec C">Sec C</option>
@@ -1064,6 +1066,15 @@ function renderRoster(students) {
   const selectedYear = document.getElementById('attendance-year').value;
   const selectedSection = document.getElementById('attendance-section').value;
 
+  // Nothing selected yet — show a friendly prompt instead of an error
+  if (!selectedYear || !selectedSection) {
+    container.innerHTML = `<div class="empty-state" style="opacity:0.5;"><p>Select a <strong>Year</strong> and <strong>Section</strong> to load the student roster.</p></div>`;
+    document.getElementById('total-count').textContent = '0';
+    document.getElementById('selected-count').textContent = '0';
+    document.getElementById('btn-submit-attendance').disabled = true;
+    return;
+  }
+
   const filtered = students.filter(s => s.year === selectedYear && s.section === selectedSection);
 
   document.getElementById('total-count').textContent = filtered.length;
@@ -1659,19 +1670,23 @@ function updateSemesterDropdown(yearSelectId, semesterSelectId) {
   const yearVal = document.getElementById(yearSelectId).value;
   const semSelect = document.getElementById(semesterSelectId);
   if (!semSelect) return;
-  
+
   semSelect.innerHTML = '';
-  let options = [];
-  if (yearVal === '1st Year') {
-    options = ['1st Sem', '2nd Sem'];
-  } else if (yearVal === '2nd Year') {
-    options = ['3rd Sem', '4th Sem'];
-  } else if (yearVal === '3rd Year') {
-    options = ['5th Sem', '6th Sem'];
-  } else if (yearVal === '4th Year') {
-    options = ['7th Sem', '8th Sem'];
+
+  // If no year selected yet, show a placeholder and stop
+  if (!yearVal) {
+    const ph = document.createElement('option');
+    ph.value = ''; ph.textContent = 'Semester';
+    semSelect.appendChild(ph);
+    return;
   }
-  
+
+  let options = [];
+  if (yearVal === '1st Year')      options = ['1st Sem', '2nd Sem'];
+  else if (yearVal === '2nd Year') options = ['3rd Sem', '4th Sem'];
+  else if (yearVal === '3rd Year') options = ['5th Sem', '6th Sem'];
+  else if (yearVal === '4th Year') options = ['7th Sem', '8th Sem'];
+
   options.forEach(optVal => {
     const opt = document.createElement('option');
     opt.value = optVal;
