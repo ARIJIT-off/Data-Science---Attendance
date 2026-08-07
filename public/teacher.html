@@ -309,6 +309,7 @@
                 <div class="form-group" style="flex: 1.2;">
                   <input placeholder=" " type="date" class="form-input" id="attendance-date">
                   <label class="form-label">Date</label>
+                  <span id="attendance-date-hint" style="display:block;font-size:10px;color:var(--color-cyan);margin-top:3px;font-weight:600;letter-spacing:0.3px;"></span>
                 </div>
                 <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="attendance-year">
@@ -435,6 +436,7 @@
                 <div class="form-group" style="flex: 1.2;">
                   <input placeholder=" " type="date" class="form-input" id="upload-date">
                   <label class="form-label">Date</label>
+                  <span id="upload-date-hint" style="display:block;font-size:10px;color:var(--color-cyan);margin-top:3px;font-weight:600;letter-spacing:0.3px;"></span>
                 </div>
                 <div class="form-group" style="flex: 1.2;">
                   <select class="form-input" id="upload-year">
@@ -1647,6 +1649,9 @@ async function loadSubjects() {
       updateSubjectsDropdown('attendance-year', 'attendance-semester', 'attendance-subject');
       updateSubjectsDropdown('upload-year', 'upload-semester', 'upload-subject');
       updateSubjectsDropdown('live-year', 'live-semester', 'live-subject');
+
+      // Trigger day summary now that semester is populated
+      loadDaySummary();
     }
   } catch (err) {
     console.error('Failed to load subjects:', err);
@@ -1714,6 +1719,7 @@ document.getElementById('attendance-year').addEventListener('change', () => {
 });
 document.getElementById('attendance-semester').addEventListener('change', () => {
   updateSubjectsDropdown('attendance-year', 'attendance-semester', 'attendance-subject');
+  loadDaySummary();
 });
 
 document.getElementById('upload-year').addEventListener('change', () => {
@@ -1735,7 +1741,27 @@ document.getElementById('live-semester').addEventListener('change', () => {
 // ===== Init =====
 loadStudentRoster();
 loadRecords();
-loadSubjects();
+loadSubjects(); // loadDaySummary() is called at the end of loadSubjects once semester is ready
+
+// ---- Formatted date hints (fix iOS MM/DD/YYYY display) ----
+function updateDateHint(inputId, hintId) {
+  const input = document.getElementById(inputId);
+  const hint = document.getElementById(hintId);
+  if (!input || !hint) return;
+  const val = input.value; // always YYYY-MM-DD
+  hint.textContent = val ? formatDateString(val) : '';
+}
+
+// Populate hints on page load
+const _dateHintPairs = [
+  ['attendance-date', 'attendance-date-hint'],
+  ['upload-date',     'upload-date-hint'],
+];
+_dateHintPairs.forEach(([inputId, hintId]) => {
+  updateDateHint(inputId, hintId);
+  const el = document.getElementById(inputId);
+  if (el) el.addEventListener('change', () => updateDateHint(inputId, hintId));
+});
 
 // ===== Email Change Modal Logic =====
 const emailModal = document.getElementById('email-modal');
