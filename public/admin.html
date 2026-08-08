@@ -817,6 +817,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           Reports
         </button>
+        <button id="btn-open-all-students" onclick="openAllStudentsPanel()" style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;border:1px solid rgba(0,240,120,0.3);background:rgba(0,240,120,0.08);color:#00f078;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.25s;text-transform:uppercase;letter-spacing:0.4px;font-family:inherit;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          All Students
+        </button>
         <button id="btn-toggle-drawer-profile" class="btn-admin-menu-highlight" onclick="toggleLeftDrawer(true)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           Admin Menu
@@ -5396,5 +5400,354 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
+</body>
+</html>
+
+<!-- ═══════════════  ALL STUDENTS PANEL (modal overlay)  ══════════════ -->
+<div id="all-students-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);overflow-y:auto;padding:24px 16px;">
+  <div style="max-width:900px;margin:0 auto;background:#0b0f1e;border:1px solid rgba(0,240,120,0.2);border-radius:16px;padding:28px 24px;box-shadow:0 24px 80px rgba(0,0,0,0.8);">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,rgba(0,240,120,0.2),rgba(0,200,80,0.1));border:1px solid rgba(0,240,120,0.3);display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00f078" stroke-width="2" style="width:18px;height:18px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:#fff;">All Students Report</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);">Download subject-wise attendance for any year &amp; section</div>
+        </div>
+      </div>
+      <button onclick="closeAllStudentsPanel()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px;cursor:pointer;color:rgba(255,255,255,0.6);display:flex;align-items:center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">
+      <div>
+        <label style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Year <span style="color:#f43f5e;">*</span></label>
+        <select id="as-year" class="report-filter-group select" style="width:100%;height:40px;background:rgba(8,12,28,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:0 10px;font-size:13px;font-family:inherit;">
+          <option value="">Select Year</option>
+          <option value="1st Year">1st Year</option>
+          <option value="2nd Year">2nd Year</option>
+          <option value="3rd Year">3rd Year</option>
+          <option value="4th Year">4th Year</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Section <span style="color:#f43f5e;">*</span></label>
+        <select id="as-section" style="width:100%;height:40px;background:rgba(8,12,28,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:0 10px;font-size:13px;font-family:inherit;">
+          <option value="">Select Section</option>
+          <option value="Sec A">Sec A</option>
+          <option value="Sec B">Sec B</option>
+          <option value="Sec C">Sec C</option>
+          <option value="Sec D">Sec D</option>
+          <option value="Sec E">Sec E</option>
+          <option value="Sec F">Sec F</option>
+          <option value="Sec G">Sec G</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Date From <span style="color:#f43f5e;">*</span></label>
+        <input type="date" id="as-date-from" style="width:100%;height:40px;background:rgba(8,12,28,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:0 10px;font-size:13px;font-family:inherit;box-sizing:border-box;">
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Date To <span style="color:#f43f5e;">*</span></label>
+        <input type="date" id="as-date-to" style="width:100%;height:40px;background:rgba(8,12,28,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:0 10px;font-size:13px;font-family:inherit;box-sizing:border-box;">
+      </div>
+    </div>
+
+    <!-- Action button -->
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button id="as-dl-btn" onclick="downloadAllStudentsExcel()" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;background:linear-gradient(135deg,#00c853,#00f078);border:none;color:#000;font-size:13px;font-weight:800;cursor:pointer;transition:all 0.25s;font-family:inherit;letter-spacing:0.3px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download as .xlsx
+      </button>
+      <span id="as-status" style="font-size:12px;color:rgba(255,255,255,0.4);"></span>
+    </div>
+
+    <!-- Preview hint -->
+    <div id="as-preview" style="display:none;margin-top:18px;padding:14px 16px;background:rgba(0,240,120,0.05);border:1px solid rgba(0,240,120,0.15);border-radius:10px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.7;">
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════  ALL STUDENTS REPORT  ══════════
+
+function openAllStudentsPanel() {
+  document.getElementById('all-students-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  // Set default date range: last 30 days
+  const today = new Date().toLocaleDateString('en-CA');
+  const past = new Date(Date.now() - 30 * 24 * 3600 * 1000).toLocaleDateString('en-CA');
+  const fromEl = document.getElementById('as-date-from');
+  const toEl = document.getElementById('as-date-to');
+  if (!fromEl.value) fromEl.value = past;
+  if (!toEl.value) toEl.value = today;
+  fromEl.max = today; toEl.max = today;
+  document.getElementById('as-status').textContent = '';
+  document.getElementById('as-preview').style.display = 'none';
+}
+
+function closeAllStudentsPanel() {
+  document.getElementById('all-students-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Close on overlay click
+document.getElementById('all-students-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAllStudentsPanel();
+});
+
+function fmtDate(d) {
+  if (!d) return 'N/A';
+  const p = d.split('-');
+  if (p.length === 3) {
+    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(p[2])} ${m[parseInt(p[1])-1]} ${p[0]}`;
+  }
+  return d;
+}
+
+function cellStyle(wb, fill, bold, color) {
+  // XLSX community edition doesn't support rich styles without pro, but we apply via !cols / merge
+  // We'll use the existing pattern from the rest of admin (AOA)
+}
+
+async function downloadAllStudentsExcel() {
+  const year     = document.getElementById('as-year').value.trim();
+  const section  = document.getElementById('as-section').value.trim();
+  const dateFrom = document.getElementById('as-date-from').value;
+  const dateTo   = document.getElementById('as-date-to').value;
+  const statusEl = document.getElementById('as-status');
+  const previewEl = document.getElementById('as-preview');
+
+  // Validation
+  if (!year)     { statusEl.textContent = '⚠ Please select a Year.';     statusEl.style.color = '#f43f5e'; return; }
+  if (!section)  { statusEl.textContent = '⚠ Please select a Section.';  statusEl.style.color = '#f43f5e'; return; }
+  if (!dateFrom) { statusEl.textContent = '⚠ Please enter Date From.';   statusEl.style.color = '#f43f5e'; return; }
+  if (!dateTo)   { statusEl.textContent = '⚠ Please enter Date To.';     statusEl.style.color = '#f43f5e'; return; }
+  if (dateFrom > dateTo) { statusEl.textContent = '⚠ Date From must be before Date To.'; statusEl.style.color = '#f43f5e'; return; }
+
+  statusEl.style.color = 'rgba(255,255,255,0.4)';
+  statusEl.textContent = 'Building report…';
+  previewEl.style.display = 'none';
+
+  // Filter records by year, section, and date range
+  const records = allRecords.filter(r =>
+    r.year === year &&
+    r.section === section &&
+    r.date >= dateFrom &&
+    r.date <= dateTo
+  );
+
+  if (records.length === 0) {
+    statusEl.textContent = '⚠ No attendance records found for this selection.';
+    statusEl.style.color = '#fbbf24';
+    return;
+  }
+
+  // Collect all unique subjects for this year/section
+  const subjectsSet = new Set();
+  records.forEach(r => { if (r.subject) subjectsSet.add(r.subject); });
+  const subjects = Array.from(subjectsSet).sort();
+
+  // Build per-subject stats for each student
+  // studentMap: enrollment → { roll, name, enrollment, subjectStats: { subj: { present, absent } } }
+  const studentMap = {};
+
+  // Populate student map from allStudents for this year/section first (to get correct roll order)
+  allStudents
+    .filter(s => s.year === year && s.section === section)
+    .forEach(s => {
+      studentMap[s.enrollment] = {
+        roll: s.roll,
+        name: s.name,
+        enrollment: s.enrollment,
+        subjectStats: {}
+      };
+      subjects.forEach(subj => {
+        studentMap[s.enrollment].subjectStats[subj] = { present: 0, absent: 0 };
+      });
+    });
+
+  // Populate stats from records
+  records.forEach(record => {
+    const subj = record.subject || 'Unknown';
+    (record.students || []).forEach(s => {
+      if (!studentMap[s.enrollment]) {
+        studentMap[s.enrollment] = {
+          roll: s.roll || '',
+          name: s.name || '',
+          enrollment: s.enrollment || '',
+          subjectStats: {}
+        };
+        subjects.forEach(sub => {
+          studentMap[s.enrollment].subjectStats[sub] = { present: 0, absent: 0 };
+        });
+      }
+      if (!studentMap[s.enrollment].subjectStats[subj]) {
+        studentMap[s.enrollment].subjectStats[subj] = { present: 0, absent: 0 };
+      }
+      if (s.present) studentMap[s.enrollment].subjectStats[subj].present++;
+      else           studentMap[s.enrollment].subjectStats[subj].absent++;
+    });
+  });
+
+  // Sort students by roll number
+  const students = Object.values(studentMap).sort((a, b) =>
+    (parseInt(a.roll, 10) || 0) - (parseInt(b.roll, 10) || 0)
+  );
+
+  if (students.length === 0) {
+    statusEl.textContent = '⚠ No students found for the selection.';
+    statusEl.style.color = '#fbbf24';
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // ─────────────────────────────────────────────
+  // SHEET 1: SUMMARY
+  // ─────────────────────────────────────────────
+  const summaryAOA = [];
+
+  // Heading rows
+  summaryAOA.push([`Attendance Record from ${fmtDate(dateFrom)} to ${fmtDate(dateTo)}`]);
+  summaryAOA.push([`Year: ${year}    Section: ${section}`]);
+  summaryAOA.push([]); // blank row
+
+  // Header row: Roll | Enrollment | Name | Subj1 (%) | [Present] [Absent] | Subj2... | ...
+  // We will use a two-row header with merge for subject headers
+  const headerRow1 = ['Roll No', 'Enrollment', 'Name'];
+  const headerRow2 = ['', '', ''];
+  subjects.forEach(subj => {
+    headerRow1.push(subj, '', ''); // subject spans 3 cols: %, Present, Absent
+    headerRow2.push('Attendance %', 'Present', 'Absent');
+  });
+  summaryAOA.push(headerRow1);
+  summaryAOA.push(headerRow2);
+
+  // Data rows
+  students.forEach(st => {
+    const row = [st.roll, st.enrollment, st.name];
+    subjects.forEach(subj => {
+      const stats = st.subjectStats[subj] || { present: 0, absent: 0 };
+      const total = stats.present + stats.absent;
+      const pct = total > 0 ? ((stats.present / total) * 100).toFixed(1) + '%' : '—';
+      row.push(pct, stats.present, stats.absent);
+    });
+    summaryAOA.push(row);
+  });
+
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryAOA);
+
+  // Column widths
+  const wCols = [{ wch: 8 }, { wch: 18 }, { wch: 28 }];
+  subjects.forEach(() => { wCols.push({ wch: 14 }, { wch: 10 }, { wch: 10 }); });
+  wsSummary['!cols'] = wCols;
+
+  // Merge subject header cells (row index 3, 0-based = row 4 in AOA)
+  // Row 3 is headerRow1 (0-indexed), subjects start at col 3
+  const merges = [];
+  subjects.forEach((_, i) => {
+    const startCol = 3 + i * 3;
+    merges.push({ s: { r: 3, c: startCol }, e: { r: 3, c: startCol + 2 } });
+  });
+  // Also merge heading rows across all columns
+  const totalCols = 3 + subjects.length * 3;
+  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: Math.max(0, totalCols - 1) } });
+  merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: Math.max(0, totalCols - 1) } });
+  wsSummary['!merges'] = merges;
+
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  // ─────────────────────────────────────────────
+  // SHEETS 2..N+1: Per-student
+  // ─────────────────────────────────────────────
+  students.forEach(st => {
+    const stAOA = [];
+
+    // Heading
+    stAOA.push([`Roll No: ${st.roll}    Name: ${st.name}    Enrollment: ${st.enrollment}`]);
+    stAOA.push([`Attendance Record from ${fmtDate(dateFrom)} to ${fmtDate(dateTo)}`]);
+    stAOA.push([]); // blank
+
+    // Header: metric | subj1 | subj2 | ...
+    const stHeader = [''];
+    subjects.forEach(subj => stHeader.push(subj));
+    stAOA.push(stHeader);
+
+    // Rows
+    const totalRow    = ['Total Classes'];
+    const presentRow  = ['Classes Present'];
+    const absentRow   = ['Classes Absent'];
+    const pctRow      = ['Attendance %'];
+
+    subjects.forEach(subj => {
+      const stats = st.subjectStats[subj] || { present: 0, absent: 0 };
+      const total = stats.present + stats.absent;
+      const pct = total > 0 ? ((stats.present / total) * 100).toFixed(1) + '%' : '—';
+      totalRow.push(total);
+      presentRow.push(stats.present);
+      absentRow.push(stats.absent);
+      pctRow.push(pct);
+    });
+
+    stAOA.push(totalRow);
+    stAOA.push(presentRow);
+    stAOA.push(absentRow);
+    stAOA.push(pctRow);
+
+    const wsStudent = XLSX.utils.aoa_to_sheet(stAOA);
+
+    // Column widths
+    const stCols = [{ wch: 20 }];
+    subjects.forEach(() => stCols.push({ wch: 22 }));
+    wsStudent['!cols'] = stCols;
+
+    // Merge heading rows
+    const stMerges = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: Math.max(0, subjects.length) } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: Math.max(0, subjects.length) } }
+    ];
+    wsStudent['!merges'] = stMerges;
+
+    // Sheet name: Roll_Name (max 31 chars, safe chars)
+    let sheetName = `R${st.roll}_${st.name}`.replace(/[^a-zA-Z0-9 _]/g, '').trim().replace(/\s+/g, '_');
+    if (sheetName.length > 31) sheetName = sheetName.substring(0, 31);
+    // Ensure unique
+    let finalName = sheetName;
+    let counter = 1;
+    while (wb.SheetNames.includes(finalName)) {
+      finalName = sheetName.substring(0, 28) + '_' + counter++;
+    }
+
+    XLSX.utils.book_append_sheet(wb, wsStudent, finalName);
+  });
+
+  // Download
+  const safeYear = year.replace(/\s+/g, '_');
+  const safeSec  = section.replace(/\s+/g, '_');
+  XLSX.writeFile(wb, `All_Students_${safeYear}_${safeSec}_${dateFrom}_to_${dateTo}.xlsx`);
+
+  statusEl.style.color = '#00f078';
+  statusEl.textContent = `✓ Downloaded — ${students.length} students · ${subjects.length} subjects`;
+
+  previewEl.style.display = 'block';
+  previewEl.innerHTML = `
+    <strong style="color:#00f078;">Report Generated:</strong><br>
+    📅 ${fmtDate(dateFrom)} → ${fmtDate(dateTo)} &nbsp;|&nbsp; 
+    🎓 ${year}, ${section} &nbsp;|&nbsp; 
+    👥 ${students.length} students &nbsp;|&nbsp; 
+    📚 ${subjects.length} subjects<br>
+    <span style="font-size:11px;color:rgba(255,255,255,0.35);">
+      Sheets: <strong>Summary</strong> + ${students.length} individual student sheets (sorted by roll number)
+    </span>
+  `;
+}
+</script>
 </body>
 </html>
